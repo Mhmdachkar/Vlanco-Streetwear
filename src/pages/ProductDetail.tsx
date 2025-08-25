@@ -1,1211 +1,2816 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, useInView, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useInView, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { 
-  ArrowLeft, 
-  Heart, 
-  Share2, 
-  ShoppingCart, 
-  Star, 
-  ChevronLeft, 
-  ChevronRight,
-  Shield, 
-  Truck,
-  RotateCcw,
-  Award,
-  Zap,
-  Check,
-  Info,
-  Package,
-  Sparkles,
-  Eye,
-  Timer,
-  Plus,
-  Minus,
-  ZoomIn,
-  Facebook,
-  Twitter,
-  Instagram,
-  Copy,
-  Gift,
-  CreditCard,
-  Lock,
-  ThumbsUp,
-  MessageCircle,
-  Users,
-  TrendingUp,
-  Globe,
-  Ruler,
-  Palette,
-  Volume2,
-  VolumeX,
-  Play,
-  Pause,
-  RotateCw,
-  Maximize,
-  ShoppingBag,
-  Flame,
-  Target,
-  Headphones,
-  Camera,
-  Music
+  ArrowLeft, Heart, Share2, ShoppingCart, Star, ChevronLeft, ChevronRight,
+  Shield, Truck, RotateCcw, Award, Zap, Check, Info, Package, Sparkles,
+  Eye, Timer, Plus, Minus, ZoomIn, ZoomOut, Facebook, Twitter, Instagram, Copy,
+  Gift, CreditCard, Lock, ThumbsUp, MessageCircle, Users, TrendingUp,
+  Globe, Ruler, Palette, Volume2, VolumeX, Play, Pause, RotateCw,
+  Maximize, ShoppingBag, Flame, Target, Headphones, Camera, Music,
+  Layers, Command, Hexagon, Triangle, Square, Circle, X, ArrowUpRight
 } from 'lucide-react';
-import buttonBgImage from '@/assets/product-1.jpg';
-import product1 from '@/assets/product-1.jpg';
-import product3 from '@/assets/product-3.jpg';
-import product4 from '@/assets/product-4.jpg';
-import product5 from '@/assets/product-5.jpg';
+import { useCart } from '@/hooks/useCart';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
+import { validateQuantity, logSecurityEvent } from '@/utils/security';
 
-// Enhanced Button Component with street-style effects
-const StreetButton = ({ children, onClick, variant = 'primary', className = '', disabled = false, ...props }) => {
-  const [isPressed, setIsPressed] = useState(false);
-  const [ripples, setRipples] = useState([]);
+// Local product images from assets folder
+const productImages = [
+  "/src/assets/product-1.jpg",
+  "/src/assets/product-2.jpg", 
+  "/src/assets/product-3.jpg",
+  "/src/assets/product-4.jpg",
+  "/src/assets/product-5.jpg"
+];
+
+// Glitch Button Component
+const GlitchButton = ({ children, onClick, variant = 'primary', className = '', disabled = false, size = 'default', pulse = false }) => {
+  const [isGlitching, setIsGlitching] = useState(false);
+  const [particles, setParticles] = useState([]);
 
   const handleClick = (e) => {
     if (disabled) return;
     
-    // Create ripple effect
+    setIsGlitching(true);
+    
+    // Create particles
     const rect = e.currentTarget.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height);
-    const x = e.clientX - rect.left - size / 2;
-    const y = e.clientY - rect.top - size / 2;
+    const newParticles = Array.from({ length: 20 }, (_, i) => ({
+      id: Date.now() + i,
+      x: rect.left + rect.width / 2,
+      y: rect.top + rect.height / 2,
+      vx: (Math.random() - 0.5) * 400,
+      vy: (Math.random() - 0.5) * 400,
+      life: 1
+    }));
     
-    const newRipple = {
-      x,
-      y,
-      size,
-      id: Date.now()
-    };
+    setParticles(newParticles);
     
-    setRipples(prev => [...prev, newRipple]);
-    
-    // Remove ripple after animation
     setTimeout(() => {
-      setRipples(prev => prev.filter(r => r.id !== newRipple.id));
-    }, 600);
-    
-    setIsPressed(true);
-    setTimeout(() => setIsPressed(false), 150);
+      setIsGlitching(false);
+      setParticles([]);
+    }, 800);
     
     if (onClick) onClick(e);
   };
 
-  const baseClasses = `
-    relative overflow-hidden font-semibold transition-all duration-200 
-    focus:outline-none focus:ring-2 focus:ring-offset-2 
-    transform active:scale-95 select-none
-  `;
-  
+  const sizeClasses = {
+    sm: 'px-4 py-2 text-sm',
+    default: 'px-6 py-3 text-base',
+    lg: 'px-8 py-4 text-lg',
+    xl: 'px-10 py-5 text-xl font-black'
+  };
+
   const variants = {
     primary: `
-      bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 
-      hover:from-blue-500 hover:via-purple-500 hover:to-blue-700
-      text-white shadow-lg hover:shadow-xl
-      border-2 border-blue-500/50 hover:border-blue-400/70
-      focus:ring-blue-500/50
+      bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 
+      hover:from-cyan-400 hover:via-blue-500 hover:to-purple-500
+      text-white shadow-2xl border-2 border-cyan-400/50
+      hover:border-cyan-300/80 hover:shadow-cyan-500/50
     `,
-    secondary: `
-      bg-gradient-to-r from-gray-800 to-gray-900 
-      hover:from-gray-700 hover:to-gray-800
-      text-white shadow-md hover:shadow-lg
-      border-2 border-gray-600/50 hover:border-gray-500/70
-      focus:ring-gray-500/50
+    neon: `
+      bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500
+      hover:from-pink-400 hover:via-red-400 hover:to-yellow-400
+      text-white shadow-2xl border-2 border-pink-400/50
+      hover:border-pink-300/80 hover:shadow-pink-500/50
     `,
-    outline: `
-      bg-transparent border-2 border-gray-300 
-      hover:bg-gray-50 hover:border-gray-400
-      text-gray-700 hover:text-gray-900
-      focus:ring-gray-400/50
+    cyber: `
+      bg-gradient-to-r from-green-500 via-teal-500 to-blue-500
+      hover:from-green-400 hover:via-teal-400 hover:to-blue-400
+      text-black font-black shadow-2xl border-2 border-green-400/50
+      hover:border-green-300/80 hover:shadow-green-500/50
+    `,
+    ghost: `
+      bg-transparent border-2 border-white/30 text-white
+      hover:bg-white/10 hover:border-white/60
+      backdrop-blur-xl
     `
   };
 
   return (
-    <motion.button
-      className={`${baseClasses} ${variants[variant]} ${className}`}
-      onMouseDown={() => setIsPressed(true)}
-      onMouseUp={() => setIsPressed(false)}
-      onMouseLeave={() => setIsPressed(false)}
-      onClick={handleClick}
-      disabled={disabled}
-      animate={{
-        scale: isPressed ? 0.95 : 1,
-        rotate: isPressed ? [0, -1, 1, 0] : 0
-      }}
-      transition={{ duration: 0.15, ease: "easeOut" }}
-      {...props}
-    >
-      {children}
-      
-      {/* Ripple Effects */}
-      {ripples.map(ripple => (
+    <>
+      <motion.button
+        className={`
+          relative overflow-hidden font-bold rounded-xl transition-all duration-300
+          transform-gpu focus:outline-none focus:ring-4 focus:ring-cyan-500/50
+          ${sizeClasses[size]} ${variants[variant]} ${className}
+        `}
+        onMouseDown={() => setIsGlitching(true)}
+        onMouseUp={() => setIsGlitching(false)}
+        onMouseLeave={() => setIsGlitching(false)}
+        onClick={handleClick}
+        disabled={disabled}
+        animate={{
+          boxShadow: isGlitching ? [
+            '0 0 20px rgba(6, 182, 212, 0.6)',
+            '0 0 30px rgba(6, 182, 212, 0.8)',
+            '0 0 20px rgba(6, 182, 212, 0.6)'
+          ] : pulse ? [
+            '0 0 0px rgba(6, 182, 212, 0)',
+            '0 0 20px rgba(6, 182, 212, 0.4)',
+            '0 0 0px rgba(6, 182, 212, 0)'
+          ] : undefined,
+          scale: isGlitching ? [1, 1.01, 0.99, 1] : 1
+        }}
+        transition={{ duration: pulse ? 2 : 0.2, repeat: pulse ? Infinity : 0 }}
+        whileHover={{ 
+          scale: 1.02,
+          y: -1,
+          filter: 'brightness(1.1)'
+        }}
+        whileTap={{ scale: 0.98 }}
+      >
+        {/* Subtle glitch overlay */}
         <motion.div
-          key={ripple.id}
-          className="absolute bg-white/30 rounded-full pointer-events-none"
-          style={{
-            left: ripple.x,
-            top: ripple.y,
-            width: ripple.size,
-            height: ripple.size,
+          className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-transparent to-blue-500/10 mix-blend-overlay"
+          animate={{
+            x: isGlitching ? [-1, 1, 0] : 0,
+            opacity: isGlitching ? [0, 0.5, 0] : 0
           }}
-          initial={{ scale: 0, opacity: 1 }}
-          animate={{ scale: 2, opacity: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
+          transition={{ duration: 0.1, repeat: isGlitching ? 2 : 0 }}
+        />
+        
+        {/* Subtle scanlines */}
+        <motion.div
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `repeating-linear-gradient(
+              90deg,
+              transparent,
+              transparent 3px,
+              rgba(255,255,255,0.05) 3px,
+              rgba(255,255,255,0.05) 6px
+            )`
+          }}
+          animate={{
+            opacity: isGlitching ? [0.05, 0.1, 0.05] : 0.05
+          }}
+          transition={{ duration: 0.2, repeat: isGlitching ? 2 : 0 }}
+        />
+
+        {/* Content with subtle effect */}
+        <motion.div
+          className="relative z-10 flex items-center justify-center"
+          animate={{
+            x: isGlitching ? [-0.5, 0.5, 0] : 0
+          }}
+          transition={{ duration: 0.1, repeat: isGlitching ? 1 : 0 }}
+        >
+          {children}
+        </motion.div>
+
+        {/* Glow effect */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+          initial={{ x: '-100%' }}
+          whileHover={{ x: '200%' }}
+          transition={{ duration: 0.8 }}
+        />
+      </motion.button>
+
+      {/* Particles */}
+      {particles.map(particle => (
+        <motion.div
+          key={particle.id}
+          className="fixed w-2 h-2 bg-cyan-400 rounded-full pointer-events-none z-50"
+          initial={{ x: particle.x, y: particle.y, scale: 1, opacity: 1 }}
+          animate={{
+            x: particle.x + particle.vx,
+            y: particle.y + particle.vy,
+            scale: 0,
+            opacity: 0
+          }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
         />
       ))}
-      
-      {/* Glow effect */}
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
-        initial={{ x: '-100%', opacity: 0 }}
-        whileHover={{ x: '100%', opacity: 1 }}
-        transition={{ duration: 0.6, ease: "easeInOut" }}
-      />
-    </motion.button>
+    </>
   );
 };
 
-// Enhanced Card with street-style hover effects
-const StreetCard = ({ children, className = '', onClick, hoverable = true }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const rotateX = useTransform(y, [-100, 100], [15, -15]);
-  const rotateY = useTransform(x, [-100, 100], [-15, 15]);
+// Holographic Card Component
+const HoloCard = ({ children, className = '', glowColor = 'cyan' }) => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const cardRef = useRef(null);
 
-  const handleMouseMove = (event) => {
-    if (!hoverable) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    x.set((event.clientX - centerX) / 10);
-    y.set((event.clientY - centerY) / 10);
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setMousePosition({ x, y });
   };
 
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    x.set(0);
-    y.set(0);
+  const glowColors = {
+    cyan: 'shadow-cyan-500/20 border-cyan-500/30',
+    pink: 'shadow-pink-500/20 border-pink-500/30',
+    purple: 'shadow-purple-500/20 border-purple-500/30',
+    green: 'shadow-green-500/20 border-green-500/30'
   };
 
   return (
     <motion.div
+      ref={cardRef}
       className={`
-        relative bg-white/5 backdrop-blur-xl border border-white/10 
-        rounded-xl overflow-hidden cursor-pointer transition-all duration-300
-        ${hoverable ? 'hover:shadow-2xl hover:shadow-blue-500/20' : ''}
+        relative overflow-hidden backdrop-blur-xl bg-black/20 
+        border border-white/10 rounded-2xl transition-all duration-300 ease-out
+        hover:${glowColors[glowColor]} hover:shadow-2xl hover:scale-[1.01]
         ${className}
       `}
-      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      onClick={onClick}
-      whileHover={{ scale: hoverable ? 1.02 : 1, y: hoverable ? -5 : 0 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      onMouseLeave={() => setMousePosition({ x: 0.5, y: 0.5 })}
+      whileHover={{ y: -2, scale: 1.01 }}
+      style={{
+        background: `
+          radial-gradient(
+            600px circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+            rgba(255,255,255,0.1) 0%,
+            transparent 40%
+          ),
+          linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.1) 100%)
+        `
+      }}
     >
-      {/* Animated border glow */}
+             {/* Subtle shine overlay */}
       <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/20 to-blue-500/0 rounded-xl"
-        animate={{
-          opacity: isHovered ? 1 : 0,
-          background: isHovered 
-            ? ["linear-gradient(0deg, rgba(59,130,246,0) 0%, rgba(147,51,234,0.2) 50%, rgba(59,130,246,0) 100%)",
-               "linear-gradient(90deg, rgba(59,130,246,0) 0%, rgba(147,51,234,0.2) 50%, rgba(59,130,246,0) 100%)",
-               "linear-gradient(180deg, rgba(59,130,246,0) 0%, rgba(147,51,234,0.2) 50%, rgba(59,130,246,0) 100%)",
-               "linear-gradient(270deg, rgba(59,130,246,0) 0%, rgba(147,51,234,0.2) 50%, rgba(59,130,246,0) 100%)"]
-            : "linear-gradient(0deg, rgba(59,130,246,0) 0%, rgba(147,51,234,0) 50%, rgba(59,130,246,0) 100%)"
+         className="absolute inset-0 opacity-10"
+        style={{
+           background: `linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)`
         }}
-        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        animate={{
+           x: ['-100%', '200%']
+        }}
+         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       />
       
       {/* Content */}
       <div className="relative z-10">
         {children}
       </div>
-      
-      {/* Hover spotlight */}
-      <motion.div
-        className="absolute inset-0 opacity-0 bg-gradient-to-radial from-white/5 to-transparent pointer-events-none"
-        animate={{ opacity: isHovered ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        style={{
-          background: `radial-gradient(circle at ${x.get() + 50}% ${y.get() + 50}%, rgba(255,255,255,0.1) 0%, transparent 50%)`
-        }}
-      />
     </motion.div>
   );
 };
 
-// Street-style floating action button
-const FloatingActionButton = ({ icon: Icon, onClick, className = '', label, pulse = false }) => {
-  const [isHovered, setIsHovered] = useState(false);
+// Cyber Progress Bar
+const CyberProgress = ({ value, max = 100, label, color = 'cyan' }) => {
+  const percentage = (value / max) * 100;
   
+  const colors = {
+    cyan: 'from-cyan-500 to-blue-500',
+    pink: 'from-pink-500 to-purple-500',
+    green: 'from-green-500 to-emerald-500'
+  };
+
   return (
-    <div className="relative group">
-      <motion.button
-        className={`
-          fixed z-50 w-14 h-14 rounded-full 
-          bg-gradient-to-br from-blue-600 to-purple-700 
-          shadow-lg hover:shadow-xl text-white
-          border-2 border-blue-500/50 hover:border-blue-400/70
-          ${className}
-        `}
-        whileHover={{ scale: 1.1, rotate: 5 }}
-        whileTap={{ scale: 0.9 }}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onClick={onClick}
-        animate={pulse ? {
-          boxShadow: [
-            '0 0 0 0 rgba(59, 130, 246, 0.4)',
-            '0 0 0 20px rgba(59, 130, 246, 0)',
-          ]
-        } : {}}
-        transition={pulse ? {
-          duration: 1.5,
-          repeat: Infinity,
-          ease: "easeOut"
-        } : {}}
-      >
-        <Icon className="w-6 h-6" />
-        
-        {/* Glow effect */}
+    <div className="space-y-2">
+      <div className="flex justify-between text-sm font-medium">
+        <span>{label}</span>
+        <span className="text-cyan-400">{value}/{max}</span>
+      </div>
+      <div className="relative h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-600">
         <motion.div
-          className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400/50 to-purple-600/50 blur-lg"
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
-        />
-      </motion.button>
-      
-      {/* Tooltip */}
-      <AnimatePresence>
-        {isHovered && label && (
+          className={`h-full bg-gradient-to-r ${colors[color]} relative`}
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        >
+                     {/* Subtle shine */}
           <motion.div
-            className="fixed bg-gray-900 text-white px-3 py-1 rounded-lg text-sm whitespace-nowrap z-50"
-            style={{ 
-              left: 'calc(100% + 10px)',
-              top: '50%',
-              transform: 'translateY(-50%)'
-            }}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {label}
-            <div className="absolute left-0 top-1/2 transform -translate-x-1 -translate-y-1/2 w-2 h-2 bg-gray-900 rotate-45" />
-          </motion.div>
-        )}
-      </AnimatePresence>
+             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+            animate={{ x: ['-100%', '200%'] }}
+             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </motion.div>
+      </div>
     </div>
   );
 };
 
-// Sound effects helper
-const useSoundEffects = () => {
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  
-  const playSound = (type) => {
-    if (!soundEnabled) return;
-    
-    const sounds = {
-      click: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBC',
-      add: 'data:audio/wav;base64,UklGRiQCAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQACAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgI=',
-      whoosh: 'data:audio/wav;base64,UklGRlQBAABXQVZFZm0dIBAAAAEAAQBBAACALwAAQB8AAAEACABkYXRhMAEAAJiYmZmamZqZmpmamZmZmZmamZmZmZmZmZmamZmZmZmZmZmZmZmZmZmZmZmZmZmZmZ'
-    };
-    
-    try {
-      const audio = new Audio(sounds[type] || sounds.click);
-      audio.volume = 0.3;
-      audio.play().catch(() => {}); // Silently handle play failures
-    } catch (error) {
-      // Silently handle audio creation failures
-    }
-  };
-  
-  return { playSound, soundEnabled, setSoundEnabled };
+// Smooth Floating Element
+const FloatingElement = ({ children, className = "", delay = 0 }) => {
+  return (
+    <motion.div
+      className={className}
+      animate={{
+        y: [-5, 5, -5],
+        scale: [1, 1.02, 1]
+      }}
+      transition={{
+        duration: 6,
+        repeat: Infinity,
+        ease: "easeInOut",
+        delay
+      }}
+    >
+      {children}
+    </motion.div>
+  );
 };
 
-const ProductDetail = () => {
-  // Mock data - in real app this would come from props/router
-  const product = {
-    id: 1,
-    name: "VLANCO Street Hoodie",
-    price: 89,
-    image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500",
-    category: "Hoodies",
-    description: "Premium streetwear hoodie crafted with attention to detail and urban aesthetic. Features our signature logo and comfortable fit."
+// Enhanced Floating Cart Indicator
+const FloatingCartIndicator = ({ itemCount, onClick, isVisible }) => {
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          className="fixed bottom-8 right-8 z-50"
+          initial={{ opacity: 0, scale: 0, y: 100 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0, y: 100 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
+          <motion.button
+            onClick={onClick}
+            className="relative w-16 h-16 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-full shadow-2xl border-2 border-cyan-400/50 hover:border-cyan-300/80 transition-all duration-300 group"
+            whileHover={{ 
+              scale: 1.1, 
+              y: -5,
+              boxShadow: "0 20px 40px rgba(6, 182, 212, 0.4)"
+            }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <ShoppingCart className="w-7 h-7 text-white mx-auto" />
+            
+            {/* Item count badge */}
+            {itemCount > 0 && (
+              <motion.div
+                className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center border-2 border-black"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 500 }}
+              >
+                <span className="text-xs font-black text-white">{itemCount}</span>
+              </motion.div>
+            )}
+            
+            {/* Pulse effect */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-cyan-400/30"
+              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+            
+            {/* Hover glow */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400/20 to-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            />
+          </motion.button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+// Enhanced Photo Gallery Navigation with Zoom and Touch Support
+const EnhancedPhotoGallery = ({ images, currentIndex, onImageChange, onZoom }) => {
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [dragDirection, setDragDirection] = useState(null);
+  const [dragProgress, setDragProgress] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const galleryRef = useRef(null);
+  const imageRef = useRef(null);
+
+  const handlePrevious = () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    onImageChange(currentIndex === 0 ? images.length - 1 : currentIndex - 1);
+    setTimeout(() => setIsNavigating(false), 300);
   };
 
+  const handleNext = () => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    onImageChange(currentIndex === images.length - 1 ? 0 : currentIndex + 1);
+    setTimeout(() => setIsNavigating(false), 300);
+  };
+
+  const handleThumbnailClick = (index) => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    onImageChange(index);
+    setTimeout(() => setIsNavigating(false), 300);
+  };
+
+  const handleDragStart = (e) => {
+    const touch = e.touches ? e.touches[0] : e;
+    setDragProgress(0);
+  };
+
+  const handleDragMove = (e) => {
+    const touch = e.touches ? e.touches[0] : e;
+    const rect = galleryRef.current.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const progress = (x / rect.width) * 100;
+    
+    if (progress < 30) {
+      setDragDirection('left');
+      setDragProgress(Math.abs(progress - 30) / 30);
+    } else if (progress > 70) {
+      setDragDirection('right');
+      setDragProgress(Math.abs(progress - 70) / 30);
+    } else {
+      setDragDirection(null);
+      setDragProgress(0);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (dragDirection === 'left' && dragProgress > 0.5) {
+      handleNext();
+    } else if (dragDirection === 'right' && dragProgress > 0.5) {
+      handlePrevious();
+    }
+    setDragDirection(null);
+    setDragProgress(0);
+  };
+
+  // Enhanced zoom functionality
+  const handleZoom = (e) => {
+    if (!imageRef.current) return;
+    
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const zoomX = (x / rect.width) * 100;
+    const zoomY = (y / rect.height) * 100;
+    
+    setZoomPosition({ x: zoomX, y: zoomY });
+    setZoomLevel(2.5);
+    setIsZoomed(true);
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(1);
+    setIsZoomed(false);
+    setZoomPosition({ x: 0, y: 0 });
+  };
+
+  const handleZoomMove = (e) => {
+    if (!isZoomed || !imageRef.current) return;
+    
+    const rect = imageRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const zoomX = (x / rect.width) * 100;
+    const zoomY = (y / rect.height) * 100;
+    
+    setZoomPosition({ x: zoomX, y: zoomY });
+  };
+
+  const handleWheel = (e) => {
+    if (!imageRef.current) return;
+    
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.2 : 0.2;
+    const newZoom = Math.max(1, Math.min(4, zoomLevel + delta));
+    setZoomLevel(newZoom);
+    
+    if (newZoom === 1) {
+      setIsZoomed(false);
+      setZoomPosition({ x: 0, y: 0 });
+    } else {
+      setIsZoomed(true);
+    }
+  };
+
+  // Keyboard navigation support
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handlePrevious();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleNext();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        onImageChange(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        onImageChange(images.length - 1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, images.length]);
+
+  return (
+    <div className="space-y-6">
+      {/* Main Image with Enhanced Navigation */}
+      <HoloCard className="p-0 group cursor-zoom-in relative overflow-hidden">
+        <div 
+          ref={galleryRef}
+          className="relative aspect-square overflow-hidden rounded-2xl"
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+          onMouseDown={handleDragStart}
+          onMouseMove={handleDragMove}
+          onMouseUp={handleDragEnd}
+          onMouseLeave={handleDragEnd}
+        >
+          <motion.img
+            ref={imageRef}
+            src={images[currentIndex]}
+            alt={`Product ${currentIndex + 1}`}
+            className="w-full h-full object-cover select-none cursor-zoom-in"
+            style={{
+              transform: isZoomed ? `scale(${zoomLevel})` : 'scale(1)',
+              transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+              cursor: isZoomed ? 'zoom-out' : 'zoom-in'
+            }}
+            whileHover={!isZoomed ? { scale: 1.05 } : {}}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            onClick={isZoomed ? handleZoomOut : handleZoom}
+            onMouseMove={isZoomed ? handleZoomMove : undefined}
+            onWheel={handleWheel}
+            drag={!isZoomed ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.1}
+            onDragEnd={(e, info) => {
+              if (Math.abs(info.offset.x) > 100) {
+                if (info.offset.x > 0) {
+                  handlePrevious();
+                } else {
+                  handleNext();
+                }
+              }
+            }}
+          />
+          
+          {/* Enhanced Navigation Arrows */}
+          <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <motion.button
+              className="w-12 h-12 bg-black/70 backdrop-blur-sm rounded-full border border-cyan-500/50 hover:border-cyan-400 hover:bg-black/90 transition-all duration-300 flex items-center justify-center"
+              onClick={handlePrevious}
+              whileHover={{ scale: 1.1, x: -2 }}
+              whileTap={{ scale: 0.9 }}
+              disabled={isNavigating}
+            >
+              <ChevronLeft className="w-6 h-6 text-cyan-400" />
+            </motion.button>
+            
+            <motion.button
+              className="w-12 h-12 bg-black/70 backdrop-blur-sm rounded-full border border-cyan-500/50 hover:border-cyan-400 hover:bg-black/90 transition-all duration-300 flex items-center justify-center"
+              onClick={handleNext}
+              whileHover={{ scale: 1.1, x: 2 }}
+              whileTap={{ scale: 0.9 }}
+              disabled={isNavigating}
+            >
+              <ChevronRight className="w-6 h-6 text-cyan-400" />
+            </motion.button>
+          </div>
+
+          {/* Drag Indicators */}
+          <AnimatePresence>
+            {dragDirection && (
+              <motion.div
+                className={`absolute inset-0 flex items-center justify-center pointer-events-none ${
+                  dragDirection === 'left' ? 'justify-start' : 'justify-end'
+                }`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: dragProgress }}
+                exit={{ opacity: 0 }}
+              >
+                <div className={`w-20 h-20 bg-gradient-to-r ${
+                  dragDirection === 'left' 
+                    ? 'from-transparent to-cyan-500/20' 
+                    : 'from-cyan-500/20 to-transparent'
+                } rounded-full flex items-center justify-center`}>
+                  <ChevronLeft className={`w-8 h-8 text-cyan-400 ${
+                    dragDirection === 'right' ? 'rotate-180' : ''
+                  }`} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Enhanced Image Counter */}
+          <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-sm px-4 py-2 rounded-full border border-cyan-500/50">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-mono text-cyan-400">
+                {String(currentIndex + 1).padStart(2, '0')}/{String(images.length).padStart(2, '0')}
+              </span>
+              <div className="w-1 h-1 bg-cyan-400 rounded-full animate-pulse" />
+            </div>
+          </div>
+
+          {/* Enhanced Zoom Indicator */}
+          <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full border border-cyan-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="flex items-center gap-2 text-xs text-cyan-400">
+              {isZoomed ? (
+                <>
+                  <ZoomOut className="w-3 h-3" />
+                  <span>CLICK TO ZOOM OUT ({Math.round(zoomLevel * 100)}%)</span>
+                </>
+              ) : (
+                <>
+                  <ZoomIn className="w-3 h-3" />
+                  <span>CLICK TO ZOOM</span>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </HoloCard>
+
+      {/* Enhanced Thumbnail Gallery */}
+      <div className="relative">
+        <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+          {images.map((image, index) => (
+            <motion.button
+              key={index}
+              onClick={() => handleThumbnailClick(index)}
+              className={`
+                flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 relative group
+                ${currentIndex === index 
+                  ? 'border-cyan-400 ring-2 ring-cyan-400/40 scale-110 shadow-xl shadow-cyan-400/30' 
+                  : 'border-white/20 hover:border-white/60 hover:scale-105 hover:shadow-lg hover:shadow-white/20'
+                }
+              `}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              disabled={isNavigating}
+            >
+              <img
+                src={image}
+                alt={`Thumbnail ${index + 1}`}
+                className="w-full h-full object-cover"
+              />
+              
+              {/* Selection indicator */}
+              {currentIndex === index && (
+                <motion.div
+                  className="absolute inset-0 bg-cyan-400/20 flex items-center justify-center"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500 }}
+                >
+                  <Check className="w-6 h-6 text-cyan-400 drop-shadow-lg" />
+                </motion.div>
+              )}
+              
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
+              
+              {/* Index number */}
+              <div className="absolute top-1 right-1 w-5 h-5 bg-black/70 rounded-full flex items-center justify-center">
+                <span className="text-xs font-mono text-white">{index + 1}</span>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+        
+        {/* Scroll indicators */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-r from-black/80 to-transparent rounded-l-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <ChevronLeft className="w-4 h-4 text-cyan-400" />
+        </div>
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 bg-gradient-to-l from-black/80 to-transparent rounded-r-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <ChevronRight className="w-4 h-4 text-cyan-400" />
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="mt-4">
+          <div className="relative h-1 bg-gray-800 rounded-full overflow-hidden border border-gray-600">
+            <motion.div
+              className="h-full bg-gradient-to-r from-cyan-400 to-purple-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${((currentIndex + 1) / images.length) * 100}%` }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+            >
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </motion.div>
+          </div>
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
+            <span>Image {currentIndex + 1} of {images.length}</span>
+            <span className="text-cyan-400 font-mono">
+              {Math.round(((currentIndex + 1) / images.length) * 100)}%
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Enhanced Vault Features Section
+const VaultFeatures = ({ product }) => {
+  const [selectedFeature, setSelectedFeature] = useState(0);
+  
+  const features = [
+    {
+      icon: '🔥',
+      title: 'Nano-tech Thermal Regulation',
+      description: 'Advanced temperature control system that adapts to your body and environment',
+      level: 95,
+      color: 'from-red-500 to-orange-500'
+    },
+    {
+      icon: '⚡',
+      title: 'Quantum Flex Fiber Technology',
+      description: 'Revolutionary fabric that provides ultimate flexibility and durability',
+      level: 98,
+      color: 'from-yellow-500 to-amber-500'
+    },
+    {
+      icon: '🛡️',
+      title: 'Urban Armor Protection',
+      description: 'Military-grade protection layer for urban environments',
+      level: 87,
+      color: 'from-blue-500 to-cyan-500'
+    },
+    {
+      icon: '💎',
+      title: 'Limited Genesis Edition',
+      description: 'Exclusive limited release with premium materials and craftsmanship',
+      level: 100,
+      color: 'from-purple-500 to-pink-500'
+    }
+  ];
+
+  return (
+    <motion.div
+      className="space-y-6"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: 4.0 }}
+    >
+      <HoloCard className="p-6" glowColor="purple">
+        <motion.h3 
+          className="text-xl font-black mb-6 flex items-center gap-3"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 4.2 }}
+        >
+          <motion.div
+            initial={{ scale: 0, rotate: -90 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ duration: 0.5, delay: 4.4, ease: "easeOut" }}
+          >
+            <Layers className="w-6 h-6 text-purple-400" />
+          </motion.div>
+          VAULT FEATURES MATRIX
+        </motion.h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              className={`
+                p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer group
+                ${selectedFeature === index 
+                  ? 'border-purple-400 bg-purple-500/10 shadow-lg shadow-purple-500/20' 
+                  : 'border-white/20 hover:border-purple-400/50 hover:bg-purple-500/5'
+                }
+              `}
+              onClick={() => setSelectedFeature(index)}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 4.6 + index * 0.1 }}
+              whileHover={{ y: -2, scale: 1.02 }}
+            >
+              <div className="flex items-start gap-3">
+                <div className="text-2xl">{feature.icon}</div>
+                <div className="flex-1">
+                  <h4 className="font-black text-sm mb-2 text-purple-300">{feature.title}</h4>
+                  <p className="text-xs text-gray-400 mb-3 leading-relaxed">{feature.description}</p>
+                  
+                  {/* Feature Level Bar */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-purple-300">EFFICIENCY</span>
+                      <span className="text-cyan-400">{feature.level}%</span>
+                    </div>
+                    <div className="relative h-2 bg-gray-800 rounded-full overflow-hidden border border-gray-600">
+                      <motion.div
+                        className={`h-full bg-gradient-to-r ${feature.color} relative`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${feature.level}%` }}
+                        transition={{ duration: 1, delay: 4.8 + index * 0.1, ease: "easeOut" }}
+                      >
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"
+                          animate={{ x: ['-100%', '200%'] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      </motion.div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Selection indicator */}
+              {selectedFeature === index && (
+                <motion.div
+                  className="absolute top-2 right-2 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center"
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 500 }}
+                >
+                  <Check className="w-4 h-4 text-white" />
+                </motion.div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+        
+        {/* Selected Feature Details */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={selectedFeature}
+            className="mt-6 p-4 bg-black/30 rounded-xl border border-purple-500/30"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-3xl">{features[selectedFeature].icon}</span>
+              <h5 className="font-black text-purple-300">{features[selectedFeature].title}</h5>
+            </div>
+            <p className="text-sm text-gray-300 leading-relaxed">{features[selectedFeature].description}</p>
+            <div className="mt-3 flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+              <span className="text-xs text-purple-300 font-mono">
+                EFFICIENCY: {features[selectedFeature].level}% | STATUS: ACTIVE
+              </span>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </HoloCard>
+    </motion.div>
+  );
+};
+
+const VlancoProductPage = () => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
-  const { playSound, soundEnabled, setSoundEnabled } = useSoundEffects();
   
+  // Enhanced State Management
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState('description');
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
   const [zoomedImage, setZoomedImage] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [isZoomed, setIsZoomed] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
-  const [selectedImageView, setSelectedImageView] = useState('2d');
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [cartBounce, setCartBounce] = useState(false);
-  const addToCartButtonRef = useRef<HTMLButtonElement>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [cartAnimation, setCartAnimation] = useState(false);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const cartAnimationTimeoutRef = useRef(null);
+  
+  // Image optimization states
+  const [imagesLoaded, setImagesLoaded] = useState({});
+  const [imageLoadingStates, setImageLoadingStates] = useState({});
+  const [preloadedImages, setPreloadedImages] = useState([]);
 
-  // Enhanced product data
-  const enhancedProduct = {
-    ...product,
-    gallery: [product1, product3, product4, product5],
-    originalPrice: 109,
-    discount: 18,
-    inStock: 23,
-    sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    colors: ['Midnight Black', 'Pure White', 'Navy Storm', 'Shadow Gray'],
-    features: [
-      '🔥 Street-certified premium cotton blend',
-      '⚡ 360° flex technology for movement',
-      '💧 Moisture-wicking anti-bacterial treatment', 
-      '🛡️ Reinforced double-stitched seams',
-      '✨ Signature VLANCO street branding',
-      '🎯 Limited edition urban colorways'
+  // Mouse tracking for interactive elements
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setMousePosition({
+        x: (e.clientX / window.innerWidth) * 100,
+        y: (e.clientY / window.innerHeight) * 100
+      });
+    };
+
+    const handleTouchMove = (e) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        setMousePosition({
+          x: (touch.clientX / window.innerWidth) * 100,
+          y: (touch.clientY / window.innerHeight) * 100
+        });
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, []);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (cartAnimationTimeoutRef.current) {
+        clearTimeout(cartAnimationTimeoutRef.current);
+      }
+    };
+  }, []);
+
+
+
+  // Analytics and tracking states
+  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
+  const [pageViewStartTime] = useState(() => Date.now());
+  const [stockReservation, setStockReservation] = useState(null);
+
+  // Enhanced Product Data - Database Integration
+  const [product, setProduct] = useState({
+    id: '1',
+    name: "VLANCO CYBER HOODIE",
+    subtitle: "STREET EVOLUTION",
+    base_price: 189,
+    compare_price: 249,
+    discount: 24,
+    category: "PREMIUM STREETWEAR",
+    description: "Experience the future of street fashion. Engineered with nano-tech fabric and cyber-aesthetic design for the ultimate urban warrior.",
+    gallery: productImages,
+    stock_quantity: 7,
+    size_options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+    color_options: [
+      { name: 'VOID BLACK', hex: '#000000' },
+      { name: 'CYBER BLUE', hex: '#00D4FF' },
+      { name: 'NEON PINK', hex: '#FF0080' },
+      { name: 'MATRIX GREEN', hex: '#00FF41' }
     ],
-    streetCredentials: {
-      hypeLevel: 95,
-      dropDate: "2024-03-15",
-      stockLeft: 23,
-      socialMentions: 1247
+    features: [
+      { icon: '🔥', text: 'Nano-tech thermal regulation', level: 95 },
+      { icon: '⚡', text: 'Quantum flex fiber technology', level: 98 },
+      { icon: '🛡️', text: 'Urban armor protection layer', level: 87 },
+      { icon: '💎', text: 'Limited genesis edition', level: 100 },
+      { icon: '🎯', text: 'Street-certified authenticity', level: 92 },
+      { icon: '✨', text: 'Holographic brand elements', level: 89 }
+    ],
+    stats: {
+      hypeLevel: 97,
+      streetCred: 94,
+      exclusivity: 88,
+      community: 156
     },
     reviews: {
-      average: 4.8,
-      total: 287,
-      streetScore: 9.2
+      average: 4.9,
+      total: 342,
+      verified: 287
     }
+  } as any); // Temporary type assertion to avoid complex type issues
+
+  // Database integration
+  const { user } = useAuth();
+  const { addToCart, itemCount } = useCart();
+  const [loading, setLoading] = useState(false);
+  const [productVariants, setProductVariants] = useState([]);
+  const [selectedVariant, setSelectedVariant] = useState(null);
+  
+  // Enhanced loading and error states
+  const [pageLoading, setPageLoading] = useState(true);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const playSound = (type) => {
+    if (!soundEnabled) return;
+    // Sound effect logic here
   };
 
-  // Street-style confetti effect
-  const launchStreetConfetti = () => {
-    setShowConfetti(true);
-    playSound('add');
+  // Error handling and retry mechanisms
+  const handleError = (error, context = 'general') => {
+    console.error(`Error in ${context}:`, error);
+    setError({
+      message: error.message || 'An unexpected error occurred',
+      context,
+      timestamp: Date.now()
+    });
     
-    // Create custom confetti with street elements
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.top = '0';
-    container.style.left = '0';
-    container.style.width = '100vw';
-    container.style.height = '100vh';
-    container.style.pointerEvents = 'none';
-    container.style.zIndex = '9999';
-    document.body.appendChild(container);
-
-    const emojis = ['🔥', '⚡', '💯', '🎯', '✨', '💎', '🚀', '🌟'];
-    
-    for (let i = 0; i < 30; i++) {
-      const particle = document.createElement('div');
-      particle.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
-      particle.style.position = 'absolute';
-      particle.style.left = Math.random() * 100 + 'vw';
-      particle.style.top = '-50px';
-      particle.style.fontSize = Math.random() * 20 + 15 + 'px';
-      particle.style.animation = `fall ${Math.random() * 2 + 2}s linear forwards`;
-      container.appendChild(particle);
-      
-      setTimeout(() => particle.remove(), 4000);
-    }
-    
-    setTimeout(() => {
-      container.remove();
-      setShowConfetti(false);
-    }, 4000);
+    // Auto-clear error after 5 seconds
+    setTimeout(() => setError(null), 5000);
   };
 
-  const handleAddToCart = () => {
-    if (!selectedSize && enhancedProduct.sizes?.length) {
-      playSound('click');
-      if (addToCartButtonRef.current) {
-        addToCartButtonRef.current.style.animation = 'shake 0.5s ease-in-out';
-        setTimeout(() => {
-          if (addToCartButtonRef.current) addToCartButtonRef.current.style.animation = '';
-        }, 500);
+  const retryOperation = async (operation, maxRetries = 3) => {
+    try {
+      setRetryCount(prev => prev + 1);
+      await operation();
+      setError(null);
+      setRetryCount(0);
+    } catch (error) {
+      if (retryCount < maxRetries) {
+        handleError(error, 'retry');
+        // Exponential backoff
+        setTimeout(() => retryOperation(operation, maxRetries), Math.pow(2, retryCount) * 1000);
+      } else {
+        handleError(error, 'final');
       }
+    }
+  };
+
+  const clearError = () => {
+    setError(null);
+    setRetryCount(0);
+  };
+
+  // Zoom functionality
+  const handleZoom = (e, imageElement) => {
+    if (!imageElement) return;
+    
+    const rect = imageElement.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const zoomX = (x / rect.width) * 100;
+    const zoomY = (y / rect.height) * 100;
+    
+    setZoomPosition({ x: zoomX, y: zoomY });
+    setZoomLevel(2.5);
+    setIsZoomed(true);
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(1);
+    setIsZoomed(false);
+    setZoomPosition({ x: 0, y: 0 });
+  };
+
+  const handleZoomMove = (e, imageElement) => {
+    if (!isZoomed || !imageElement) return;
+    
+    const rect = imageElement.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const zoomX = (x / rect.width) * 100;
+    const zoomY = (y / rect.height) * 100;
+    
+    setZoomPosition({ x: zoomX, y: zoomY });
+  };
+
+  const handleWheel = (e, imageElement) => {
+    if (!imageElement) return;
+    
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.2 : 0.2;
+    const newZoom = Math.max(1, Math.min(4, zoomLevel + delta));
+    setZoomLevel(newZoom);
+    
+    if (newZoom === 1) {
+      setIsZoomed(false);
+      setZoomPosition({ x: 0, y: 0 });
+    } else {
+      setIsZoomed(true);
+    }
+  };
+
+  // Preload images when product changes
+  useEffect(() => {
+    if (product.gallery && product.gallery.length > 0) {
+      setPageLoading(true);
+      preloadAllImages().finally(() => {
+        setPageLoading(false);
+      });
+    }
+  }, [product.gallery]);
+
+  // Helper function to manage cart animation with proper timeout clearing
+  const setCartAnimationWithTimeout = (show, duration) => {
+    // Clear any existing timeout
+    if (cartAnimationTimeoutRef.current) {
+      clearTimeout(cartAnimationTimeoutRef.current);
+      cartAnimationTimeoutRef.current = null;
+    }
+    
+    setCartAnimation(show);
+    
+    if (show && duration) {
+      cartAnimationTimeoutRef.current = setTimeout(() => {
+        setCartAnimation(false);
+        cartAnimationTimeoutRef.current = null;
+      }, duration);
+    }
+  };
+
+  // Image optimization and preloading functions
+  const preloadImage = (src, index) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        setImagesLoaded(prev => ({ ...prev, [index]: true }));
+        setImageLoadingStates(prev => ({ ...prev, [index]: 'loaded' }));
+        resolve(img);
+      };
+      img.onerror = () => {
+        setImageLoadingStates(prev => ({ ...prev, [index]: 'error' }));
+        reject(new Error(`Failed to load image ${index}`));
+      };
+      img.src = src;
+    });
+  };
+
+  const preloadAllImages = async () => {
+    const promises = product.gallery.map((image, index) => 
+      preloadImage(image, index)
+    );
+    
+    try {
+      const loadedImages = await Promise.allSettled(promises);
+      setPreloadedImages(loadedImages.map((result, index) => 
+        result.status === 'fulfilled' ? result.value : null
+      ));
+    } catch (error) {
+      console.error('Error preloading images:', error);
+    }
+  };
+
+  const getImageSrc = (image, index) => {
+    // Return low-quality placeholder for unloaded images
+    if (!imagesLoaded[index]) {
+      return `data:image/svg+xml;base64,${btoa(`
+        <svg width="400" height="400" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="#f0f0f0"/>
+          <text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#999" font-family="Arial" font-size="16">
+            Loading...
+          </text>
+        </svg>
+      `)}`;
+    }
+    return image;
+  };
+
+  // Touch gesture handling for mobile
+  const [touchStart, setTouchStart] = useState({ x: 0, y: 0 });
+  const [touchEnd, setTouchEnd] = useState({ x: 0, y: 0 });
+
+  const handleTouchStart = (e) => {
+    setTouchStart({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    });
+  };
+
+  const handleTouchMove = (e) => {
+    setTouchEnd({
+      x: e.targetTouches[0].clientX,
+      y: e.targetTouches[0].clientY
+    });
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distanceX = touchStart.x - touchEnd.x;
+    const distanceY = touchStart.y - touchEnd.y;
+    const isHorizontalSwipe = Math.abs(distanceX) > Math.abs(distanceY);
+    
+    if (isHorizontalSwipe && Math.abs(distanceX) > 50) {
+      if (distanceX > 0) {
+        // Swipe left - next image
+        setCurrentImageIndex(prev => 
+          prev < product.gallery.length - 1 ? prev + 1 : prev
+        );
+      } else {
+        // Swipe right - previous image
+        setCurrentImageIndex(prev => 
+          prev > 0 ? prev - 1 : prev
+        );
+      }
+    }
+    
+    setTouchStart({ x: 0, y: 0 });
+    setTouchEnd({ x: 0, y: 0 });
+  };
+
+  // Track user activity and page views (will work after running the analytics migration)
+  const trackActivity = async (pageUrl: string, timeSpent: number = 0) => {
+    try {
+      if (user) {
+        // Note: This requires the analytics migration to be run first
+        // For now, we'll track in user_activities table
+        await supabase
+          .from('user_activities')
+          .insert({
+            user_id: user.id,
+            activity_type: 'page_view',
+            resource_type: 'page',
+            resource_id: null,
+            metadata: {
+              page_url: pageUrl,
+              time_spent: timeSpent,
+              session_id: sessionId
+            }
+          });
+      }
+    } catch (error) {
+      console.error('Error tracking activity:', error);
+    }
+  };
+
+  // Track product interaction (will work after running the analytics migration)
+  const trackProductInteraction = async (interactionType: string, quantity: number = 1) => {
+    try {
+      if (user && product.id) {
+        // Note: This requires the analytics migration to be run first
+        // For now, we'll track in user_activities table
+        await supabase
+          .from('user_activities')
+          .insert({
+            user_id: user.id,
+            activity_type: interactionType,
+            resource_type: 'product',
+            resource_id: product.id,
+            metadata: {
+              quantity,
+              price: product.base_price,
+              session_id: sessionId
+            }
+          });
+      }
+    } catch (error) {
+      console.error('Error tracking product interaction:', error);
+    }
+  };
+
+  // Track page view time when component unmounts
+  useEffect(() => {
+    return () => {
+      const timeSpent = Math.floor((Date.now() - pageViewStartTime) / 1000);
+      if (timeSpent > 5) { // Only track if user spent more than 5 seconds
+        trackActivity(window.location.pathname, timeSpent);
+      }
+    };
+  }, [pageViewStartTime, trackActivity]);
+
+    const handleAddToCart = async () => {
+    // Input validation
+    if (!selectedSize || selectedSize.trim() === '') {
+      setCartAnimationWithTimeout(true, 600);
+      toast({
+        title: "Size Required",
+        description: "Please select a size before adding to cart",
+        variant: "destructive"
+      });
       return;
     }
-
-    setCartBounce(true);
-    launchStreetConfetti();
     
-    setTimeout(() => setCartBounce(false), 600);
+    if (selectedColor === undefined || selectedColor < 0 || selectedColor >= product.color_options.length) {
+      setCartAnimationWithTimeout(true, 600);
+      toast({
+        title: "Color Required",
+        description: "Please select a valid color before adding to cart",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (quantity < 1 || quantity > 5) {
+      setCartAnimationWithTimeout(true, 600);
+      toast({
+        title: "Invalid Quantity",
+        description: "Quantity must be between 1 and 5",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Enhanced stock validation with quantity limits
+    const quantityValidation = validateQuantity(quantity, product.stock_quantity);
+    if (!quantityValidation.valid) {
+      setCartAnimationWithTimeout(true, 600);
+      toast({
+        title: "Invalid Quantity",
+        description: quantityValidation.message,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Check stock availability (including reserved stock)
+    if (product.stock_quantity < quantity) {
+      setCartAnimationWithTimeout(true, 600);
+      toast({
+        title: "Insufficient Stock",
+        description: `Only ${product.stock_quantity} items available`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      setCartAnimationWithTimeout(true, 3000);
+      
+      // Validate product data
+      if (!product.id || !product.base_price || !product.color_options[selectedColor]) {
+        throw new Error('Invalid product data');
+      }
+      
+      // Create or find product variant with enhanced security
+      const variantData = {
+        product_id: product.id,
+        color: product.color_options[selectedColor].name,
+        size: selectedSize,
+        price: product.base_price,
+        sku: `${product.id}-${selectedSize}-${selectedColor}`,
+        stock_quantity: Math.max(0, product.stock_quantity - quantity), // Reduce stock
+        is_active: true,
+        created_at: new Date().toISOString()
+      };
+      
+      // Insert or update variant with conflict resolution
+      const { data: variant, error: variantError } = await supabase
+        .from('product_variants')
+        .upsert(variantData, { 
+          onConflict: 'sku',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single();
+      
+      if (variantError) {
+        console.error('Variant creation error:', variantError);
+        throw new Error('Failed to create product variant');
+      }
+      
+      if (!variant || !variant.id) {
+        throw new Error('Invalid variant data received');
+      }
+      
+      // Track product interaction
+      await trackProductInteraction('add_to_cart', quantity);
+      
+      // Add to cart with enhanced error handling and product details
+      const productDetails = {
+        product: {
+          id: product.id,
+          name: product.name,
+          base_price: product.base_price,
+          compare_price: product.compare_price,
+          description: product.description,
+          sku: product.sku
+        },
+        variant: {
+          id: variant.id,
+          color: product.color_options[selectedColor].name,
+          size: selectedSize,
+          price: product.base_price,
+          sku: variant.sku,
+          stock_quantity: variant.stock_quantity
+        },
+        price: product.base_price
+      };
+      
+      await addToCart(product.id, variant.id, quantity, productDetails);
+      
+      // Update product stock in database
+      const newStockQuantity = Math.max(0, product.stock_quantity - quantity);
+      await supabase
+        .from('products')
+        .update({ 
+          stock_quantity: newStockQuantity,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', product.id);
+      
+      // Update local state
+      setProduct(prev => ({
+        ...prev,
+        stock_quantity: newStockQuantity
+      }));
+      
+      // Log security event
+      logSecurityEvent('cart_item_added', {
+        product_id: product.id,
+        variant_id: variant.id,
+        quantity,
+        user_id: user?.id
+      });
+      
+      // Enhanced success feedback with vault-like effects
+      playSound('success');
+      toast({
+        title: "🚀 DEPLOYED TO VAULT!",
+        description: `${product.name} - ${selectedSize} - ${product.color_options[selectedColor].name} (Qty: ${quantity})`,
+        duration: 3000
+      });
+      
+      // Enhanced cart animation with particle effects
+      // Animation is already set to show for 3 seconds by setCartAnimationWithTimeout above
+      
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      
+      let errorMessage = "Failed to add item to cart. Please try again.";
+      if (error.message === 'Invalid product data') {
+        errorMessage = "Product data is invalid. Please refresh the page.";
+      } else if (error.message === 'Failed to create product variant') {
+        errorMessage = "Unable to create product variant. Please try again.";
+      } else if (error.message === 'Invalid variant data received') {
+        errorMessage = "Server returned invalid data. Please try again.";
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+        duration: 5000
+      });
+      setCartAnimation(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSizeSelect = (size) => {
-    setSelectedSize(size);
-    playSound('click');
+  // Enhanced cart state management
+  const [showCartIndicator, setShowCartIndicator] = useState(false);
+  
+  // Show cart indicator when items are added
+  useEffect(() => {
+    if (itemCount > 0) {
+      setShowCartIndicator(true);
+      const timer = setTimeout(() => setShowCartIndicator(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [itemCount]);
+
+  // Enhanced cart click handler
+  const handleCartClick = () => {
+    // This would typically open a cart sidebar or navigate to cart page
+    toast({
+      title: "Cart Access",
+      description: `You have ${itemCount} items in your vault`,
+      duration: 3000
+    });
   };
-
-  const handleColorSelect = (index) => {
-    setSelectedColor(index);
-    playSound('whoosh');
-  };
-
-  const colorMap = {
-    'Midnight Black': '#000000',
-    'Pure White': '#FFFFFF', 
-    'Navy Storm': '#1e3a8a',
-    'Shadow Gray': '#4b5563',
-  };
-
-  // Street-style floating particles
-  const StreetParticles = () => (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {[...Array(15)].map((_, i) => (
-        <motion.div
-          key={`street-particle-${i}`}
-          className="absolute text-2xl opacity-20"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [0, -100, 0],
-            x: [0, Math.random() * 50 - 25, 0],
-            rotate: [0, 360],
-            scale: [0.5, 1, 0.5],
-            opacity: [0.1, 0.3, 0.1],
-          }}
-          transition={{
-            duration: Math.random() * 10 + 15,
-            repeat: Infinity,
-            delay: Math.random() * 5,
-            ease: "easeInOut",
-          }}
-        >
-          {['🔥', '⚡', '💎', '✨', '🎯'][Math.floor(Math.random() * 5)]}
-        </motion.div>
-      ))}
-    </div>
-  );
-
-  // 1. Use the same four product images in 'More Heat From The Collection'
-  const relatedProducts = [
-    { image: product1, name: 'Street Hoodie', price: 89, category: 'Hoodies', rating: 4.8, left: 12 },
-    { image: product3, name: 'Urban Windbreaker', price: 99, category: 'Jackets', rating: 4.9, left: 8 },
-    { image: product4, name: 'Graffiti Tee', price: 59, category: 'T-Shirts', rating: 4.7, left: 20 },
-    { image: product5, name: 'Night Runner', price: 120, category: 'Sneakers', rating: 5.0, left: 5 },
-  ];
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white pt-20 pb-16 relative overflow-hidden">
-      {/* Street Particles */}
-      <StreetParticles />
-      
-      {/* Floating Sound Toggle */}
-      <FloatingActionButton
-        icon={soundEnabled ? Volume2 : VolumeX}
-        onClick={() => {
-          setSoundEnabled(!soundEnabled);
-          playSound('click');
+    <>
+      {/* Loading Skeleton */}
+      {pageLoading && (
+        <motion.div
+          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 border-4 border-cyan-400/20 border-t-cyan-400 rounded-full animate-spin" />
+            <p className="text-xl font-semibold text-cyan-400">Loading Product...</p>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Error Display */}
+      {error && (
+        <motion.div
+          className="fixed top-4 right-4 z-50 max-w-md bg-red-900/90 backdrop-blur-md border border-red-500/50 rounded-lg p-4 shadow-2xl"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 100 }}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-5 h-5 bg-red-400 rounded-full flex items-center justify-center">
+              <span className="text-xs text-red-900">!</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-red-100 mb-1">Error</h3>
+              <p className="text-sm text-red-200 mb-3">{error.message}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={clearError}
+                  className="px-3 py-1.5 bg-red-800 hover:bg-red-700 text-red-100 text-xs rounded-md transition-colors"
+                >
+                  Dismiss
+                </button>
+                {retryCount < 3 && (
+                  <button
+                    onClick={() => retryOperation(() => preloadAllImages())}
+                    className="px-3 py-1.5 bg-red-700 hover:bg-red-600 text-red-100 text-xs rounded-md transition-colors"
+                  >
+                    Retry ({3 - retryCount} left)
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      <motion.div 
+        ref={containerRef} 
+        className="min-h-screen bg-black text-white relative overflow-hidden"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        style={{
+          background: `
+            radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, 
+               rgba(0, 212, 255, 0.08) 0%, transparent 50%),
+            radial-gradient(circle at ${100 - mousePosition.x}% ${100 - mousePosition.y}%, 
+               rgba(255, 0, 128, 0.08) 0%, transparent 50%),
+            linear-gradient(135deg, #000000 0%, #0a0a0a 50%, #000000 100%)
+          `
         }}
-        className="top-24 right-6"
-        label={soundEnabled ? "Mute" : "Unmute"}
-      />
+      >
+      {/* Animated Background Grid */}
+       <motion.div 
+         className="fixed inset-0 opacity-8"
+         initial={{ opacity: 0 }}
+         animate={{ opacity: 0.08 }}
+         transition={{ duration: 1.5, delay: 0.5 }}
+       >
+         <motion.div 
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+               linear-gradient(rgba(6,182,212,0.05) 1px, transparent 1px),
+               linear-gradient(90deg, rgba(6,182,212,0.05) 1px, transparent 1px)
+             `,
+             backgroundSize: '60px 60px'
+           }}
+           animate={{
+             backgroundPosition: ['0px 0px', '60px 60px']
+           }}
+           transition={{
+             duration: 20,
+             repeat: Infinity,
+             ease: "linear"
+           }}
+         />
+       </motion.div>
 
-      {/* Animated CSS */}
-      <style>{`
-        @keyframes fall {
-          to {
-            transform: translateY(100vh) rotate(360deg);
-            opacity: 0;
-          }
-        }
-        
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
-          20%, 40%, 60%, 80% { transform: translateX(3px); }
-        }
-        
-        @keyframes pulse-glow {
-          0%, 100% { 
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
-          }
-          50% { 
-            box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 60px rgba(147, 51, 234, 0.4);
-          }
-        }
-        
-        .animate-pulse-glow {
-          animation: pulse-glow 2s ease-in-out infinite;
-        }
+             {/* Enhanced Floating Elements */}
+      <div className="fixed inset-0 pointer-events-none">
+         <motion.div
+           className="absolute top-20 left-10 text-cyan-400/15"
+           initial={{ opacity: 0, scale: 0, rotate: -180 }}
+           animate={{ opacity: 1, scale: 1, rotate: 0 }}
+           transition={{ duration: 1.2, delay: 0.8, ease: "easeOut" }}
+         >
+           <motion.div
+             animate={{
+               y: [-8, 8, -8],
+               rotate: [0, 5, -5, 0],
+               scale: [1, 1.05, 0.95, 1]
+             }}
+             transition={{
+               duration: 8,
+               repeat: Infinity,
+               ease: "easeInOut"
+             }}
+           >
+             <Hexagon size={30} />
+           </motion.div>
+         </motion.div>
+         
+         <motion.div
+           className="absolute top-40 right-20 text-pink-400/15"
+           initial={{ opacity: 0, scale: 0, rotate: 180 }}
+           animate={{ opacity: 1, scale: 1, rotate: 0 }}
+           transition={{ duration: 1.2, delay: 1.2, ease: "easeOut" }}
+         >
+           <motion.div
+             animate={{
+               y: [8, -8, 8],
+               rotate: [0, -5, 5, 0],
+               scale: [1, 0.95, 1.05, 1]
+             }}
+             transition={{
+               duration: 10,
+               repeat: Infinity,
+               ease: "easeInOut"
+             }}
+           >
+             <Triangle size={20} />
+           </motion.div>
+         </motion.div>
+         
+         <motion.div
+           className="absolute bottom-40 left-20 text-green-400/15"
+           initial={{ opacity: 0, scale: 0, rotate: 90 }}
+           animate={{ opacity: 1, scale: 1, rotate: 0 }}
+           transition={{ duration: 1.2, delay: 1.6, ease: "easeOut" }}
+         >
+           <motion.div
+             animate={{
+               y: [-6, 6, -6],
+               rotate: [0, 3, -3, 0],
+               scale: [1, 1.03, 0.97, 1]
+             }}
+             transition={{
+               duration: 12,
+               repeat: Infinity,
+               ease: "easeInOut"
+             }}
+           >
+             <Circle size={25} />
+           </motion.div>
+         </motion.div>
+         
+         <motion.div
+           className="absolute bottom-20 right-10 text-purple-400/15"
+           initial={{ opacity: 0, scale: 0, rotate: -90 }}
+           animate={{ opacity: 1, scale: 1, rotate: 0 }}
+           transition={{ duration: 1.2, delay: 2.0, ease: "easeOut" }}
+         >
+           <motion.div
+             animate={{
+               y: [6, -6, 6],
+               rotate: [0, -3, 3, 0],
+               scale: [1, 0.97, 1.03, 1]
+             }}
+             transition={{
+               duration: 14,
+               repeat: Infinity,
+               ease: "easeInOut"
+             }}
+           >
+             <Square size={15} />
+           </motion.div>
+         </motion.div>
+      </div>
 
-        @keyframes border-flash {
-          0%, 100% { border-style: solid; }
-          50% { border-style: dashed; }
-        }
-        .animate-border-flash { animation: border-flash 1.2s infinite; }
-      `}</style>
+             {/* Enhanced Sound Toggle */}
+      <motion.button
+         className="fixed top-8 right-8 z-50 w-12 h-12 bg-black/30 backdrop-blur-xl border border-cyan-500/30 rounded-full flex items-center justify-center hover:border-cyan-400 hover:bg-black/50 transition-all duration-300"
+        onClick={() => setSoundEnabled(!soundEnabled)}
+         initial={{ opacity: 0, scale: 0, rotate: -180 }}
+         animate={{ opacity: 1, scale: 1, rotate: 0 }}
+         transition={{ duration: 0.8, delay: 1.5, ease: "easeOut" }}
+         whileHover={{ 
+           scale: 1.1, 
+           rotate: 5,
+           boxShadow: "0 0 20px rgba(6, 182, 212, 0.4)"
+         }}
+         whileTap={{ scale: 0.9, rotate: -5 }}
+       >
+         <AnimatePresence mode="wait">
+           {soundEnabled ? (
+             <motion.div
+               key="volume-on"
+               initial={{ opacity: 0, scale: 0.5 }}
+               animate={{ opacity: 1, scale: 1 }}
+               exit={{ opacity: 0, scale: 0.5 }}
+               transition={{ duration: 0.2 }}
+             >
+               <Volume2 className="w-5 h-5 text-cyan-400" />
+             </motion.div>
+           ) : (
+             <motion.div
+               key="volume-off"
+               initial={{ opacity: 0, scale: 0.5 }}
+               animate={{ opacity: 1, scale: 1 }}
+               exit={{ opacity: 0, scale: 0.5 }}
+               transition={{ duration: 0.2 }}
+             >
+               <VolumeX className="w-5 h-5 text-gray-400" />
+             </motion.div>
+           )}
+         </AnimatePresence>
+      </motion.button>
 
-        <div className="max-w-7xl mx-auto px-6">
-        {/* Back Button with Street Style */}
-        <motion.button
-          className="group flex items-center gap-3 mb-8 p-4 bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 hover:border-blue-400/50 transition-all"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-          whileHover={{ scale: 1.05, x: 5 }}
-          onClick={() => playSound('click')}
-          >
-          <ArrowLeft className="w-5 h-5 group-hover:text-blue-400 transition-colors" />
-          <span className="font-medium">Back to Collection</span>
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 via-blue-600/10 to-blue-600/0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-        </motion.button>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Enhanced Back Button */}
+        <motion.div
+          className="mb-8"
+           initial={{ opacity: 0, x: -100, scale: 0.8 }}
+           animate={{ opacity: 1, x: 0, scale: 1 }}
+           transition={{ 
+             duration: 0.8, 
+             ease: "easeOut",
+             delay: 0.3
+           }}
+         >
+           <motion.div
+             whileHover={{ x: -5 }}
+             transition={{ duration: 0.3, ease: "easeOut" }}
+           >
+             <GlitchButton variant="ghost" size="sm" className="group" onClick={() => window.history.back()}>
+               <motion.div
+                 className="flex items-center"
+                 whileHover={{ x: -3 }}
+                 transition={{ duration: 0.2 }}
+               >
+                 <ArrowLeft className="w-5 h-5 mr-2" />
+            BACK TO COLLECTION
+               </motion.div>
+          </GlitchButton>
+           </motion.div>
+        </motion.div>
 
-      {/* Main Product Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+        {/* Enhanced Main Product Section */}
+        <motion.div 
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 mb-16"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.8 }}
+        >
           
-          {/* Product Images with Enhanced Effects */}
-          <motion.div 
+          {/* Product Images */}
+          <motion.div
             className="space-y-6"
-            initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, x: -80, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ 
+              duration: 1.2, 
+              ease: "easeOut",
+              delay: 1.0
+            }}
           >
-            {/* Hype Level Indicator */}
-              <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-orange-600 px-4 py-2 rounded-full">
+            {/* Hype Indicator */}
+            <div className="flex flex-wrap items-center gap-3 mb-6">
+              <motion.div 
+                className="bg-gradient-to-r from-red-500 to-orange-500 px-4 py-2 rounded-full flex items-center gap-2"
+                animate={{ 
+                  boxShadow: [
+                     '0 0 15px rgba(239, 68, 68, 0.3)',
+                     '0 0 25px rgba(249, 115, 22, 0.5)',
+                     '0 0 15px rgba(239, 68, 68, 0.3)'
+                   ]
+                 }}
+                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
                 <Flame className="w-4 h-4" />
-                <span className="text-sm font-bold">HYPE: {enhancedProduct.streetCredentials.hypeLevel}%</span>
+                <span className="text-sm font-black">HYPE: {product.stats.hypeLevel}%</span>
+              </motion.div>
+              
+              <div className="bg-cyan-500/20 border border-cyan-500/50 px-3 py-1 rounded-full text-xs font-bold">
+                {product.stock_quantity} LEFT
               </div>
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4 text-blue-400" />
-                <span className="text-sm">{enhancedProduct.streetCredentials.socialMentions} mentions</span>
-                </div>
+              
+              <div className="bg-pink-500/20 border border-pink-500/50 px-3 py-1 rounded-full text-xs font-bold">
+                {product.stats.community} WATCHING
               </div>
+            </div>
 
-            <StreetCard className="p-0" onClick={() => {}} hoverable={true}>
-                    <div className="relative group">
-                      <motion.img
-                        src={enhancedProduct.gallery[currentImageIndex]}
-                        alt={product.name}
-                        className="w-full aspect-square object-cover cursor-zoom-in"
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ duration: 0.3 }}
-                  onClick={() => {
-                    setZoomedImage(enhancedProduct.gallery[currentImageIndex]);
-                    playSound('whoosh');
-                  }}
-                      />
-                      
-                {/* Navigation with Street Style */}
-                          <button
-                  onClick={() => {
-                    setCurrentImageIndex(prev => prev === 0 ? enhancedProduct.gallery.length - 1 : prev - 1);
-                    playSound('click');
-                  }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/70 backdrop-blur-sm rounded-full p-3 opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-600/70"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                          </button>
-                          <button
-                  onClick={() => {
-                    setCurrentImageIndex(prev => prev === enhancedProduct.gallery.length - 1 ? 0 : prev + 1);
-                    playSound('click');
-                  }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/70 backdrop-blur-sm rounded-full p-3 opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-600/70"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                          </button>
-                  </div>
-            </StreetCard>
-
-            {/* Enhanced Thumbnail Gallery */}
-                <div className="flex gap-3 overflow-x-auto pb-2">
-                  {enhancedProduct.gallery.map((image, index) => (
-                <motion.button
-                      key={index}
-                  onClick={() => {
-                    setCurrentImageIndex(index);
-                    playSound('click');
-                  }}
-                  className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
-                        currentImageIndex === index 
-                      ? 'border-blue-500 shadow-lg shadow-blue-500/30' 
-                      : 'border-white/20 hover:border-white/40'
-                  }`}
-                  whileHover={{ scale: 1.1, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <img src={image} alt={`View ${index + 1}`} className="w-full h-full object-cover" />
-                </motion.button>
-                ))}
-              </div>
+            {/* Enhanced Photo Gallery */}
+            <EnhancedPhotoGallery
+              images={product.gallery}
+              currentIndex={currentImageIndex}
+              onImageChange={setCurrentImageIndex}
+              onZoom={() => setZoomedImage(product.gallery[currentImageIndex])}
+            />
           </motion.div>
 
           {/* Enhanced Product Information */}
-          <motion.div 
+          <motion.div
             className="space-y-8"
-            initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            initial={{ opacity: 0, x: 80, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ 
+              duration: 1.2, 
+              ease: "easeOut",
+              delay: 1.2
+            }}
           >
-            {/* Product Header with Street Elements */}
-              <div className="space-y-4">
-                <div className="flex items-start justify-between">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-1 rounded-full text-xs font-bold">
-                      {product.category.toUpperCase()}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Zap className="w-4 h-4 text-yellow-400" />
-                      <span className="text-xs text-yellow-400 font-bold">LIMITED DROP</span>
-                    </div>
-                  </div>
-                  
-                  <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent">
-                    {product.name}
-                  </h1>
-                  
-                  {/* Enhanced Reviews with Street Score */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                          className={`w-5 h-5 ${
-                              i < Math.floor(enhancedProduct.reviews.average)
-                                ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-500'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    <span className="text-sm text-gray-300">
-                        {enhancedProduct.reviews.average} ({enhancedProduct.reviews.total} reviews)
-                  </span>
-                    <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-2 py-1 rounded text-xs font-bold">
-                      STREET SCORE: {enhancedProduct.reviews.streetScore}/10
-                    </div>
-                    </div>
-              </div>
-              
-                {/* Enhanced Action Buttons */}
-                  <div className="flex items-center gap-2">
-                  <motion.button
-                    onClick={() => {
-                      setIsWishlisted(!isWishlisted);
-                      playSound('click');
-                    }}
-                    className="relative p-3 bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 hover:border-red-400/50 transition-all group"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Heart className={`w-6 h-6 transition-all ${isWishlisted ? 'fill-red-500 text-red-500 scale-110' : 'text-white group-hover:text-red-400'}`} />
-                    {isWishlisted && (
-                      <motion.div
-                        className="absolute inset-0 bg-red-500/20 rounded-xl"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1.2, opacity: 0 }}
-                        transition={{ duration: 0.4 }}
-                      />
-                    )}
-                  </motion.button>
-                    
-                    <div className="relative">
-                    <motion.button
-                      onClick={() => {
-                        setShareMenuOpen(!shareMenuOpen);
-                        playSound('click');
-                      }}
-                      className="p-3 bg-white/10 backdrop-blur-xl rounded-xl border border-white/20 hover:border-blue-400/50 transition-all"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Share2 className="w-6 h-6" />
-                    </motion.button>
-                    
-                    {/* Enhanced Share Menu */}
-                      <AnimatePresence>
-                        {shareMenuOpen && (
-                <motion.div
-                          className="absolute right-0 top-full mt-3 bg-black/90 backdrop-blur-xl border border-white/20 rounded-xl shadow-xl p-4 z-50 min-w-[200px]"
-                            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                          >
-                          <div className="text-sm font-medium mb-3 text-center">Share this drop 🔥</div>
-                          <div className="grid grid-cols-2 gap-2">
-                            {[
-                              { icon: Copy, label: 'Copy Link', action: 'copy' },
-                              { icon: Facebook, label: 'Facebook', action: 'facebook' },
-                              { icon: Twitter, label: 'Twitter', action: 'twitter' },
-                              { icon: Instagram, label: 'Instagram', action: 'instagram' }
-                            ].map((item) => (
-                              <motion.button
-                                key={item.action}
-                                onClick={() => playSound('click')}
-                                className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/10 transition-all text-xs"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                              >
-                                <item.icon className="w-4 h-4" />
-                                <span>{item.label}</span>
-                              </motion.button>
-                            ))}
-                    </div>
+            {/* Enhanced Product Header */}
+            <motion.div 
+              className="space-y-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 1.4 }}
+            >
+              {/* Category Badge */}
+              <motion.div 
+                className="flex flex-wrap items-center gap-3"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.6 }}
+              >
+                <motion.div 
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 px-4 py-1 rounded-full text-xs font-black"
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.5, delay: 1.8, ease: "easeOut" }}
+                >
+                  {product.category}
                 </motion.div>
-                        )}
-                      </AnimatePresence>
-              </div>
-                  </div>
-                </div>
+                <motion.div 
+                  className="flex items-center gap-1 text-yellow-400"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 2.0 }}
+                >
+                  <Zap className="w-4 h-4" />
+                  <span className="text-xs font-bold">GENESIS EDITION</span>
+                </motion.div>
+              </motion.div>
 
-              {/* Enhanced Price with Street Style */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-4">
-                  <div className="text-4xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                    ${product.price}
-                  </div>
-                  <div className="text-2xl text-gray-400 line-through">
-                      ${enhancedProduct.originalPrice}
-                  </div>
-                  <div className="bg-gradient-to-r from-red-600 to-orange-600 px-3 py-1 rounded-full text-sm font-bold">
-                      {enhancedProduct.discount}% OFF
-                  </div>
+              {/* Product Name */}
+              <div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight">
+                  <span className="bg-gradient-to-r from-white via-cyan-200 to-pink-200 bg-clip-text text-transparent">
+                    {product.name}
+                  </span>
+                </h1>
+                <p className="text-lg text-cyan-400 font-bold mt-2 tracking-wider">
+                  {product.subtitle}
+                </p>
+              </div>
+
+              {/* Reviews & Stats */}
+              <div className="flex flex-wrap items-center gap-6">
+                <div className="flex items-center gap-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < Math.floor(product.reviews.average)
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-gray-600'
+                      }`}
+                    />
+                  ))}
+                  <span className="text-sm text-gray-300 ml-2">
+                    {product.reviews.average} ({product.reviews.total} reviews)
+                  </span>
                 </div>
                 
-                {/* Stock urgency indicator */}
-                <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm text-red-400 font-medium">
-                      Only {enhancedProduct.inStock} left in stock!
-                  </span>
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    {Math.floor(Math.random() * 50) + 10} people viewing
-                  </div>
-                </div>
+                <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-3 py-1 rounded-full text-xs font-black">
+                  STREET SCORE: {product.stats.streetCred}/100
                 </div>
               </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
+                <motion.button
+                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  className={`
+                    p-3 rounded-xl border-2 transition-all backdrop-blur-xl
+                    ${isWishlisted 
+                      ? 'bg-red-500/20 border-red-500/50 text-red-400' 
+                      : 'bg-white/5 border-white/20 text-white hover:border-red-400/50'
+                    }
+                  `}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <Heart className={`w-6 h-6 ${isWishlisted ? 'fill-current' : ''}`} />
+                </motion.button>
+
+                <div className="relative">
+                  <GlitchButton
+                    variant="ghost"
+                    className="!p-3"
+                    onClick={() => setShareMenuOpen(!shareMenuOpen)}
+                  >
+                    <Share2 className="w-6 h-6" />
+                  </GlitchButton>
+
+                  <AnimatePresence>
+                    {shareMenuOpen && (
+                      <motion.div
+                        className="absolute right-0 top-full mt-3 bg-black/90 backdrop-blur-xl border border-white/20 rounded-xl p-4 z-50 min-w-[200px]"
+                        initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                      >
+                        <div className="text-sm font-bold mb-3 text-center">Share this drop 🔥</div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { icon: Copy, label: 'Copy Link' },
+                            { icon: Facebook, label: 'Facebook' },
+                            { icon: Twitter, label: 'Twitter' },
+                            { icon: Instagram, label: 'Instagram' }
+                          ].map((item, idx) => (
+                            <motion.button
+                              key={idx}
+                              className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/10 transition-all text-xs font-medium"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <item.icon className="w-4 h-4" />
+                              <span>{item.label}</span>
+                            </motion.button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Enhanced Price Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 2.2 }}
+            >
+            <HoloCard className="p-6" glowColor="green">
+                <motion.div 
+                  className="flex items-center gap-6 mb-4"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, delay: 2.4 }}
+                >
+                  <motion.div 
+                    className="text-4xl font-black bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent"
+                    initial={{ scale: 0, rotate: -10 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ duration: 0.5, delay: 2.6, ease: "easeOut" }}
+                  >
+                    ${product.base_price}
+                  </motion.div>
+                  <motion.div 
+                    className="text-2xl text-gray-400 line-through"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 2.8 }}
+                  >
+                    ${product.compare_price}
+                  </motion.div>
+                  <motion.div 
+                    className="bg-gradient-to-r from-red-500 to-orange-500 px-3 py-1 rounded-full text-sm font-black"
+                    initial={{ scale: 0, rotate: 180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ duration: 0.5, delay: 3.0, ease: "easeOut" }}
+                  >
+                  {product.discount}% OFF
+                  </motion.div>
+                </motion.div>
+              
+              <div className="flex flex-wrap items-center gap-4 text-sm">
+                <div className="flex items-center gap-2 text-red-400">
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <span className="font-bold">Only {product.stock_quantity} left!</span>
+                </div>
+                <div className="text-cyan-400 font-mono">
+                   ID: VL-{String(product.id).padStart(4, '0')}-GX
+                </div>
+              </div>
+            </HoloCard>
+            </motion.div>
 
             {/* Enhanced Product Description */}
-            <StreetCard className="p-6" onClick={() => {}} hoverable={false}>
-              <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
-                <Target className="w-5 h-5 text-blue-400" />
-                Street Certified
-              </h3>
-              <p className="text-gray-300 leading-relaxed">
-                {product.description} Designed for the streets, tested by the culture. 
-                This isn't just clothing - it's a statement.
-              </p>
-            </StreetCard>
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 3.2 }}
+            >
+            <HoloCard className="p-6" glowColor="purple">
+                <motion.h3 
+                  className="text-xl font-black mb-4 flex items-center gap-2"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 3.4 }}
+                >
+                  <motion.div
+                    initial={{ scale: 0, rotate: -90 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ duration: 0.5, delay: 3.6, ease: "easeOut" }}
+                  >
+                <Target className="w-6 h-6 text-purple-400" />
+                  </motion.div>
+                MISSION BRIEFING
+                </motion.h3>
+                <motion.p 
+                  className="text-gray-300 leading-relaxed mb-4"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 3.8 }}
+                >
+                {product.description}
+                </motion.p>
+                
+                {/* Enhanced Stats Grid */}
+                <motion.div 
+                  className="grid grid-cols-2 gap-4 mt-6"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8, delay: 4.0 }}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 4.2 }}
+                  >
+                <CyberProgress label="Hype Level" value={product.stats.hypeLevel} color="cyan" />
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 4.4 }}
+                  >
+                <CyberProgress label="Street Cred" value={product.stats.streetCred} color="pink" />
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 4.6 }}
+                  >
+                <CyberProgress label="Exclusivity" value={product.stats.exclusivity} color="green" />
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6, delay: 4.8 }}
+                  >
+                <CyberProgress label="Community" value={product.stats.community} max={200} color="cyan" />
+                  </motion.div>
+                </motion.div>
+            </HoloCard>
+            </motion.div>
+
+            {/* Enhanced Vault Features Section */}
+            <VaultFeatures product={product} />
 
             {/* Enhanced Color Selection */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Palette className="w-5 h-5 text-purple-400" />
-                <h3 className="text-xl font-bold">
-                  Colorway: {enhancedProduct.colors[selectedColor]}
-                    </h3>
-                  </div>
-              <div className="flex gap-2">
-                    {enhancedProduct.colors.map((color, index) => (
-                  <motion.button
-                        key={index}
-                    onClick={() => handleColorSelect(index)}
-                    className={`relative w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                          selectedColor === index 
-                        ? 'border-blue-400 ring-2 ring-blue-400/30 scale-105' 
-                        : 'border-white/30 hover:border-white/60 hover:scale-102'
-                        }`}
-                        style={{ backgroundColor: colorMap[color] || '#000' }}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.96 }}
-                      >
-                        {selectedColor === index && (
-                      <Check className="w-4 h-4 text-white drop-shadow-lg" />
+            <motion.div 
+              className="space-y-4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 5.0 }}
+            >
+              <motion.h3 
+                className="text-xl font-black flex items-center gap-3"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 5.2 }}
+              >
+                <motion.div
+                  initial={{ scale: 0, rotate: 90 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.5, delay: 5.4, ease: "easeOut" }}
+                >
+                <Palette className="w-6 h-6 text-pink-400" />
+                </motion.div>
+                <span>COLORWAY: {product.color_options[selectedColor].name}</span>
+                {selectedColor !== undefined && (
+                  <motion.div
+                    className="w-2 h-2 bg-green-400 rounded-full"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3, delay: 0.2 }}
+                  />
+                )}
+              </motion.h3>
+              
+              <div className="flex flex-wrap gap-3">
+                {product.color_options.map((color, index) => (
+                  <motion.div
+                    key={index}
+                    className="group"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 5.6 + index * 0.1 }}
+                  >
+                    <motion.button
+                    onClick={() => setSelectedColor(index)}
+                    className={`
+                        relative w-12 h-12 rounded-xl border-2 transition-all duration-300
+                      ${selectedColor === index 
+                          ? 'border-cyan-400 ring-3 ring-cyan-400/40 scale-110 shadow-xl shadow-cyan-400/30' 
+                          : 'border-white/20 hover:border-white/60 hover:scale-105 hover:shadow-lg hover:shadow-white/20'
+                      }
+                    `}
+                    style={{ backgroundColor: color.hex }}
+                      whileHover={{ 
+                        y: -2, 
+                        scale: selectedColor === index ? 1.1 : 1.08,
+                        rotate: selectedColor === index ? 0 : 2
+                      }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                      {/* Enhanced selection indicator */}
+                    {selectedColor === index && (
+                      <motion.div
+                        className="absolute inset-0 rounded-xl flex items-center justify-center"
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                        >
+                          <motion.div
+                            className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400/20 to-blue-400/20"
+                            animate={{
+                              scale: [1, 1.1, 1],
+                              opacity: [0.2, 0.4, 0.2]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          />
+                          <Check className="w-5 h-5 text-white drop-shadow-lg relative z-10" />
+                      </motion.div>
                     )}
                     
-                    {/* Color glow effect */}
-                    <motion.div
-                      className="absolute inset-0 rounded-full opacity-0"
-                      animate={{ 
-                        opacity: selectedColor === index ? [0, 0.3, 0] : 0,
-                        scale: selectedColor === index ? [1, 1.2, 1] : 1
-                      }}
-                      transition={{ duration: 1, repeat: Infinity }}
-                      style={{ 
-                        boxShadow: `0 0 10px ${colorMap[color] || '#000'}`
-                      }}
-                    />
-                  </motion.button>
-                    ))}
-                  </div>
-                </div>
-
-            {/* Enhanced Size Selection */}
-            <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Ruler className="w-5 h-5 text-green-400" />
-                  <h3 className="text-xl font-bold">Size</h3>
-                    </div>
-                <motion.button
-                  onClick={() => {
-                    setShowSizeGuide(true);
-                    playSound('click');
-                  }}
-                  className="text-sm text-blue-400 hover:text-blue-300 underline underline-offset-2"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  Size Guide 📏
-                </motion.button>
-                  </div>
-              <div className="grid grid-cols-4 gap-2">
-                    {enhancedProduct.sizes.map((size) => (
-                  <motion.button
-                        key={size}
-                    onClick={() => handleSizeSelect(size)}
-                    className={`relative px-2 py-2 rounded-lg font-bold text-base transition-all border-2 ${
-                          selectedSize === size 
-                        ? 'border-blue-500 bg-blue-500/20 text-blue-400 shadow-md scale-102' 
-                        : 'border-white/20 bg-white/5 hover:border-white/40 hover:bg-white/10 hover:scale-101'
-                        }`}
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.97 }}
+                      {/* Enhanced color name tooltip */}
+                      <motion.div 
+                        className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 text-xs font-bold text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/80 backdrop-blur-sm px-2 py-1.5 rounded-lg border border-white/20"
+                        initial={{ y: 8, opacity: 0 }}
+                        whileHover={{ y: 0, opacity: 1 }}
                       >
-                        {size}
-                    {selectedSize === size && (
+                      {color.name}
+                        <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-black/80 rotate-45 border-l border-b border-white/20"></div>
+                      </motion.div>
+                  </motion.button>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+                        {/* Enhanced Size Selection */}
+            <motion.div 
+              className="space-y-6"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 6.0 }}
+            >
+              <div className="flex items-center justify-between">
+                <motion.h3 
+                  className="text-xl font-black flex items-center gap-3"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 6.2 }}
+                >
+                  <motion.div
+                    initial={{ scale: 0, rotate: -90 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ duration: 0.5, delay: 6.4, ease: "easeOut" }}
+                  >
+                  <Ruler className="w-6 h-6 text-green-400" />
+                  </motion.div>
+                  <span>SIZE</span>
+                  {selectedSize && (
+                    <motion.div
+                      className="w-2 h-2 bg-green-400 rounded-full"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.3, delay: 0.2 }}
+                    />
+                  )}
+                </motion.h3>
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 6.6 }}
+                >
+                <GlitchButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSizeGuide(true)}
+                    className="group"
+                  >
+                    <motion.div
+                      className="flex items-center gap-2"
+                      whileHover={{ x: 3 }}
+                      transition={{ duration: 0.2 }}
+                >
+                  SIZE GUIDE 📐
                       <motion.div
-                        className="absolute inset-0 rounded-lg bg-blue-500/20 border-2 border-blue-500"
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 300 }}
+                        className="w-2 h-2 bg-cyan-400 rounded-full"
+                        animate={{
+                          scale: [1, 1.2, 1],
+                          opacity: [0.5, 1, 0.5]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
                       />
+                    </motion.div>
+                </GlitchButton>
+                </motion.div>
+              </div>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                {product.size_options.map((size, index) => (
+                  <motion.div
+                    key={size}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 6.8 + index * 0.1 }}
+                  >
+                    <motion.button
+                    onClick={() => setSelectedSize(size)}
+                    className={`
+                        relative h-16 w-full rounded-2xl font-black text-lg border-2 transition-all duration-300 group
+                      ${selectedSize === size 
+                          ? 'border-cyan-500 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-400 shadow-2xl shadow-cyan-500/40' 
+                          : 'border-white/20 bg-white/5 hover:border-white/60 hover:bg-white/10 hover:shadow-lg hover:shadow-white/20'
+                        }
+                      `}
+                      whileHover={{ 
+                        scale: selectedSize === size ? 1.05 : 1.03, 
+                        y: selectedSize === size ? -2 : -1,
+                        rotate: selectedSize === size ? 0 : 1
+                      }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                      <span className="relative z-10">{size}</span>
+                      
+                    {selectedSize === size && (
+                        <>
+                      <motion.div
+                            className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500/20 to-blue-500/20"
+                        initial={{ scale: 0, rotate: 180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                          />
+                          <motion.div
+                            className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-400 rounded-full flex items-center justify-center"
+                            initial={{ scale: 0, rotate: -180 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ duration: 0.5, delay: 0.2 }}
+                          >
+                            <Check className="w-2.5 h-2.5 text-white" />
+                          </motion.div>
+                          <motion.div
+                            className="absolute inset-0 rounded-2xl border-2 border-cyan-400/50"
+                            animate={{
+                              scale: [1, 1.05, 1],
+                              opacity: [0.5, 0.8, 0.5]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          />
+                        </>
                     )}
                   </motion.button>
-                    ))}
-                  </div>
-                </div>
-
-            {/* Enhanced Quantity Selector */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Package className="w-5 h-5 text-yellow-400" />
-                Quantity
-              </h3>
-              <div className="flex items-center gap-4">
-                <motion.button
-                  onClick={() => {
-                    setQuantity(Math.max(1, quantity - 1));
-                    playSound('click');
-                  }}
-                    disabled={quantity <= 1}
-                  className="w-12 h-12 rounded-xl bg-white/10 border-2 border-white/20 hover:border-red-400/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  whileHover={{ scale: quantity > 1 ? 1.1 : 1 }}
-                  whileTap={{ scale: quantity > 1 ? 0.9 : 1 }}
-                >
-                  <Minus className="w-5 h-5" />
-                </motion.button>
-                
-                <div className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent min-w-[4rem] text-center">
-                    {quantity}
-                </div>
-                
-                <motion.button
-                  onClick={() => {
-                    setQuantity(Math.min(10, quantity + 1));
-                    playSound('click');
-                  }}
-                    disabled={quantity >= 10}
-                  className="w-12 h-12 rounded-xl bg-white/10 border-2 border-white/20 hover:border-green-400/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  whileHover={{ scale: quantity < 10 ? 1.1 : 1 }}
-                  whileTap={{ scale: quantity < 10 ? 0.9 : 1 }}
-                  >
-                  <Plus className="w-5 h-5" />
-                </motion.button>
-                </div>
+                  </motion.div>
+                ))}
               </div>
+            </motion.div>
 
-            {/* Enhanced Add to Cart */}
-              <div className="space-y-4">
-              <motion.div
-                animate={{ 
-                  scale: cartBounce ? [1, 1.05, 0.95, 1] : 1,
-                  rotate: cartBounce ? [0, -1, 1, 0] : 0 
-                }}
-                transition={{ duration: 0.6 }}
+            {/* Enhanced Quantity */}
+            <motion.div 
+              className="space-y-6"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 7.5 }}
+            >
+              <motion.h3 
+                className="text-xl font-black flex items-center gap-3"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 7.7 }}
               >
-                <StreetButton 
-                  data-add-to-cart
-                  ref={addToCartButtonRef}
-                  onClick={handleAddToCart}
-                  className="w-full h-16 text-xl font-black relative overflow-hidden group bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 shadow-lg border-4 border-blue-400 focus:ring-4 focus:ring-blue-500/40 transition-all duration-300"
-                  variant="primary"
-                  whileHover={{ scale: 1.04, boxShadow: '0 0 32px 8px #6366f1, 0 0 64px 16px #a21caf' }}
-                  whileTap={{ scale: 0.98 }}
+                <motion.div
+                  initial={{ scale: 0, rotate: -90 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.5, delay: 7.9, ease: "easeOut" }}
                 >
-                  <motion.div className="absolute inset-0 border-4 border-blue-400 rounded-xl pointer-events-none group-hover:border-blue-300 animate-border-flash" />
-                  <motion.span className="z-10 flex items-center" whileTap={{ scale: 1.1, rotate: [0, -10, 10, 0] }}>
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                    ADD TO CART - ${(product.price * quantity).toFixed(2)}
-                    <Zap className="w-4 h-4 ml-2" />
-                  </motion.span>
-                </StreetButton>
+                <Package className="w-6 h-6 text-yellow-400" />
+                </motion.div>
+                QUANTITY
+              </motion.h3>
+              
+              <div className="flex items-center justify-center gap-6">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 8.1 }}
+                >
+                <GlitchButton
+                  variant="ghost"
+                    className="!w-14 !h-14 !p-0 group"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                >
+                    <motion.div
+                      whileHover={{ scale: 1.1, rotate: -5 }}
+                      whileTap={{ scale: 0.9, rotate: 5 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Minus className="w-6 h-6" />
+                    </motion.div>
+                </GlitchButton>
+                </motion.div>
+                
+                <motion.div 
+                  className="relative"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 8.3 }}
+                >
+                  <div className="text-4xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent min-w-[5rem] text-center">
+                  {quantity}
+                </div>
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-purple-400/20 rounded-full blur-xl"
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.3, 0.6, 0.3]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
+                </motion.div>
+                
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 8.5 }}
+                >
+                <GlitchButton
+                  variant="ghost"
+                    className="!w-14 !h-14 !p-0 group"
+                  onClick={() => setQuantity(Math.min(5, quantity + 1))}
+                  disabled={quantity >= 5}
+                >
+                    <motion.div
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      whileTap={{ scale: 0.9, rotate: -5 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Plus className="w-6 h-6" />
+                    </motion.div>
+                </GlitchButton>
+                </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Add to Cart Section */}
+            <div className="space-y-4">
+              {/* Cart Count Indicator */}
+              {itemCount > 0 && (
+                <motion.div
+                  className="flex justify-center mb-2"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <div className="bg-cyan-500/20 border border-cyan-500/50 px-4 py-2 rounded-full text-sm font-bold text-cyan-400">
+                    🛒 Cart: {itemCount} item{itemCount !== 1 ? 's' : ''}
+                  </div>
+                </motion.div>
+              )}
+              
+              <motion.div
+                animate={cartAnimation ? {
+                     scale: [1, 1.02, 0.98, 1],
+                     y: [0, -2, 0]
+                } : {}}
+                   transition={{ duration: 0.4, ease: "easeInOut" }}
+                 >
+                                <motion.div
+                  className="relative w-full"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 9.0 }}
+              >
+                <GlitchButton
+                  variant="primary"
+                  size="xl"
+                      className="w-full !h-20 relative overflow-hidden group"
+                  onClick={handleAddToCart}
+                      disabled={loading}
+                      pulse={!(selectedSize && selectedColor !== undefined)}
+                    >
+                    <div className="flex items-center justify-center relative z-10">
+                      <motion.div
+                        className="flex items-center gap-3"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <motion.div
+                          animate={{
+                            rotate: [0, -5, 5, 0],
+                            scale: [1, 1.1, 1]
+                          }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <ShoppingCart className="w-7 h-7" />
+                        </motion.div>
+                        <span className="font-black text-lg">
+                          {selectedSize && selectedColor !== undefined ? 
+                            `🚀 DEPLOY TO VAULT - $${(product.base_price * quantity).toFixed(2)}` : 
+                            selectedSize ? 'SELECT COLOR FIRST' : 'SELECT SIZE FIRST'
+                          }
+                        </span>
+                        <motion.div
+                          animate={{
+                            rotate: [0, 5, -5, 0],
+                            scale: [1, 1.1, 1]
+                          }}
+                          transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                        >
+                          <Zap className="w-6 h-6" />
+                        </motion.div>
+                      </motion.div>
+                  </div>
+                  
+                    {/* Enhanced border animation */}
+                  <motion.div
+                      className="absolute inset-0 border-2 border-cyan-400/40 rounded-xl pointer-events-none"
+                    animate={{
+                        borderColor: ['rgba(6, 182, 212, 0.4)', 'rgba(6, 182, 212, 0.7)', 'rgba(6, 182, 212, 0.4)'],
+                        boxShadow: [
+                          '0 0 20px rgba(6, 182, 212, 0.3)',
+                          '0 0 40px rgba(6, 182, 212, 0.6)',
+                          '0 0 20px rgba(6, 182, 212, 0.3)'
+                        ]
+                      }}
+                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    
+                    {/* Floating particles effect */}
+                    {selectedSize && (
+                      <>
+                        <motion.div
+                          className="absolute top-2 left-4 w-2 h-2 bg-cyan-400 rounded-full"
+                          animate={{
+                            y: [0, -10, 0],
+                            opacity: [0.5, 1, 0.5],
+                            scale: [1, 1.2, 1]
+                          }}
+                          transition={{ duration: 2, repeat: Infinity, delay: 0 }}
+                        />
+                        <motion.div
+                          className="absolute top-4 right-6 w-1.5 h-1.5 bg-purple-400 rounded-full"
+                          animate={{
+                            y: [0, -8, 0],
+                            opacity: [0.5, 1, 0.5],
+                            scale: [1, 1.3, 1]
+                          }}
+                          transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+                        />
+                        <motion.div
+                          className="absolute bottom-4 left-8 w-1 h-1 bg-pink-400 rounded-full"
+                          animate={{
+                            y: [0, -6, 0],
+                            opacity: [0.5, 1, 0.5],
+                            scale: [1, 1.4, 1]
+                          }}
+                          transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+                        />
+                      </>
+                    )}
+                </GlitchButton>
+                </motion.div>
               </motion.div>
+
+                            <motion.div 
+                className="grid grid-cols-1 sm:grid-cols-2 gap-6"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 9.5 }}
+              >
+                {/* Enhanced Gift Button */}
+                <motion.div
+                  className="relative group"
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <GlitchButton 
+                    variant="neon" 
+                    size="lg" 
+                    className="font-black w-full relative overflow-hidden"
+                    onClick={() => {
+                      if (!selectedSize || selectedColor === undefined) {
+                        toast({
+                          title: "Selection Required",
+                          description: "Please select both size and color first",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+                      toast({
+                        title: "Gift Feature",
+                        description: "Gift feature coming soon!",
+                      });
+                    }}
+                  >
+                    <div className="flex items-center justify-center relative z-10">
+                      <motion.div
+                        className="mr-3"
+                        animate={{
+                          rotate: [0, -10, 10, 0],
+                          scale: [1, 1.1, 1]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                      >
+                        <Gift className="w-6 h-6" />
+                      </motion.div>
+                      <span>GIFT THIS</span>
+                    </div>
+                    
+                    {/* Unique gift ribbon effect */}
+                    <motion.div
+                      className="absolute top-0 right-0 w-8 h-8 bg-pink-400 transform rotate-45 translate-x-4 -translate-y-4"
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        rotate: [45, 50, 45]
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                    <motion.div
+                      className="absolute top-0 right-0 w-6 h-6 bg-pink-300 transform rotate-45 translate-x-3 -translate-y-3"
+                      animate={{
+                        scale: [1, 1.3, 1],
+                        rotate: [45, 55, 45]
+                      }}
+                      transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+                    />
+                    
+                    {/* Floating hearts */}
+                    <motion.div
+                      className="absolute -top-2 -left-2 text-pink-400 text-xl"
+                      animate={{
+                        y: [0, -8, 0],
+                        rotate: [0, 5, 0],
+                        scale: [1, 1.2, 1]
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      ❤️
+                    </motion.div>
+                </GlitchButton>
+                </motion.div>
+                
+                {/* Enhanced Buy Now Button */}
+                <motion.div
+                  className="relative group"
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <GlitchButton 
+                    variant="cyber" 
+                    size="lg" 
+                    className="font-black w-full relative overflow-hidden"
+                    onClick={() => {
+                      if (!selectedSize || selectedColor === undefined) {
+                        toast({
+                          title: "Selection Required",
+                          description: "Please select both size and color first",
+                          variant: "destructive"
+                        });
+                        return;
+                      }
+                      toast({
+                        title: "Buy Now Feature",
+                        description: "Checkout feature coming soon!",
+                      });
+                    }}
+                  >
+                    <div className="flex items-center justify-center relative z-10">
+                      <motion.div
+                        className="mr-3"
+                        animate={{
+                          rotate: [0, 10, -10, 0],
+                          scale: [1, 1.1, 1]
+                        }}
+                        transition={{ duration: 2.5, repeat: Infinity }}
+                      >
+                        <Zap className="w-6 h-6" />
+                      </motion.div>
+                      <span>BUY NOW</span>
+                    </div>
+                    
+                    {/* Unique lightning effect */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-400/20 to-transparent"
+                      animate={{
+                        x: ['-100%', '200%'],
+                        opacity: [0, 0.8, 0]
+                      }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    
+                    {/* Floating energy particles */}
+                    <motion.div
+                      className="absolute top-2 right-4 w-1.5 h-1.5 bg-yellow-400 rounded-full"
+                      animate={{
+                        y: [0, -6, 0],
+                        opacity: [0.5, 1, 0.5],
+                        scale: [1, 1.3, 1]
+                      }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    />
+                    <motion.div
+                      className="absolute bottom-3 left-6 w-1 h-1 bg-green-400 rounded-full"
+                      animate={{
+                        y: [0, -4, 0],
+                        opacity: [0.5, 1, 0.5],
+                        scale: [1, 1.4, 1]
+                      }}
+                      transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }}
+                    />
+                </GlitchButton>
+                </motion.div>
+              </motion.div>
+            </div>
+
+            {/* Trust Badges */}
+            <HoloCard className="p-6" glowColor="cyan">
+              <h3 className="text-lg font-black mb-4 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-cyan-400" />
+                SECURITY PROTOCOLS
+              </h3>
               
               <div className="grid grid-cols-2 gap-4">
-                <StreetButton 
-                  variant="secondary"
-                  className="h-14 font-bold border-4 border-pink-400 bg-gradient-to-r from-gray-800 to-gray-900 focus:ring-4 focus:ring-pink-400/40 transition-all duration-300 group"
-                  onClick={() => {}}
-                  whileHover={{ background: 'linear-gradient(90deg, #f472b6 0%, #374151 100%)', rotate: 1 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <motion.span className="z-10 flex items-center" whileHover={{ rotate: [0, 8, -8, 0] }} whileTap={{ scale: 1.1 }}>
-                    <Gift className="w-5 h-5 mr-2" />
-                    Gift This
-                  </motion.span>
-                  <motion.div className="absolute inset-0 border-4 border-pink-400 rounded-xl pointer-events-none group-hover:border-pink-300 animate-border-flash" />
-                </StreetButton>
-                
-                <StreetButton 
-                  variant="outline"
-                  className="h-14 font-bold border-4 border-green-400 text-white bg-transparent hover:bg-white/10 hover:text-green-400 focus:ring-4 focus:ring-green-400/40 transition-all duration-300 relative overflow-hidden group"
-                  onClick={() => {}}
-                  whileHover={{ boxShadow: '0 0 24px 4px #34d399', borderColor: '#34d399' }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <motion.span className="z-10 flex items-center relative">
-                    <Zap className="w-5 h-5 mr-2" />
-                    Buy Now
-                    <motion.div className="absolute left-0 -bottom-1 w-full h-1 bg-green-400 rounded-full" initial={{ scaleX: 0 }} whileHover={{ scaleX: 1 }} transition={{ duration: 0.3 }} />
-                  </motion.span>
-                  <motion.div className="absolute inset-0 border-4 border-green-400 rounded-xl pointer-events-none group-hover:border-green-300 animate-border-flash" />
-                </StreetButton>
+                {[
+                  { icon: Shield, label: 'Encrypted', desc: '256-bit SSL', color: 'text-blue-400' },
+                  { icon: Truck, label: 'Free Ship', desc: 'Orders $150+', color: 'text-green-400' },
+                  { icon: RotateCcw, label: 'Returns', desc: '30 days', color: 'text-purple-400' },
+                  { icon: Award, label: 'Authentic', desc: 'Verified', color: 'text-yellow-400' }
+                ].map((badge, idx) => (
+                  <motion.div
+                    key={idx}
+                    className="flex items-center gap-3 p-3 bg-white/5 rounded-lg backdrop-blur-sm"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                  >
+                    <badge.icon className={`w-6 h-6 ${badge.color}`} />
+                    <div>
+                      <div className="text-sm font-bold">{badge.label}</div>
+                      <div className="text-xs text-gray-400">{badge.desc}</div>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
-              </div>
+            </HoloCard>
+          </motion.div>
+        </motion.div>
 
-            {/* Street Credentials */}
-            <StreetCard className="p-6" onClick={() => {}} hoverable={false}>
-              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                <Award className="w-5 h-5 text-yellow-400" />
-                Street Credentials
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                  <Shield className="w-6 h-6 text-blue-400" />
-                        <div>
-                    <div className="text-sm font-bold">Secure</div>
-                    <div className="text-xs text-gray-400">256-bit SSL</div>
-                        </div>
-                      </div>
-                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                  <Truck className="w-6 h-6 text-green-400" />
-                  <div>
-                    <div className="text-sm font-bold">Free Ship</div>
-                    <div className="text-xs text-gray-400">Orders $150+</div>
-                        </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                  <RotateCcw className="w-6 h-6 text-purple-400" />
-                  <div>
-                    <div className="text-sm font-bold">Returns</div>
-                    <div className="text-xs text-gray-400">30 days</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg">
-                  <Users className="w-6 h-6 text-orange-400" />
-                  <div>
-                    <div className="text-sm font-bold">Authentic</div>
-                    <div className="text-xs text-gray-400">Verified</div>
-                  </div>
-                </div>
-              </div>
-            </StreetCard>
-            </motion.div>
-                      </div>
-
-        {/* Enhanced Features Section */}
-          <motion.div
+        {/* Features Section */}
+        <motion.section
           className="mb-16"
-            initial={{ opacity: 0, y: 50 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-          <h2 className="text-3xl font-black mb-8 flex items-center gap-3">
-            <Sparkles className="w-8 h-8 text-yellow-400" />
-            What Makes This Drop Special
+          initial={{ opacity: 0, y: 50 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.4 }}
+        >
+          <h2 className="text-4xl font-black mb-12 text-center">
+            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+              NEXT-GEN FEATURES
+            </span>
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {enhancedProduct.features.map((feature, index) => (
-                <motion.div
+            {product.features.map((feature, index) => (
+              <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.1 * index }}
               >
-                <StreetCard className="p-6 h-full" onClick={() => {}} hoverable={false}>
-                  <div className="text-2xl mb-3">{feature.split(' ')[0]}</div>
-                  <div className="font-medium">{feature.substring(feature.indexOf(' ') + 1)}</div>
-                </StreetCard>
-                </motion.div>
-                    ))}
+                <HoloCard className="p-6 h-full group">
+                  <div className="space-y-4">
+                    <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">
+                      {feature.icon}
+                    </div>
+                    <h3 className="font-bold text-lg">{feature.text}</h3>
+                    <CyberProgress 
+                      value={feature.level} 
+                      max={100} 
+                      label="Tech Level"
+                      color="cyan"
+                    />
                   </div>
-                </motion.div>
+                </HoloCard>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
 
-        {/* Enhanced Reviews Section */}
-                <motion.div
+        {/* Reviews Section */}
+        <motion.section
           className="mb-16"
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.6 }}
         >
-          <h2 className="text-3xl font-black mb-8 flex items-center gap-3">
-            <MessageCircle className="w-8 h-8 text-blue-400" />
-            What The Streets Are Saying
+          <h2 className="text-4xl font-black mb-12 text-center">
+            <span className="bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+              COMMUNITY INTEL
+            </span>
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[
-                      {
-                        name: "Alex M.",
-                username: "@alexdrips",
-                        rating: 5,
-                review: "Straight fire! 🔥 Quality is insane and the fit is perfect. Already got compliments.",
-                verified: true,
-                streetCred: 95
-                      },
-                      {
-                        name: "Jordan K.",
-                username: "@jordankicks",
+            {[
+              {
+                name: "CYBER_ALEX",
+                handle: "@cybr_alex",
                 rating: 5,
-                review: "This hoodie is a vibe! Material feels premium and the design is clean AF. VLANCO never misses.",
+                review: "This hoodie is absolutely insane! 🔥 The quality blew my mind and the cyber aesthetic is perfect. VLANCO never disappoints.",
                 verified: true,
-                streetCred: 87
-                      },
-                      {
-                        name: "Sam R.",
-                username: "@samstyle",
+                level: 94
+              },
+              {
+                name: "NEON_JORDAN",
+                handle: "@neon_j",
+                rating: 5,
+                review: "Pure fire! 🚀 The nano-tech fabric feels incredible and the holographic elements catch light perfectly. Street certified!",
+                verified: true,
+                level: 87
+              },
+              {
+                name: "MATRIX_SAM",
+                handle: "@mtx_sam",
                 rating: 4,
-                review: "Love the colorway! Fits true to size. Only wish they had more limited editions like this.",
+                review: "Love the design and fit! The cyber blue colorway is my favorite. Only wish there were more limited drops like this one.",
                 verified: true,
-                streetCred: 72
-                      }
-                    ].map((review, index) => (
+                level: 76
+              }
+            ].map((review, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.2 * index }}
               >
-                <StreetCard className="p-6" onClick={() => {}} hoverable={false}>
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold">{review.name}</span>
-                                {review.verified && (
-                          <div className="bg-blue-600 rounded-full p-1">
-                            <Check className="w-3 h-3 text-white" />
-                          </div>
-                                )}
-                              </div>
-                      <div className="text-sm text-gray-400">{review.username}</div>
+                <HoloCard className="p-6 h-full">
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-black text-cyan-400">{review.name}</span>
+                          {review.verified && (
+                            <div className="bg-green-500 rounded-full p-1">
+                              <Check className="w-3 h-3 text-white" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-400 font-mono">{review.handle}</div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div className="flex mb-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-4 h-4 ${
+                                i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-600'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <div className="text-xs bg-gradient-to-r from-cyan-500 to-purple-500 px-2 py-1 rounded font-bold">
+                          LVL {review.level}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex mb-1">
-                                  {[...Array(5)].map((_, i) => (
-                                    <Star
-                                      key={i}
-                                      className={`w-4 h-4 ${
-                              i < review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-500'
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                      <div className="text-xs text-green-400 font-bold">
-                        Street Cred: {review.streetCred}
-                              </div>
-                            </div>
-                            </div>
-                  <p className="text-gray-300 text-sm">{review.review}</p>
-                </StreetCard>
+                    
+                    <p className="text-gray-300 text-sm leading-relaxed">{review.review}</p>
+                  </div>
+                </HoloCard>
               </motion.div>
-                    ))}
-              </div>
-            </motion.div>
+            ))}
+          </div>
+        </motion.section>
 
-        {/* You Might Also Like Section */}
-            <motion.div
+        {/* Related Products */}
+        <motion.section
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.8 }}
         >
-          <h2 className="text-3xl font-black mb-8 flex items-center gap-3">
-            <TrendingUp className="w-8 h-8 text-green-400" />
-            More Heat From The Collection
+          <h2 className="text-4xl font-black mb-12 text-center">
+            <span className="bg-gradient-to-r from-pink-400 via-red-400 to-orange-400 bg-clip-text text-transparent">
+              MORE FROM THE VAULT
+            </span>
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {relatedProducts.map((item, index) => (
-            <motion.div 
-                key={item.name}
-                initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
+            {productImages.map((image, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.1 * index }}
               >
-                <StreetCard 
-                  className="group cursor-pointer p-0"
-                  onClick={() => playSound('click')}
-                >
-                      <div className="relative overflow-hidden">
-                        <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full aspect-square object-cover group-hover:scale-110 transition-transform duration-500"
+                <HoloCard className="group cursor-pointer p-0 overflow-hidden">
+                  <div className="relative">
+                    <img
+                      src={image}
+                      alt={`Product ${index + 1}`}
+                       className="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-300 ease-out"
                     />
-                    <div className="absolute top-3 right-3">
-                      <div className="bg-red-600 text-white px-2 py-1 rounded text-xs font-bold">
-                        HOT
+                    
+                    {/* Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <h3 className="font-black text-lg mb-1">CYBER PIECE #{index + 1}</h3>
+                        <p className="text-cyan-400 text-sm">Limited Genesis</p>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-green-400 font-black">$199</span>
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm">4.{8 + index}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="p-4">
-                    <h3 className="font-bold text-lg group-hover:text-blue-400 transition-colors">
-                      {item.name}
-                        </h3>
-                    <p className="text-gray-400 text-sm">Limited Edition</p>
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm">4.{8 + index}</span>
-                      </div>
-                      <div className="text-xs text-red-400 font-bold">
-                        {item.left} left
-                      </div>
+                    
+                    {/* Hot badge */}
+                    <div className="absolute top-3 right-3 bg-gradient-to-r from-red-500 to-orange-500 px-2 py-1 rounded text-xs font-black animate-pulse">
+                      🔥 HOT
                     </div>
                   </div>
-                </StreetCard>
+                </HoloCard>
               </motion.div>
-                ))}
-              </div>
-            </motion.div>
+            ))}
+          </div>
+        </motion.section>
       </div>
 
-      {/* Enhanced Modals */}
-        <AnimatePresence>
-          {zoomedImage && (
-            <motion.div
+      {/* Modals */}
+      <AnimatePresence>
+        {zoomedImage && (
+          <motion.div
             className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setZoomedImage(null)}
-            >
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setZoomedImage(null)}
+          >
             <motion.div
               className="relative max-w-4xl max-h-[90vh]"
               initial={{ scale: 0.8, opacity: 0 }}
@@ -1217,63 +2822,60 @@ const ProductDetail = () => {
                 alt="Zoomed product"
                 className="w-full h-full object-contain rounded-xl"
               />
-              <motion.button
+              <GlitchButton
+                variant="ghost"
+                className="!absolute top-4 right-4 !p-3"
                 onClick={() => setZoomedImage(null)}
-                className="absolute top-4 right-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
               >
                 ×
-              </motion.button>
+              </GlitchButton>
             </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
-          {showSizeGuide && (
+        {showSizeGuide && (
           <motion.div
-            className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-              onClick={() => setShowSizeGuide(false)}
+            onClick={() => setShowSizeGuide(false)}
           >
             <motion.div
-              className="bg-gray-900 border border-white/20 rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-black flex items-center gap-2">
-                  <Ruler className="w-6 h-6 text-blue-400" />
-                  Size Guide
+              className="bg-black/80 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-3xl font-black bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                  SIZE MATRIX
                 </h3>
-                <motion.button
-                    onClick={() => setShowSizeGuide(false)}
-                  className="text-2xl hover:text-red-400 transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  >
-                    ×
-                </motion.button>
-                </div>
-                
-              <StreetCard className="p-6" onClick={() => {}} hoverable={false}>
-                  <div className="overflow-x-auto">
+                <GlitchButton
+                  variant="ghost"
+                  className="!p-2"
+                  onClick={() => setShowSizeGuide(false)}
+                >
+                  <span className="text-2xl">×</span>
+                </GlitchButton>
+              </div>
+              
+              <HoloCard className="p-6">
+                <div className="overflow-x-auto">
                   <table className="w-full">
-                      <thead>
-                      <tr className="border-b border-white/20">
-                        <th className="text-left p-3 font-bold">Size</th>
-                        <th className="text-left p-3 font-bold">Chest</th>
-                        <th className="text-left p-3 font-bold">Length</th>
-                        <th className="text-left p-3 font-bold">Sleeve</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[
+                    <thead>
+                      <tr className="border-b border-cyan-500/30">
+                        <th className="text-left p-4 font-black text-cyan-400">SIZE</th>
+                        <th className="text-left p-4 font-black text-cyan-400">CHEST</th>
+                        <th className="text-left p-4 font-black text-cyan-400">LENGTH</th>
+                        <th className="text-left p-4 font-black text-cyan-400">SLEEVE</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
                         { size: 'XS', chest: '34-36"', length: '26"', sleeve: '24"' },
                         { size: 'S', chest: '36-38"', length: '27"', sleeve: '25"' },
                         { size: 'M', chest: '38-40"', length: '28"', sleeve: '26"' },
@@ -1283,36 +2885,130 @@ const ProductDetail = () => {
                       ].map((row, index) => (
                         <motion.tr
                           key={row.size}
-                          className="border-b border-white/10 hover:bg-white/5"
+                          className="border-b border-white/10 hover:bg-cyan-500/5"
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
                         >
-                          <td className="p-3 font-bold text-blue-400">{row.size}</td>
-                            <td className="p-3">{row.chest}</td>
-                            <td className="p-3">{row.length}</td>
-                            <td className="p-3">{row.sleeve}</td>
+                          <td className="p-4 font-black text-cyan-400">{row.size}</td>
+                          <td className="p-4 font-mono">{row.chest}</td>
+                          <td className="p-4 font-mono">{row.length}</td>
+                          <td className="p-4 font-mono">{row.sleeve}</td>
                         </motion.tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  
-                <div className="mt-6 pt-6 border-t border-white/20">
-                  <h4 className="font-bold mb-3 text-yellow-400">📏 How to Measure:</h4>
-                  <ul className="space-y-2 text-sm text-gray-300">
-                      <li>• <strong>Chest:</strong> Measure around the fullest part of your chest</li>
-                      <li>• <strong>Length:</strong> Measure from shoulder to bottom hem</li>
-                      <li>• <strong>Sleeve:</strong> Measure from shoulder seam to cuff</li>
-                    </ul>
-                  </div>
-              </StreetCard>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div className="mt-8 pt-6 border-t border-white/20">
+                  <h4 className="font-black mb-4 text-yellow-400 text-lg">📐 MEASUREMENT PROTOCOL:</h4>
+                  <ul className="space-y-3 text-sm text-gray-300">
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full" />
+                      <strong className="text-white">Chest:</strong> Measure around the fullest part of your chest
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full" />
+                      <strong className="text-white">Length:</strong> Measure from shoulder to bottom hem
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-cyan-400 rounded-full" />
+                      <strong className="text-white">Sleeve:</strong> Measure from shoulder seam to cuff
+                    </li>
+                  </ul>
+                </div>
+              </HoloCard>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+
+      {/* Enhanced Floating Cart Indicator */}
+      <FloatingCartIndicator
+        itemCount={itemCount}
+        onClick={handleCartClick}
+        isVisible={showCartIndicator || itemCount > 0}
+      />
+
+      {/* Success Animation Overlay */}
+      <AnimatePresence>
+        {cartAnimation && (
+          <motion.div
+            className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              className="text-center"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              exit={{ scale: 0, rotate: 180 }}
+              transition={{ type: "spring", stiffness: 300, damping: 15 }}
+            >
+              <div className="text-8xl mb-4">🚀</div>
+              <motion.div
+                className="text-2xl font-black bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                DEPLOYED TO VAULT!
+              </motion.div>
+              <motion.div
+                className="text-lg text-gray-300 mt-2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                Your item has been secured in the digital vault
+              </motion.div>
+              
+              {/* Particle effects */}
+              <div className="absolute inset-0 pointer-events-none">
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-2 h-2 bg-cyan-400 rounded-full"
+                    initial={{
+                      x: 0,
+                      y: 0,
+                      opacity: 1,
+                      scale: 1
+                    }}
+                    animate={{
+                      x: (Math.random() - 0.5) * 400,
+                      y: (Math.random() - 0.5) * 400,
+                      opacity: 0,
+                      scale: 0
+                    }}
+                    transition={{
+                      duration: 2,
+                      delay: i * 0.1,
+                      ease: "easeOut"
+                    }}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Scrollbar Styles */}
+       <style>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+     </motion.div>
+     </>
   );
 };
 
-export default ProductDetail;
+export default VlancoProductPage;

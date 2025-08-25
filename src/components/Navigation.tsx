@@ -52,6 +52,19 @@ const Navigation = () => {
                 <Search className="w-5 h-5" />
               </button>
 
+              {/* Database Test Quick Access (Development) */}
+              {user && (
+                <a 
+                  href="/database-test"
+                  className="p-2 hover:bg-muted rounded-full transition-colors duration-300 group"
+                  title="Database Test"
+                >
+                  <div className="w-5 h-5 text-xs font-bold text-cyan-400 group-hover:text-cyan-300">
+                    DB
+                  </div>
+                </a>
+              )}
+
               {/* Wishlist */}
               <button 
                 onClick={() => window.location.href = '/wishlist'}
@@ -93,6 +106,18 @@ const Navigation = () => {
                     <a href="#" className="block px-4 py-2 hover:bg-muted transition-colors">Profile</a>
                     <a href="#" className="block px-4 py-2 hover:bg-muted transition-colors">Orders</a>
                     <a href="/wishlist" className="block px-4 py-2 hover:bg-muted transition-colors">Wishlist</a>
+                    
+                    {/* Database Testing Links */}
+                    <div className="px-4 py-2 border-t border-border">
+                      <p className="text-xs text-muted-foreground font-medium mb-2">Testing & Analytics</p>
+                      <a href="/database-test" className="block px-4 py-2 hover:bg-muted transition-colors text-sm">
+                        🗄️ Database Test
+                      </a>
+                      <a href="/analytics" className="block px-4 py-2 hover:bg-muted transition-colors text-sm">
+                        📊 Analytics
+                      </a>
+                    </div>
+                    
                     <button 
                       onClick={signOut}
                       className="block w-full text-left px-4 py-2 hover:bg-muted transition-colors"

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { motion, useInView, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
@@ -15,7 +15,22 @@ import {
   Check,
   ArrowRight,
   Crown,
-  Sparkles
+  Sparkles,
+  Zap,
+  Flame,
+  Target,
+  Shield,
+  Hexagon,
+  Triangle,
+  Circle,
+  Square,
+  Eye,
+  Play,
+  Pause,
+  RotateCw,
+  Maximize,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
@@ -67,7 +82,7 @@ const Tooltip = ({ children, content }: { children: React.ReactNode, content: st
   );
 };
 
-// Confetti component for gamified effect
+// Enhanced Confetti component for gamified effect
 const Confetti = ({ isVisible }: { isVisible: boolean }) => {
   const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'];
   
@@ -98,6 +113,178 @@ const Confetti = ({ isVisible }: { isVisible: boolean }) => {
         />
       ))}
     </div>
+  );
+};
+
+// Enhanced Holographic Card Component
+const HolographicCard = ({ children, className = '', glowColor = 'cyan', isHovered = false }) => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const cardRef = useRef(null);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    setMousePosition({ x, y });
+  }, []);
+
+  const glowColors = useMemo(() => ({
+    cyan: 'shadow-cyan-500/20 border-cyan-500/30',
+    pink: 'shadow-pink-500/20 border-pink-500/30',
+    purple: 'shadow-purple-500/20 border-purple-500/30',
+    green: 'shadow-green-500/20 border-green-500/30',
+    yellow: 'shadow-yellow-500/20 border-yellow-500/30'
+  }), []);
+
+  return (
+    <motion.div
+      ref={cardRef}
+      className={`
+        relative overflow-hidden backdrop-blur-xl bg-black/20 
+        border border-white/10 rounded-2xl transition-all duration-300 ease-out
+        hover:${glowColors[glowColor]} hover:shadow-2xl hover:scale-[1.01]
+        ${isHovered ? `shadow-2xl ${glowColors[glowColor]}` : ''}
+        ${className}
+      `}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => setMousePosition({ x: 0.5, y: 0.5 })}
+      whileHover={{ y: -2, scale: 1.01 }}
+      style={{
+        background: `
+          radial-gradient(
+            600px circle at ${mousePosition.x * 100}% ${mousePosition.y * 100}%,
+            rgba(255,255,255,0.1) 0%,
+            transparent 40%
+          ),
+          linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.1) 100%)
+        `
+      }}
+    >
+      {/* Subtle shine overlay */}
+      <motion.div
+        className="absolute inset-0 opacity-10"
+        style={{
+          background: `linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)`
+        }}
+        animate={{
+          x: ['-100%', '200%']
+        }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      />
+      
+      {/* Content */}
+      <div className="relative z-10">
+        {children}
+      </div>
+    </motion.div>
+  );
+};
+
+// Enhanced Floating Elements Component
+const FloatingElements = () => {
+  const elements = [
+    { icon: Hexagon, color: 'text-cyan-400/15', delay: 0.8, duration: 8 },
+    { icon: Triangle, color: 'text-pink-400/15', delay: 1.2, duration: 10 },
+    { icon: Circle, color: 'text-green-400/15', delay: 1.6, duration: 12 },
+    { icon: Square, color: 'text-purple-400/15', delay: 2.0, duration: 14 }
+  ];
+
+  return (
+    <div className="fixed inset-0 pointer-events-none">
+      {elements.map((element, index) => (
+        <motion.div
+          key={index}
+          className={`absolute ${element.color}`}
+          style={{
+            top: `${20 + index * 20}%`,
+            left: index % 2 === 0 ? '10%' : '80%'
+          }}
+          initial={{ opacity: 0, scale: 0, rotate: -180 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: 1.2, delay: element.delay, ease: "easeOut" }}
+        >
+          <motion.div
+            animate={{
+              y: [-8, 8, -8],
+              rotate: [0, 5, -5, 0],
+              scale: [1, 1.05, 0.95, 1]
+            }}
+            transition={{
+              duration: element.duration,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <element.icon size={30 - index * 5} />
+          </motion.div>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// Enhanced Product Stats Component
+const ProductStats = ({ stats }: { stats: Array<{ icon: React.ReactNode, value: number, label: string, tooltip: string, decimals: number, suffix: string, glow: string, border: string }> }) => {
+  return (
+    <motion.div
+      className="flex flex-wrap justify-center gap-8 mb-8 relative"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: {},
+        visible: {
+          transition: { staggerChildren: 0.15 }
+        }
+      }}
+    >
+      {/* Parallax background elements */}
+      <motion.div
+        className="absolute inset-0 rounded-3xl pointer-events-none z-0"
+        style={{
+          background: 'linear-gradient(120deg, rgba(34,211,238,0.08) 0%, rgba(168,85,247,0.10) 100%)',
+          filter: 'blur(24px)',
+        }}
+        animate={{
+          backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+      />
+      
+      {stats.map((stat, index) => (
+        <motion.div
+          key={index}
+          className={`relative p-6 bg-black/40 backdrop-blur-xl rounded-2xl border ${stat.border} shadow-lg`}
+          style={{ boxShadow: stat.glow }}
+          variants={{
+            hidden: { opacity: 0, y: 20, scale: 0.9 },
+            visible: { opacity: 1, y: 0, scale: 1 }
+          }}
+          whileHover={{ y: -5, scale: 1.05 }}
+          transition={{ type: "spring", stiffness: 300 }}
+        >
+          <div className="text-center">
+            <div className="mb-3">{stat.icon}</div>
+            <div className="text-3xl font-black text-white mb-1">
+              {stat.value.toFixed(stat.decimals)}{stat.suffix}
+            </div>
+            <div className="text-sm text-gray-300 font-medium">{stat.label}</div>
+          </div>
+          
+          {/* Hover glow effect */}
+          <motion.div
+            className="absolute inset-0 rounded-2xl opacity-0"
+            style={{ boxShadow: stat.glow }}
+            whileHover={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          />
+        </motion.div>
+      ))}
+    </motion.div>
   );
 };
 
@@ -690,6 +877,7 @@ const TShirtCollection = () => {
         >
           {/* Enhanced Background Effects */}
           <FloatingParticles count={15} />
+          <FloatingElements />
           
           {/* Dynamic gradient orbs */}
           <motion.div

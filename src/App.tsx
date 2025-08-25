@@ -16,6 +16,10 @@ const Wishlist = lazy(() => import("./pages/Wishlist"));
 const TShirtCollection = lazy(() => import("./pages/TShirtCollection"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
+// Database testing and analytics pages
+const DatabaseTestPage = lazy(() => import("./pages/DatabaseTestPage"));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
+
 const queryClient = new QueryClient();
 
 const AppContent = () => {
@@ -50,6 +54,11 @@ const AppContent = () => {
         <Route path="/tshirts" element={<TShirtCollection />} />
         <Route path="/masks" element={<MaskCollection />} />
         <Route path="/accessories" element={<AccessoriesCollection />} />
+        
+        {/* Database Testing Routes */}
+        <Route path="/database-test" element={<DatabaseTestPage />} />
+        <Route path="/analytics" element={<AnalyticsPage />} />
+        
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

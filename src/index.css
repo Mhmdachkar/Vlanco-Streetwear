@@ -231,3 +231,45 @@
     }
   }
 }
+/* Custom Animations for Revolutionary Streetwear Design */
+.animate-border-flash {
+  animation: border-flash 2s ease-in-out infinite;
+}
+
+@keyframes border-flash {
+  0%, 100% { border-color: rgba(236, 72, 153, 0.6); }
+  50% { border-color: rgba(236, 72, 153, 1); }
+}
+
+.animate-holographic-glow {
+  animation: holographic-glow 3s ease-in-out infinite;
+}
+
+@keyframes holographic-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(236, 72, 153, 0.6), 0 0 60px rgba(139, 92, 246, 0.4);
+  }
+}
+
+.animate-portal-ripple {
+  animation: portal-ripple 4s ease-in-out infinite;
+}
+
+@keyframes portal-ripple {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+  50% { transform: scale(1.1) rotate(180deg); opacity: 0.4; }
+  100% { transform: scale(1) rotate(360deg); opacity: 0.8; }
+}
+
+.animate-particle-float {
+  animation: particle-float 6s ease-in-out infinite;
+}
+
+@keyframes particle-float {
+  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+}
+

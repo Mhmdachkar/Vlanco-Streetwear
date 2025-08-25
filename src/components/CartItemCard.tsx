@@ -1,0 +1,290 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Plus, Minus, Trash2, Eye, Heart, Zap, Shield, Star, Clock, Package, Truck } from 'lucide-react';
+import { useCart } from '@/hooks/useCart';
+import type { Tables } from '@/integrations/supabase/types';
+
+type CartItem = Tables<'cart_items'> & {
+  product: Tables<'products'>;
+  variant: Tables<'product_variants'>;
+};
+
+interface CartItemCardProps {
+  item: CartItem;
+  onRemove: (itemId: string) => void;
+  onUpdateQuantity: (itemId: string, quantity: number) => void;
+}
+
+const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQuantity }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+
+  const handleRemove = async () => {
+    setIsRemoving(true);
+    setTimeout(() => {
+      onRemove(item.id);
+    }, 300);
+  };
+
+  const handleQuantityChange = (newQuantity: number) => {
+    if (newQuantity > 0 && newQuantity <= 99) {
+      onUpdateQuantity(item.id, newQuantity);
+    }
+  };
+
+  const getItemPrice = () => {
+    return item.price_at_time || item.product?.base_price || 0;
+  };
+
+  const getTotalPrice = () => {
+    return getItemPrice() * item.quantity;
+  };
+
+  const getSavings = () => {
+    const comparePrice = item.product?.compare_price || item.variant?.compare_price;
+    if (comparePrice && comparePrice > getItemPrice()) {
+      return (comparePrice - getItemPrice()) * item.quantity;
+    }
+    return 0;
+  };
+
+  const getStockStatus = () => {
+    const stock = item.variant?.stock_quantity || 0;
+    if (stock === 0) return { status: 'out', color: 'red', text: 'Out of Stock' };
+    if (stock <= 5) return { status: 'low', color: 'orange', text: 'Low Stock' };
+    return { status: 'in', color: 'green', text: 'In Stock' };
+  };
+
+  const stockStatus = getStockStatus();
+
+  return (
+    <AnimatePresence>
+      {!isRemoving && (
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="relative group"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          {/* Holographic Background Effect */}
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          
+          {/* Main Card */}
+          <motion.div
+            className="relative bg-gradient-to-br from-slate-900/90 via-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 overflow-hidden"
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Animated Border Glow */}
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 opacity-0 group-hover:opacity-20 transition-opacity duration-500" />
+            
+            {/* Shimmer Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+            
+            {/* Header Section */}
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="relative">
+                  <motion.div
+                    className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center"
+                    whileHover={{ rotate: 5, scale: 1.1 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <Package className="w-8 h-8 text-white" />
+                  </motion.div>
+                  <motion.div
+                    className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  >
+                    {item.quantity}
+                  </motion.div>
+                </div>
+                
+                <div className="flex-1">
+                  <motion.h3 
+                    className="text-lg font-bold text-white mb-1"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    {item.product?.name || 'Product Name'}
+                  </motion.h3>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-slate-400">
+                      {item.variant?.color && `${item.variant.color} • `}
+                      {item.variant?.size && `Size ${item.variant.size}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex items-center space-x-2">
+                <motion.button
+                  onClick={() => setShowDetails(!showDetails)}
+                  className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Eye className="w-4 h-4" />
+                </motion.button>
+                
+                <motion.button
+                  onClick={handleRemove}
+                  className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Price and Quantity Section */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <motion.div
+                  className="text-2xl font-bold text-white"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  ${getTotalPrice().toFixed(2)}
+                </motion.div>
+                
+                {getSavings() > 0 && (
+                  <motion.div
+                    className="px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-green-400 text-sm font-medium"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    Save ${getSavings().toFixed(2)}
+                  </motion.div>
+                )}
+              </div>
+              
+              {/* Quantity Controls */}
+              <div className="flex items-center space-x-2">
+                <motion.button
+                  onClick={() => handleQuantityChange(item.quantity - 1)}
+                  className="w-8 h-8 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-colors flex items-center justify-center"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Minus className="w-4 h-4" />
+                </motion.button>
+                
+                <motion.span
+                  className="w-12 text-center text-white font-bold"
+                  key={item.quantity}
+                  initial={{ scale: 1.2 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {item.quantity}
+                </motion.span>
+                
+                <motion.button
+                  onClick={() => handleQuantityChange(item.quantity + 1)}
+                  className="w-8 h-8 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-colors flex items-center justify-center"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Plus className="w-4 h-4" />
+                </motion.button>
+              </div>
+            </div>
+
+            {/* Stock Status */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full bg-${stockStatus.color}-500`} />
+                <span className={`text-sm text-${stockStatus.color}-400`}>
+                  {stockStatus.text}
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-2 text-slate-400 text-sm">
+                <Clock className="w-4 h-4" />
+                <span>Added {new Date(item.added_at).toLocaleDateString()}</span>
+              </div>
+            </div>
+
+            {/* Expandable Details */}
+            <AnimatePresence>
+              {showDetails && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pt-4 border-t border-slate-700/50">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 text-slate-400 text-sm">
+                          <Star className="w-4 h-4" />
+                          <span>Unit Price: ${getItemPrice().toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-slate-400 text-sm">
+                          <Package className="w-4 h-4" />
+                          <span>SKU: {item.variant?.sku || item.product?.sku || 'N/A'}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 text-slate-400 text-sm">
+                          <Shield className="w-4 h-4" />
+                          <span>Stock: {item.variant?.stock_quantity || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-slate-400 text-sm">
+                          <Truck className="w-4 h-4" />
+                          <span>Free Shipping</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {item.product?.description && (
+                      <div className="mt-4 p-3 bg-slate-800/50 rounded-lg">
+                        <p className="text-slate-300 text-sm leading-relaxed">
+                          {item.product.description}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Floating Elements */}
+            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <motion.div
+                className="w-2 h-2 bg-cyan-400 rounded-full"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </div>
+            
+            <div className="absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+              <motion.div
+                className="w-2 h-2 bg-purple-400 rounded-full"
+                animate={{ y: [0, 10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+              />
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default CartItemCard;
