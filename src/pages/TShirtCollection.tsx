@@ -515,7 +515,7 @@ const TShirtCollection = () => {
     }, 850);
   };
 
-  const handleQuickAdd = (product: any, e: React.MouseEvent) => {
+  const handleQuickAdd = async (product: any, e: React.MouseEvent) => {
     e.stopPropagation();
     const size = selectedSize[product.id] || product.sizes?.[0] || '';
     const colorIndex = selectedColor[product.id] || 0;
@@ -523,7 +523,11 @@ const TShirtCollection = () => {
     flyToCart(product.id);
     // Add to cart logic
     const variantId = `${product.id}-${colorIndex}-${size}`;
-    addToCart(product.id.toString(), variantId, 1);
+    await addToCart(product.id.toString(), variantId, 1, {
+      price: product.price,
+      product: { base_price: product.price },
+      variant: { price: product.price }
+    });
   };
 
   const handleColorSelect = (productId: number, colorIndex: number) => {

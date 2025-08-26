@@ -5,6 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
 import AuthModal from './AuthModal';
 import CartSidebar from './CartSidebar';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import MiniCartPopover from '@/components/ui/MiniCartPopover';
 
 const Navigation = () => {
   const { user, signOut } = useAuth();
@@ -74,19 +76,26 @@ const Navigation = () => {
                 <Heart className="w-5 h-5 group-hover:text-red-500 transition-colors" />
               </button>
 
-              {/* Cart */}
-              <button 
-                id="cart-icon"
-                onClick={() => setShowCartSidebar(true)}
-                className="relative p-2 hover:bg-muted rounded-full transition-colors duration-300"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                    {itemCount}
-                  </span>
-                )}
-              </button>
+              {/* Cart with hover preview (desktop) */}
+              <HoverCard openDelay={150} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                  <button 
+                    id="cart-icon"
+                    onClick={() => setShowCartSidebar(true)}
+                    className="relative p-2 hover:bg-muted rounded-full transition-colors duration-300"
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    {itemCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                        {itemCount}
+                      </span>
+                    )}
+                  </button>
+                </HoverCardTrigger>
+                <HoverCardContent className="hidden md:block p-0 w-80">
+                  <MiniCartPopover />
+                </HoverCardContent>
+              </HoverCard>
 
               {/* User Menu */}
               <div className="relative">

@@ -9,6 +9,7 @@ import {
   Maximize, ShoppingBag, Flame, Target, Headphones, Camera, Music,
   Layers, Command, Hexagon, Triangle, Square, Circle, X, ArrowUpRight
 } from 'lucide-react';
+import Navigation from '@/components/Navigation';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -90,6 +91,7 @@ const GlitchButton = ({ children, onClick, variant = 'primary', className = '', 
 
   return (
     <>
+      <Navigation />
       <motion.button
         className={`
           relative overflow-hidden font-bold rounded-xl transition-all duration-300
