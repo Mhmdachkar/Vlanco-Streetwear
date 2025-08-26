@@ -7,6 +7,7 @@ import AuthModal from './AuthModal';
 import CartSidebar from './CartSidebar';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import MiniCartPopover from '@/components/ui/MiniCartPopover';
+import WishlistPopover from '@/components/ui/WishlistPopover';
 
 const Navigation = () => {
   const { user, signOut } = useAuth();
@@ -67,14 +68,21 @@ const Navigation = () => {
                 </a>
               )}
 
-              {/* Wishlist */}
-              <button 
-                onClick={() => window.location.href = '/wishlist'}
-                className="p-2 hover:bg-muted rounded-full transition-colors duration-300 group"
-                title="Wishlist"
-              >
-                <Heart className="w-5 h-5 group-hover:text-red-500 transition-colors" />
-              </button>
+              {/* Wishlist with hover preview */}
+              <HoverCard openDelay={150} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                  <button 
+                    onClick={() => window.location.href = '/wishlist'}
+                    className="p-2 hover:bg-muted rounded-full transition-colors duration-300 group"
+                    title="Wishlist"
+                  >
+                    <Heart className="w-5 h-5 group-hover:text-red-500 transition-colors" />
+                  </button>
+                </HoverCardTrigger>
+                <HoverCardContent className="hidden md:block p-0 w-80">
+                  <WishlistPopover />
+                </HoverCardContent>
+              </HoverCard>
 
               {/* Cart with hover preview (desktop) */}
               <HoverCard openDelay={150} closeDelay={100}>

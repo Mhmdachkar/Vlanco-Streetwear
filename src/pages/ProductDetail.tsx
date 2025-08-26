@@ -1839,7 +1839,29 @@ const VlancoProductPage = () => {
               {/* Action Buttons */}
               <div className="flex items-center gap-3">
                 <motion.button
-                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  onClick={() => {
+                    setIsWishlisted((prev) => !prev);
+                    try {
+                      const key = 'vlanco_wishlist';
+                      const raw = localStorage.getItem(key);
+                      const list = raw ? JSON.parse(raw) : [];
+                      const exists = list.some((i: any) => i.id === String(product.id));
+                      if (exists) {
+                        const updated = list.filter((i: any) => i.id !== String(product.id));
+                        localStorage.setItem(key, JSON.stringify(updated));
+                      } else {
+                        const entry = {
+                          id: String(product.id),
+                          name: product.name,
+                          price: product.price,
+                          image: product.images?.[0] || '',
+                          category: product.category || 'Streetwear',
+                          addedAt: new Date().toISOString(),
+                        };
+                        localStorage.setItem(key, JSON.stringify([entry, ...list]));
+                      }
+                    } catch (_) {}
+                  }}
                   className={`
                     p-3 rounded-xl border-2 transition-all backdrop-blur-xl
                     ${isWishlisted 
