@@ -232,7 +232,7 @@ const FeaturesSection = () => {
 
           {/* Gallery Stats */}
           <motion.div
-            className="flex flex-wrap justify-center gap-8 mb-12"
+            className="flex gap-4 overflow-x-auto sm:flex-wrap sm:justify-center sm:gap-8 mb-10 sm:mb-12 no-scrollbar"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6, delay: 0.6 }}
@@ -245,7 +245,7 @@ const FeaturesSection = () => {
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
-                className="flex items-center gap-3 px-6 py-3 bg-gradient-to-br from-background/50 to-muted/30 rounded-2xl border border-border/50 backdrop-blur-sm"
+                className="flex items-center gap-3 px-5 py-3 bg-gradient-to-br from-background/50 to-muted/30 rounded-2xl border border-border/50 backdrop-blur-sm min-w-[220px]"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={isInView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ delay: 0.8 + index * 0.1, type: "spring" }}

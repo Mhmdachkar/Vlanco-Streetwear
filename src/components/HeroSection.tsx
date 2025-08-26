@@ -238,7 +238,7 @@ const HeroSection = () => {
 
         {/* Stats Section */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 max-w-4xl mx-auto px-2"
+          className="flex gap-4 overflow-x-auto md:grid md:grid-cols-3 md:gap-12 max-w-4xl mx-auto px-2 no-scrollbar"
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 1.4 }}
@@ -265,7 +265,7 @@ const HeroSection = () => {
           ].map((stat, index) => (
             <motion.div
               key={index}
-              className="text-center group cursor-pointer"
+              className="text-center group cursor-pointer min-w-[220px]"
               initial={{ opacity: 0, y: 30, scale: 0.8 }}
               animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
               transition={{ delay: 1.6 + index * 0.2, type: "spring" }}

@@ -437,7 +437,7 @@ const CategorySections = () => {
           transition={{ duration: 0.6, delay: 0.8 }} // Faster
         >
           <motion.button
-            className="inline-flex items-center gap-4 px-12 py-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-bold text-lg shadow-xl hover:shadow-purple-500/20 transition-all relative overflow-hidden group" // Reduced shadow
+            className="inline-flex items-center gap-3 sm:gap-4 px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-bold text-base sm:text-lg shadow-xl hover:shadow-purple-500/20 transition-all relative overflow-hidden group"
             whileHover={{ 
               scale: 1.02, // Reduced scale
               y: -2, // Reduced movement
