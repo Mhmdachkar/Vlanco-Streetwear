@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Heart, ShoppingCart, Eye, Star, Zap, Sparkles, TrendingUp, Crown, Package, Users } from 'lucide-react';
 import { useProducts } from '@/hooks/useProducts';
 import { useCart } from '@/hooks/useCart';
+import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import AuthModal from './AuthModal';
 
@@ -41,7 +42,7 @@ function useCountUp(target: number, duration = 1200, decimals = 0, suffix = '') 
 const ProductGrid = () => {
   const navigate = useNavigate();
   const { products, loading } = useProducts();
-  const { addToCart } = useCart();
+  const { addToCart, removeFromCart, items } = useCart();
   const { user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
@@ -51,13 +52,58 @@ const ProductGrid = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [wishlist, setWishlist] = useState<number[]>([]);
 
-  const handleAddToCart = (productId: number) => {
+  const handleAddToCart = async (e: React.MouseEvent, product: any) => {
     if (!user) {
       setShowAuthModal(true);
       return;
     }
 
-    addToCart(productId.toString(), productId.toString());
+    try {
+      const imgEl = (e.currentTarget as HTMLElement).closest('.group')?.querySelector('img') as HTMLImageElement | null;
+      const cartEl = document.getElementById('cart-icon');
+      if (imgEl && cartEl) {
+        const imgRect = imgEl.getBoundingClientRect();
+        const cartRect = cartEl.getBoundingClientRect();
+        const ghost = imgEl.cloneNode(true) as HTMLImageElement;
+        ghost.style.position = 'fixed';
+        ghost.style.left = imgRect.left + 'px';
+        ghost.style.top = imgRect.top + 'px';
+        ghost.style.width = imgRect.width + 'px';
+        ghost.style.height = imgRect.height + 'px';
+        ghost.style.zIndex = '9999';
+        ghost.style.borderRadius = '12px';
+        ghost.style.transition = 'transform 600ms cubic-bezier(.2,.8,.2,1), opacity 600ms';
+        document.body.appendChild(ghost);
+        const dx = cartRect.left - imgRect.left;
+        const dy = cartRect.top - imgRect.top;
+        requestAnimationFrame(() => {
+          ghost.style.transform = `translate(${dx}px, ${dy}px) scale(0.1)`;
+          ghost.style.opacity = '0.2';
+        });
+        setTimeout(() => ghost.remove(), 650);
+      }
+    } catch (_) {}
+
+    await addToCart(String(product.id), String(product.id), 1, {
+      price: product.displayPrice ?? product.price ?? 0,
+      product: { base_price: product.displayPrice ?? product.price ?? 0 },
+      variant: { price: product.displayPrice ?? product.price ?? 0 }
+    });
+
+    const match = (items as any[]).find((i: any) => i.product_id === String(product.id));
+    toast({
+      title: 'Added to Cart',
+      description: `${product.name} was added to your cart.`,
+      action: (
+        <button
+          onClick={() => { if (match?.id) removeFromCart(match.id); }}
+          className="ml-2 underline"
+        >
+          Undo
+        </button>
+      ) as any,
+      duration: 4000
+    });
   };
 
   const toggleWishlist = (productId: number) => {
@@ -685,7 +731,7 @@ const ProductGrid = () => {
                         <motion.button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleAddToCart(product.id);
+                            handleAddToCart(e, product);
                           }}
                           className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors"
                           whileHover={{ scale: 1.1, rotate: 15 }}
