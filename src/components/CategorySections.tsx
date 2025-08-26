@@ -191,29 +191,32 @@ const CategorySections = () => {
           transition={{ duration: 0.5, delay: 0.4 }} // Faster
         >
           <div className="inline-flex bg-muted/30 backdrop-blur-sm rounded-2xl p-2 border border-border/50 shadow-xl whitespace-nowrap">
-            {filters.map((filter, index) => (
+            {filters.slice(0,1).map((filter) => (
               <motion.button
                 key={filter.id}
                 onClick={() => setActiveFilter(filter.id)}
-                className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 shrink-0 ${
-                  activeFilter === filter.id
-                    ? 'text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                whileHover={{ scale: 1.02 }} // Reduced scale
+                className="relative px-8 py-3 rounded-xl font-bold text-sm shrink-0 text-primary-foreground"
+                whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {activeFilter === filter.id && (
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl"
-                    layoutId="activeFilter"
-                    transition={{ type: "spring", stiffness: 200, damping: 25 }} // Reduced stiffness
-                  />
-                )}
-                <span className="relative z-10 flex items-center gap-2">
-                  <filter.icon className="w-4 h-4 text-purple-400" />
+                <motion.div
+                  className="absolute inset-0 rounded-xl"
+                  style={{
+                    background: 'linear-gradient(90deg, rgba(124,58,237,1) 0%, rgba(59,130,246,1) 100%)'
+                  }}
+                  animate={{ backgroundPosition: ['0% 50%','100% 50%','0% 50%'] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                />
+                <span className="relative z-10 flex items-center gap-3">
+                  <filter.icon className="w-4 h-4 text-white" />
                   {filter.label}
                 </span>
+                <motion.div
+                  className="absolute inset-0 rounded-xl"
+                  style={{ boxShadow: '0 0 30px rgba(147, 51, 234, 0.35)' }}
+                  animate={{ opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
               </motion.button>
             ))}
           </div>
