@@ -106,10 +106,10 @@ const FeaturesSection = () => {
   return (
     <section 
       ref={containerRef}
-      className="py-20 px-6 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background"
+      className="py-14 sm:py-20 px-4 sm:px-6 relative overflow-hidden bg-gradient-to-br from-background via-muted/10 to-background"
     >
       {/* Enhanced Animated Background Elements */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none hidden sm:block">
         {[...Array(15)].map((_, i) => (
           <motion.div
             key={i}
@@ -190,7 +190,7 @@ const FeaturesSection = () => {
       <div className="max-w-7xl mx-auto relative">
         {/* Section Header */}
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-12 sm:mb-16 px-2"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
@@ -208,7 +208,7 @@ const FeaturesSection = () => {
             >
               <Camera className="w-6 h-6 text-purple-400" />
             </motion.div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-foreground via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-black bg-gradient-to-r from-foreground via-purple-400 to-pink-400 bg-clip-text text-transparent">
               VLANCO GALLERY
             </h2>
             <motion.div
@@ -221,7 +221,7 @@ const FeaturesSection = () => {
           </motion.div>
           
           <motion.p 
-            className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8"
+            className="text-base md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 px-2"
             initial={{ opacity: 0, y: 10 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: 0.4 }}
@@ -264,7 +264,7 @@ const FeaturesSection = () => {
         </motion.div>
 
         {/* Photo Gallery Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16">
           {photoGallery.map((photo, index) => {
             const isHovered = hoveredPhoto === index;
             
@@ -297,7 +297,7 @@ const FeaturesSection = () => {
                   style={{ transformStyle: 'preserve-3d' }}
                 >
                   {/* Photo Container */}
-                  <div className={`relative overflow-hidden ${photo.featured ? 'h-[500px]' : 'h-[300px]'}`}>
+                  <div className={`relative overflow-hidden ${photo.featured ? 'h-[380px] sm:h-[500px]' : 'h-[220px] sm:h-[300px]'}`}>
                     <motion.img
                       src={photo.image}
                       alt={photo.title}
@@ -387,7 +387,7 @@ const FeaturesSection = () => {
                   </div>
                   
                   {/* Content Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 z-20 p-6">
+                  <div className="absolute bottom-0 left-0 right-0 z-20 p-4 sm:p-6">
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -395,22 +395,22 @@ const FeaturesSection = () => {
                     >
                       {/* Title and Subtitle */}
                       <div className="mb-3">
-                        <h3 className="text-xl font-bold text-white drop-shadow-lg group-hover:text-purple-300 transition-colors duration-300 mb-1">
+                        <h3 className="text-lg sm:text-xl font-bold text-white drop-shadow-lg group-hover:text-purple-300 transition-colors duration-300 mb-1">
                           {photo.title}
                         </h3>
-                        <p className="text-sm text-purple-200 font-medium drop-shadow-lg">
+                        <p className="text-xs sm:text-sm text-purple-200 font-medium drop-shadow-lg">
                           {photo.subtitle}
                         </p>
                       </div>
                       
                       {/* Description */}
-                      <p className="text-sm text-white/90 leading-relaxed mb-4 drop-shadow-lg">
+                      <p className="text-xs sm:text-sm text-white/90 leading-relaxed mb-4 drop-shadow-lg">
                         {photo.description}
                       </p>
                       
                       {/* Stats Row */}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4 text-xs text-white/80">
+                        <div className="flex items-center gap-3 sm:gap-4 text-[11px] sm:text-xs text-white/80">
                           <div className="flex items-center gap-1">
                             <Eye className="w-3.5 h-3.5" />
                             <span>{photo.views.toLocaleString()}</span>

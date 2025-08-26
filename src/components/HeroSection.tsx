@@ -38,7 +38,7 @@ const HeroSection = () => {
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900"
     >
       {/* Dynamic Background Elements */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none hidden sm:block">
         {/* Animated Grid */}
         <motion.div 
           className="absolute inset-0 opacity-20"
@@ -126,7 +126,7 @@ const HeroSection = () => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 text-center px-6 max-w-6xl mx-auto">
+      <div className="relative z-10 text-center px-4 sm:px-6 max-w-6xl mx-auto">
         
         {/* Brand Title */}
         <motion.div
@@ -136,7 +136,7 @@ const HeroSection = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <motion.h1 
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white"
+            className="text-3xl md:text-5xl lg:text-6xl font-bold text-white"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -153,7 +153,7 @@ const HeroSection = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
         >
           <motion.p 
-            className="text-base md:text-lg text-gray-300 leading-relaxed max-w-2xl mx-auto"
+            className="text-sm md:text-lg text-gray-300 leading-relaxed max-w-2xl mx-auto px-2"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.8, delay: 0.8 }}
@@ -165,14 +165,14 @@ const HeroSection = () => {
 
         {/* Action Buttons */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center mb-10 sm:mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 1 }}
         >
           {/* Shop Now Button */}
           <motion.button
-            className="group relative px-8 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-medium text-base shadow-lg overflow-hidden"
+            className="group relative px-6 py-3 sm:px-8 sm:py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg font-medium text-sm sm:text-base shadow-lg overflow-hidden"
             whileHover={{ 
               scale: 1.02, 
               y: -2
@@ -209,7 +209,7 @@ const HeroSection = () => {
 
           {/* Watch Film Button */}
           <motion.button
-            className="group relative px-8 py-3 border border-gray-400/50 text-gray-300 rounded-lg font-medium text-base backdrop-blur-sm bg-white/5 overflow-hidden"
+            className="group relative px-6 py-3 sm:px-8 sm:py-3 border border-gray-400/50 text-gray-300 rounded-lg font-medium text-sm sm:text-base backdrop-blur-sm bg-white/5 overflow-hidden"
             whileHover={{ 
               scale: 1.02,
               borderColor: "rgba(59, 130, 246, 0.8)",
@@ -238,7 +238,7 @@ const HeroSection = () => {
 
         {/* Stats Section */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-4xl mx-auto"
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-12 max-w-4xl mx-auto px-2"
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 1.4 }}
@@ -276,7 +276,7 @@ const HeroSection = () => {
               }}
             >
               <motion.div
-                className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-r ${stat.color} rounded-full flex items-center justify-center shadow-2xl`}
+                className={`w-14 h-14 sm:w-16 sm:h-16 mx-auto mb-4 bg-gradient-to-r ${stat.color} rounded-full flex items-center justify-center shadow-2xl`}
                 whileHover={{ rotate: 360, scale: 1.2 }}
                 transition={{ duration: 0.6 }}
               >
@@ -284,7 +284,7 @@ const HeroSection = () => {
               </motion.div>
               
               <motion.h3 
-                className={`text-4xl md:text-5xl font-black text-transparent bg-gradient-to-r ${stat.color} bg-clip-text mb-2`}
+                className={`text-3xl md:text-5xl font-black text-transparent bg-gradient-to-r ${stat.color} bg-clip-text mb-2`}
                 animate={{ 
                   backgroundPosition: ['0%', '100%', '0%']
                 }}
@@ -337,7 +337,7 @@ const HeroSection = () => {
 
       {/* Interactive Mouse Follower */}
       <motion.div
-        className="absolute pointer-events-none z-20"
+        className="absolute pointer-events-none z-20 hidden sm:block"
         style={{
           left: mousePosition.x * 100 + '%',
           top: mousePosition.y * 100 + '%',

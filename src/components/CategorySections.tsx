@@ -103,12 +103,12 @@ const CategorySections = () => {
   }, []);
 
   return (
-    <section ref={ref} id="collections" className="relative py-20 overflow-hidden">
+    <section ref={ref} id="collections" className="relative py-14 sm:py-20 overflow-hidden">
       {/* Simplified Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-purple-900/5 to-background" />
       
       {/* Reduced Floating Particles - only 5 instead of 20 */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none hidden sm:block">
         {[...Array(5)].map((_, i) => (
           <motion.div
             key={i}
@@ -131,7 +131,7 @@ const CategorySections = () => {
         ))}
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Enhanced Header Section */}
         <motion.div
           className="text-center mb-16"
@@ -152,7 +152,7 @@ const CategorySections = () => {
             >
               <Sparkles className="w-5 h-5 text-purple-400 fill-purple-400" />
             </motion.div>
-            <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-foreground via-purple-400 to-blue-400 bg-clip-text text-transparent">
+            <h2 className="text-3xl md:text-5xl font-black bg-gradient-to-r from-foreground via-purple-400 to-blue-400 bg-clip-text text-transparent">
               Explore Collections
             </h2>
             <motion.div
@@ -165,7 +165,7 @@ const CategorySections = () => {
           </motion.div>
           
           <motion.p 
-            className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed"
+            className="text-base sm:text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed px-2"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.5, delay: 0.3 }} // Faster
@@ -177,7 +177,7 @@ const CategorySections = () => {
 
         {/* Enhanced Filter Tabs */}
         <motion.div
-          className="flex justify-center mb-16"
+          className="flex justify-center mb-10 sm:mb-16 px-2"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.4 }} // Faster
@@ -212,7 +212,7 @@ const CategorySections = () => {
         </motion.div>
 
         {/* Redesigned Category Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10 lg:gap-12 mb-12 sm:mb-16">
           {categories.map((category, index) => {
             const IconComponent = category.icon;
             const categoryProducts = getProductsByCategory(category.id);
@@ -233,7 +233,7 @@ const CategorySections = () => {
               >
                 {/* Enhanced Main Category Card */}
                 <motion.div
-                  className={`relative overflow-hidden rounded-3xl border-2 ${category.borderColor} bg-gradient-to-br ${category.bgGradient} backdrop-blur-sm cursor-pointer group-hover:shadow-xl transition-all duration-300 h-[600px]`} // Reduced shadow and duration
+                  className={`relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 ${category.borderColor} bg-gradient-to-br ${category.bgGradient} backdrop-blur-sm cursor-pointer group-hover:shadow-xl transition-all duration-300 h-[420px] sm:h-[560px] lg:h-[600px]`}
                   whileHover={{ 
                     y: -10, // Reduced movement
                     scale: 1.01, // Reduced scale
@@ -244,7 +244,7 @@ const CategorySections = () => {
                   onClick={() => handleCategoryClick(category.route)}
                 >
                   {/* Enhanced Background Image Section (60% of card) */}
-                  <div className="relative h-[360px] overflow-hidden">
+                  <div className="relative h-[240px] sm:h-[320px] lg:h-[360px] overflow-hidden">
                     <motion.div 
                       className="absolute inset-0 bg-cover bg-center"
                       style={{
@@ -279,7 +279,7 @@ const CategorySections = () => {
 
                     {/* Enhanced Floating Icon */}
                     <motion.div
-                      className={`absolute top-6 right-6 p-4 bg-background/90 backdrop-blur-sm rounded-2xl border-2 ${category.borderColor} shadow-lg`}
+                      className={`absolute top-4 right-4 sm:top-6 sm:right-6 p-3 sm:p-4 bg-background/90 backdrop-blur-sm rounded-2xl border-2 ${category.borderColor} shadow-lg`}
                       animate={isHovered ? { 
                         rotate: [0, 5, -5, 0], // Reduced rotation
                         scale: [1, 1.1, 1], // Reduced scale
@@ -287,7 +287,7 @@ const CategorySections = () => {
                       } : {}}
                       transition={{ duration: 0.3 }} // Faster
                     >
-                      <IconComponent className={`w-8 h-8 ${category.accentColor}`} />
+                      <IconComponent className={`w-6 h-6 sm:w-8 sm:h-8 ${category.accentColor}`} />
                     </motion.div>
 
                     {/* Simplified Floating Elements - only 3 instead of 8 */}
@@ -323,14 +323,14 @@ const CategorySections = () => {
                   </div>
 
                   {/* Enhanced Content Section (40% of card) */}
-                  <div className="p-8 h-[240px] flex flex-col justify-between">
+                  <div className="p-5 sm:p-6 lg:p-8 h-[180px] sm:h-[220px] lg:h-[240px] flex flex-col justify-between">
                     <div>
                       <motion.div
                         className="mb-4"
                         animate={isHovered ? { y: -2 } : { y: 0 }} // Reduced movement
                         transition={{ duration: 0.2 }} // Faster
                       >
-                        <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center justify-between mb-2 sm:mb-3">
                           <span className={`text-sm font-bold ${category.accentColor} opacity-90 tracking-wide`}>
                             {category.subtitle}
                           </span>
@@ -343,27 +343,27 @@ const CategorySections = () => {
                           </motion.div>
                         </div>
                         
-                        <h3 className="text-3xl font-black mb-3 group-hover:text-primary transition-colors">
+                        <h3 className="text-2xl sm:text-3xl font-black mb-2 sm:mb-3 group-hover:text-primary transition-colors">
                           {category.title}
                         </h3>
                         
-                        <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                        <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed mb-3 sm:mb-4">
                           {category.description}
                         </p>
                       </motion.div>
 
                       {/* Enhanced Tags */}
                       <motion.div 
-                        className="mb-6"
+                        className="mb-4 sm:mb-6"
                         initial={{ opacity: 0 }}
                         animate={isHovered ? { opacity: 1 } : { opacity: 0.8 }}
                         transition={{ duration: 0.2 }} // Faster
                       >
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
                           {category.featured.map((item, i) => (
                             <motion.span
                               key={item}
-                              className="px-3 py-1 bg-muted/60 rounded-full text-xs font-bold border border-border/30"
+                              className="px-2.5 py-1 bg-muted/60 rounded-full text-[10px] sm:text-xs font-bold border border-border/30"
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: i * 0.05 + 0.2 }} // Reduced delay
@@ -377,27 +377,27 @@ const CategorySections = () => {
 
                     {/* Enhanced Stats Grid */}
                     <motion.div 
-                      className="grid grid-cols-3 gap-4 mb-6"
+                      className="grid grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6"
                       animate={isHovered ? { y: -1 } : { y: 0 }} // Reduced movement
                       transition={{ duration: 0.2 }} // Faster
                     >
                       <div className="text-center">
-                        <div className="text-xl font-black">{category.stats.items}</div>
-                        <div className="text-xs text-muted-foreground font-medium">Items</div>
+                        <div className="text-lg sm:text-xl font-black">{category.stats.items}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground font-medium">Items</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xl font-black text-green-500">{category.stats.newDrops}</div>
-                        <div className="text-xs text-muted-foreground font-medium">New</div>
+                        <div className="text-lg sm:text-xl font-black text-green-500">{category.stats.newDrops}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground font-medium">New</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xl font-black text-orange-500">{category.stats.trending}</div>
-                        <div className="text-xs text-muted-foreground font-medium">Trending</div>
+                        <div className="text-lg sm:text-xl font-black text-orange-500">{category.stats.trending}</div>
+                        <div className="text-[10px] sm:text-xs text-muted-foreground font-medium">Trending</div>
                       </div>
                     </motion.div>
 
                     {/* Enhanced CTA Button */}
                     <motion.button
-                      className={`w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r ${category.color} text-white rounded-2xl font-bold text-sm group-hover:shadow-lg transition-all duration-200 border-2 border-transparent group-hover:border-white/20`} // Reduced shadow and duration
+                      className={`w-full flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r ${category.color} text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm group-hover:shadow-lg transition-all duration-200 border-2 border-transparent group-hover:border-white/20`}
                       whileHover={{ scale: 1.01, y: -1 }} // Reduced scale and movement
                       whileTap={{ scale: 0.98 }}
                       onClick={(e) => {
@@ -407,7 +407,7 @@ const CategorySections = () => {
                     >
                       <span>Explore Collection</span>
                       <motion.div
-                        animate={isHovered ? { x: 2 } : { x: 0 }} // Reduced movement
+                        animate={isHovered ? { x: 2 } : { x: 0 }}
                         transition={{ duration: 0.2 }} // Faster
                       >
                         <ArrowRight className="w-4 h-4" />

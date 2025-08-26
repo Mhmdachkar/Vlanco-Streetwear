@@ -633,10 +633,10 @@ const VlancoCommunity = ({ className = "" }) => {
   return (
     <section 
       ref={containerRef}
-      className={`relative py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black text-white overflow-hidden ${className}`}
+      className={`relative py-14 sm:py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black text-white overflow-hidden ${className}`}
     >
       {/* Enhanced Background Effects */}
-      <div className="absolute inset-0 overflow-hidden opacity-40">
+      <div className="absolute inset-0 overflow-hidden opacity-40 hidden sm:block">
         {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
@@ -670,13 +670,15 @@ const VlancoCommunity = ({ className = "" }) => {
         ))}
       </div>
 
-      {/* Community Particles */}
-      <CommunityParticles isInView={isInView} />
+      {/* Community Particles (hidden on mobile) */}
+      <div className="hidden sm:block">
+        <CommunityParticles isInView={isInView} />
+      </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header Section */}
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-10 sm:mb-12 px-2"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -692,7 +694,7 @@ const VlancoCommunity = ({ className = "" }) => {
           </motion.div>
           
           <motion.h2 
-            className="text-4xl md:text-5xl font-black mb-6 leading-tight"
+            className="text-3xl md:text-5xl font-black mb-4 sm:mb-6 leading-tight"
             initial={{ scale: 0.9 }}
             animate={isInView ? { scale: 1 } : {}}
             transition={{ duration: 0.8, delay: 0.4, type: "spring" }}
@@ -706,7 +708,7 @@ const VlancoCommunity = ({ className = "" }) => {
           </motion.h2>
           
           <motion.p 
-            className="text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8"
+            className="text-base sm:text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 px-2"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -741,7 +743,7 @@ const VlancoCommunity = ({ className = "" }) => {
 
         {/* Tab Navigation */}
         <motion.div
-          className="flex justify-center mb-12"
+          className="flex justify-center mb-10 sm:mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 1 }}
@@ -751,7 +753,7 @@ const VlancoCommunity = ({ className = "" }) => {
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 ${
+                className={`relative px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 ${
                   activeTab === tab.id
                     ? 'text-white'
                     : 'text-gray-400 hover:text-white'
@@ -788,7 +790,7 @@ const VlancoCommunity = ({ className = "" }) => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 {customerSpotlights.map((customer, index) => (
                   <CustomerSpotlight
                     key={customer.id}
@@ -809,7 +811,7 @@ const VlancoCommunity = ({ className = "" }) => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {ugcContent.map((content, index) => (
                   <UGCGallery
                     key={content.id}
@@ -830,7 +832,7 @@ const VlancoCommunity = ({ className = "" }) => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                 {communityChallenges.map((challenge, index) => (
                   <CommunityChallenge
                     key={challenge.id}
@@ -853,7 +855,7 @@ const VlancoCommunity = ({ className = "" }) => {
             >
               <div className="max-w-4xl mx-auto">
                 <motion.div
-                  className="relative p-8 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10"
+                  className="relative p-6 sm:p-8 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10"
                   key={currentTestimonial}
                   initial={{ opacity: 0, x: 50 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -890,7 +892,7 @@ const VlancoCommunity = ({ className = "" }) => {
                 </motion.div>
                 
                 {/* Testimonial Navigation */}
-                <div className="flex justify-center gap-2 mt-6">
+                <div className="flex justify-center gap-2 mt-4 sm:mt-6">
                   {testimonials.map((_, index) => (
                     <motion.button
                       key={index}
@@ -909,13 +911,13 @@ const VlancoCommunity = ({ className = "" }) => {
 
         {/* Bottom CTA */}
         <motion.div
-          className="text-center mt-16"
+          className="text-center mt-12 sm:mt-16"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 1.2 }}
         >
           <motion.button
-            className="group inline-flex items-center gap-4 px-8 py-4 bg-gradient-to-r from-purple-600 via-cyan-600 to-pink-600 text-white rounded-full font-bold text-lg shadow-2xl hover:shadow-purple-500/25 transition-all relative overflow-hidden"
+            className="group inline-flex items-center gap-3 sm:gap-4 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-purple-600 via-cyan-600 to-pink-600 text-white rounded-full font-bold text-base sm:text-lg shadow-2xl hover:shadow-purple-500/25 transition-all relative overflow-hidden"
             whileHover={{ 
               scale: 1.05, 
               y: -5,

@@ -168,7 +168,7 @@ const AnimatedBackground = ({ opacity }) => {
 // --- Optimized Cursor Effect ---
 const NeuralCursor = ({ mouseX, mouseY }) => (
   <motion.div
-    className="fixed w-8 h-8 pointer-events-none z-50 rounded-full mix-blend-screen"
+    className="fixed w-6 h-6 md:w-8 md:h-8 pointer-events-none z-50 rounded-full mix-blend-screen"
     style={{
       x: mouseX,
       y: mouseY,
@@ -184,6 +184,7 @@ const NeuralCursor = ({ mouseX, mouseY }) => (
 // --- Main Index Page ---
 const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   
   // Use MotionValues for smooth, performant tracking
   const { scrollYProgress } = useScroll();
@@ -195,6 +196,16 @@ const Index = () => {
   const backgroundOpacity = useTransform(scrollYProgress, [0, 0.15], [0, 1]);
 
   useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const onChange = () => setIsMobile(mq.matches);
+    onChange();
+    if (mq.addEventListener) {
+      mq.addEventListener('change', onChange);
+    } else {
+      // @ts-ignore legacy
+      mq.addListener(onChange);
+    }
+
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
     
     // Update MotionValues directly
@@ -208,6 +219,12 @@ const Index = () => {
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mousemove', handleMouseMove);
+      if (mq.removeEventListener) {
+        mq.removeEventListener('change', onChange);
+      } else {
+        // @ts-ignore legacy
+        mq.removeListener(onChange);
+      }
     };
   }, [mouseX, mouseY]);
 
@@ -218,11 +235,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-black relative overflow-x-hidden">
       
-      {/* Background is now conditional and optimized */}
-      <AnimatedBackground opacity={backgroundOpacity} />
+      {/* Background hidden on mobile for performance */}
+      {!isMobile && <AnimatedBackground opacity={backgroundOpacity} />}
       
-      {/* Cursor is now optimized */}
-      <NeuralCursor mouseX={mouseX} mouseY={mouseY} />
+      {/* Cursor effect hidden on mobile */}
+      {!isMobile && <NeuralCursor mouseX={mouseX} mouseY={mouseY} />}
       
       {/* --- Main Page Content --- */}
       <div className="relative z-20">
@@ -250,14 +267,14 @@ const Index = () => {
         {showScrollTop && (
           <motion.button
             onClick={scrollToTop}
-            className="fixed bottom-8 right-8 p-3 bg-gradient-to-br from-purple-600 to-cyan-600 text-white rounded-full shadow-lg z-50"
+            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 p-2 md:p-3 bg-gradient-to-br from-purple-600 to-cyan-600 text-white rounded-full shadow-lg z-50"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >
-            <ArrowUp className="w-6 h-6" />
+            <ArrowUp className="w-5 h-5 md:w-6 md:h-6" />
           </motion.button>
         )}
       </AnimatePresence>

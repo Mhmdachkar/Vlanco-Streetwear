@@ -25,10 +25,10 @@ const Navigation = () => {
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             {/* Logo */}
-            <div className="text-2xl font-black gradient-text">
+            <div className="text-xl sm:text-2xl font-black gradient-text">
               VLANCO
             </div>
 
@@ -46,7 +46,7 @@ const Navigation = () => {
             </div>
 
             {/* Right Side Icons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3">
               {/* Search */}
               <button className="p-2 hover:bg-muted rounded-full transition-colors duration-300">
                 <Search className="w-5 h-5" />

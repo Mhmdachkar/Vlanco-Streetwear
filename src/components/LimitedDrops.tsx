@@ -550,10 +550,10 @@ const LimitedDrops = ({ className = "" }) => {
   return (
     <section 
       ref={containerRef}
-      className={`relative py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black text-white overflow-hidden ${className}`}
+      className={`relative py-14 sm:py-20 px-4 bg-gradient-to-br from-black via-gray-900 to-black text-white overflow-hidden ${className}`}
     >
       {/* Enhanced Background Effects */}
-      <div className="absolute inset-0 overflow-hidden opacity-40">
+      <div className="absolute inset-0 overflow-hidden opacity-40 hidden sm:block">
         {[...Array(5)].map((_, i) => (
           <motion.div
             key={i}
@@ -589,7 +589,7 @@ const LimitedDrops = ({ className = "" }) => {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header Section */}
         <motion.div 
-          className="text-center mb-12"
+          className="text-center mb-10 sm:mb-12 px-2"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -605,7 +605,7 @@ const LimitedDrops = ({ className = "" }) => {
           </motion.div>
           
           <motion.h2 
-            className="text-4xl md:text-5xl font-black mb-6 leading-tight"
+            className="text-3xl md:text-5xl font-black mb-4 sm:mb-6 leading-tight"
             initial={{ scale: 0.9 }}
             animate={isInView ? { scale: 1 } : {}}
             transition={{ duration: 0.8, delay: 0.4, type: "spring" }}
@@ -619,7 +619,7 @@ const LimitedDrops = ({ className = "" }) => {
           </motion.h2>
           
           <motion.p 
-            className="text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed mb-8"
+            className="text-base sm:text-lg text-gray-300 max-w-3xl mx-auto leading-relaxed mb-6 sm:mb-8 px-2"
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -658,7 +658,7 @@ const LimitedDrops = ({ className = "" }) => {
 
         {/* Tab Navigation */}
         <motion.div
-          className="flex justify-center mb-12"
+          className="flex justify-center mb-10 sm:mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 1 }}
@@ -668,7 +668,7 @@ const LimitedDrops = ({ className = "" }) => {
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 ${
+                className={`relative px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 ${
                   activeTab === tab.id
                     ? 'text-white'
                     : 'text-gray-400 hover:text-white'

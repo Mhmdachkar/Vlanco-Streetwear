@@ -24,16 +24,16 @@ const Footer = () => {
 
   return (
     <footer className="bg-card border-t border-border">
-      <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
         {/* Newsletter Section */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 sm:mb-16 px-2">
           <h3 className="text-title gradient-text mb-4">
             Stay In The Loop
           </h3>
           <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
             Be the first to know about new drops, exclusive releases, and special events. Join the VLANCO community.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 max-w-md mx-auto">
             <input
               type="email"
               placeholder="Enter your email"
@@ -46,16 +46,16 @@ const Footer = () => {
         </div>
 
         {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 mb-10 sm:mb-12">
           {/* Brand Column */}
           <div className="lg:col-span-2">
-            <div className="text-3xl font-black gradient-text mb-4">
+            <div className="text-2xl sm:text-3xl font-black gradient-text mb-4">
               VLANCO
             </div>
             <p className="text-muted-foreground mb-6 max-w-md">
               Defining the future of streetwear through innovative design, premium quality, and authentic street culture. For the rebels, creators, and trendsetters.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-3 sm:gap-4">
               <a href="#" className="p-3 bg-muted rounded-full hover:bg-primary hover:text-primary-foreground transition-all duration-300">
                 <Instagram className="w-5 h-5" />
               </a>
@@ -121,7 +121,7 @@ const Footer = () => {
         </div>
 
         {/* Contact Info */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8 border-t border-border">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 py-6 sm:py-8 border-t border-border">
           <div className="flex items-center gap-3">
             <MapPin className="w-5 h-5 text-primary" />
             <div>
@@ -146,7 +146,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Footer */}
-        <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="pt-6 sm:pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4">
           <div className="text-sm text-muted-foreground">
             © 2024 VLANCO. All rights reserved. Designed for the next generation.
           </div>
