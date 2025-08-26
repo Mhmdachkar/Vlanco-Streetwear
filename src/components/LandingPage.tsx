@@ -2,6 +2,7 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-bg.jpg";
+import { doesNotMatch } from "assert";
 
 interface LandingPageProps {
   onEnter: () => void;

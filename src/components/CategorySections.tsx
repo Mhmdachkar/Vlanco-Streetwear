@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback, useMemo } from "react";
 import { ArrowRight, Shirt, Shield, Watch, Sparkles, Eye, ShoppingCart, Heart, Zap, Star, Timer, TrendingUp, Users, Package } from 'lucide-react';
 
 // Import product photos from assets
@@ -14,14 +14,14 @@ const CategorySections = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
-  // Enhanced category data with better descriptions and branding
-  const categories = [
+  // Memoize categories to prevent unnecessary re-renders
+  const categories = useMemo(() => [
     {
       id: 'tshirts',
       title: 'T-Shirts',
       subtitle: 'Urban Essentials',
       description: 'Premium streetwear tees that define your style with comfort and authenticity. Each piece tells a story of urban culture and bold expression.',
-      image: product1Image, // Uses imported product-1.jpg from assets
+      image: product1Image,
       route: '/tshirts',
       count: '25+',
       color: 'from-blue-600 to-purple-600',
@@ -38,7 +38,7 @@ const CategorySections = () => {
       title: 'Masks',
       subtitle: 'Style Meets Protection',
       description: 'Revolutionary protection meets uncompromising style in our designer mask collection. Where fashion meets function seamlessly.',
-      image: product2Image, // Uses imported product-2.jpg from assets
+      image: product2Image,
       route: '/masks',
       count: '15+',
       color: 'from-purple-600 to-pink-600',
@@ -55,7 +55,7 @@ const CategorySections = () => {
       title: 'Accessories',
       subtitle: 'Complete Your Look',
       description: 'Complete your look with premium streetwear accessories that make a statement. From watches to chains, every piece is crafted for impact.',
-      image: product3Image, // Uses imported product-3.jpg from assets
+      image: product3Image,
       route: '/accessories',
       count: '30+',
       color: 'from-orange-500 to-red-600',
@@ -67,40 +67,49 @@ const CategorySections = () => {
       stats: { items: '30+', newDrops: '7', trending: '15' },
       gradient: 'from-orange-500 to-red-600'
     }
-  ];
+  ], []);
 
-  const filters = [
+  const filters = useMemo(() => [
     { id: 'all', label: 'All Collections', icon: Package },
     { id: 'trending', label: 'Trending', icon: TrendingUp },
     { id: 'new', label: 'New Drops', icon: Sparkles },
     { id: 'popular', label: 'Popular', icon: Users }
-  ];
+  ], []);
 
-  const getProductsByCategory = (categoryName: string) => {
-    // Mock data - replace with actual data
+  // Memoize functions to prevent unnecessary re-renders
+  const getProductsByCategory = useCallback((categoryName: string) => {
     return [
       { id: 1, name: 'Urban Tee', price: 49.99, image: '/src/assets/product-1.jpg' },
       { id: 2, name: 'Street Hoodie', price: 79.99, image: '/src/assets/product-2.jpg' },
       { id: 3, name: 'Designer Mask', price: 29.99, image: '/src/assets/product-3.jpg' }
     ];
-  };
+  }, []);
 
-  const handleAddToCart = (productId: number) => {
+  const handleAddToCart = useCallback((productId: number) => {
     console.log('Added to cart:', productId);
-  };
+  }, []);
 
-  const handleCategoryClick = (route: string) => {
+  const handleCategoryClick = useCallback((route: string) => {
     window.location.href = route;
-  };
+  }, []);
+
+  // Optimized hover handlers with debouncing
+  const handleHoverStart = useCallback((categoryId: string) => {
+    setHoveredCategory(categoryId);
+  }, []);
+
+  const handleHoverEnd = useCallback(() => {
+    setHoveredCategory(null);
+  }, []);
 
   return (
     <section ref={ref} id="collections" className="relative py-20 overflow-hidden">
-      {/* Enhanced Background Effects */}
+      {/* Simplified Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-purple-900/5 to-background" />
       
-      {/* Floating Particles */}
+      {/* Reduced Floating Particles - only 5 instead of 20 */}
       <div className="absolute inset-0 pointer-events-none">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(5)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1 h-1 bg-purple-500/20 rounded-full"
@@ -109,14 +118,14 @@ const CategorySections = () => {
               top: `${Math.random() * 100}%`,
             }}
             animate={{
-              y: [0, -100, 0],
-              opacity: [0, 1, 0],
-              scale: [0, 1, 0],
+              y: [0, -50, 0], // Reduced movement
+              opacity: [0, 0.5, 0], // Reduced opacity
+              scale: [0, 0.8, 0], // Reduced scale
             }}
             transition={{
-              duration: Math.random() * 10 + 10,
+              duration: Math.random() * 8 + 8, // Slower
               repeat: Infinity,
-              delay: Math.random() * 5,
+              delay: Math.random() * 3, // Reduced delay
             }}
           />
         ))}
@@ -128,18 +137,18 @@ const CategorySections = () => {
           className="text-center mb-16"
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6 }} // Faster
         >
           <motion.div
             className="flex items-center justify-center gap-6 mb-8"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.2 }} // Faster
           >
             <motion.div
               className="p-3 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full border border-purple-500/30"
               animate={{ rotate: [0, 360] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 30, repeat: Infinity, ease: "linear" }} // Much slower
             >
               <Sparkles className="w-5 h-5 text-purple-400 fill-purple-400" />
             </motion.div>
@@ -149,7 +158,7 @@ const CategorySections = () => {
             <motion.div
               className="p-3 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full border border-purple-500/30"
               animate={{ rotate: [360, 0] }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 30, repeat: Infinity, ease: "linear" }} // Much slower
             >
               <Sparkles className="w-5 h-5 text-purple-400 fill-purple-400" />
             </motion.div>
@@ -159,7 +168,7 @@ const CategorySections = () => {
             className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.3 }} // Faster
           >
             Discover our curated collections of premium streetwear designed for the modern rebel. 
             Each piece tells a story of authenticity and bold expression.
@@ -171,26 +180,26 @@ const CategorySections = () => {
           className="flex justify-center mb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.6 }}
+          transition={{ duration: 0.5, delay: 0.4 }} // Faster
         >
           <div className="inline-flex bg-muted/30 backdrop-blur-sm rounded-2xl p-2 border border-border/50 shadow-xl">
             {filters.map((filter, index) => (
               <motion.button
                 key={filter.id}
                 onClick={() => setActiveFilter(filter.id)}
-                className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 ${
+                className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
                   activeFilter === filter.id
                     ? 'text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }} // Reduced scale
+                whileTap={{ scale: 0.98 }}
               >
                 {activeFilter === filter.id && (
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl"
                     layoutId="activeFilter"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 25 }} // Reduced stiffness
                   />
                 )}
                 <span className="relative z-10 flex items-center gap-2">
@@ -213,31 +222,26 @@ const CategorySections = () => {
               <motion.div
                 key={category.id}
                 className="group relative"
-                initial={{ opacity: 0, y: 60, scale: 0.9 }}
+                initial={{ opacity: 0, y: 40, scale: 0.95 }} // Reduced movement
                 animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
                 transition={{ 
-                  duration: 0.8, 
-                  delay: index * 0.2,
+                  duration: 0.6, // Faster
+                  delay: index * 0.15, // Reduced delay
                   type: "spring",
-                  stiffness: 100
+                  stiffness: 80 // Reduced stiffness
                 }}
               >
                 {/* Enhanced Main Category Card */}
                 <motion.div
-                  className={`relative overflow-hidden rounded-3xl border-2 ${category.borderColor} bg-gradient-to-br ${category.bgGradient} backdrop-blur-sm cursor-pointer group-hover:shadow-2xl transition-all duration-500 h-[600px]`}
+                  className={`relative overflow-hidden rounded-3xl border-2 ${category.borderColor} bg-gradient-to-br ${category.bgGradient} backdrop-blur-sm cursor-pointer group-hover:shadow-xl transition-all duration-300 h-[600px]`} // Reduced shadow and duration
                   whileHover={{ 
-                    y: -20, 
-                    scale: 1.02,
-                    rotateY: 5,
-                    rotateX: 2,
-                    transition: { duration: 0.4 }
+                    y: -10, // Reduced movement
+                    scale: 1.01, // Reduced scale
+                    transition: { duration: 0.2 } // Much faster
                   }}
-                  onHoverStart={() => setHoveredCategory(category.id)}
-                  onHoverEnd={() => setHoveredCategory(null)}
+                  onHoverStart={() => handleHoverStart(category.id)}
+                  onHoverEnd={handleHoverEnd}
                   onClick={() => handleCategoryClick(category.route)}
-                  style={{
-                    transformStyle: 'preserve-3d',
-                  }}
                 >
                   {/* Enhanced Background Image Section (60% of card) */}
                   <div className="relative h-[360px] overflow-hidden">
@@ -246,8 +250,8 @@ const CategorySections = () => {
                       style={{
                         backgroundImage: `url(${category.image})`,
                       }}
-                      animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
-                      transition={{ duration: 0.6 }}
+                      animate={isHovered ? { scale: 1.05 } : { scale: 1 }} // Reduced scale
+                      transition={{ duration: 0.3 }} // Faster
                     />
                     
                     {/* Enhanced Gradient Overlay */}
@@ -257,7 +261,7 @@ const CategorySections = () => {
                     <motion.div
                       className="absolute top-4 left-4 text-white/10 font-black text-2xl tracking-wider"
                       animate={isHovered ? { opacity: 0.2 } : { opacity: 0.1 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.2 }} // Faster
                     >
                       VLANCO
                     </motion.div>
@@ -267,7 +271,7 @@ const CategorySections = () => {
                       className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 bg-background/90 backdrop-blur-sm rounded-full border border-border/50 shadow-lg"
                       initial={{ opacity: 0, x: -20 }}
                       animate={isInView ? { opacity: 1, x: 0 } : {}}
-                      transition={{ delay: index * 0.3 + 0.5 }}
+                      transition={{ delay: index * 0.2 + 0.3 }} // Reduced delay
                     >
                       <div className={`w-2 h-2 ${category.color.replace('from-', 'bg-').split(' ')[0]} rounded-full`} />
                       <span className="text-sm font-bold">{category.count} Items</span>
@@ -277,38 +281,38 @@ const CategorySections = () => {
                     <motion.div
                       className={`absolute top-6 right-6 p-4 bg-background/90 backdrop-blur-sm rounded-2xl border-2 ${category.borderColor} shadow-lg`}
                       animate={isHovered ? { 
-                        rotate: [0, 10, -10, 0],
-                        scale: [1, 1.2, 1],
-                        y: [-5, 5, -5]
+                        rotate: [0, 5, -5, 0], // Reduced rotation
+                        scale: [1, 1.1, 1], // Reduced scale
+                        y: [-2, 2, -2] // Reduced movement
                       } : {}}
-                      transition={{ duration: 0.6 }}
+                      transition={{ duration: 0.3 }} // Faster
                     >
                       <IconComponent className={`w-8 h-8 ${category.accentColor}`} />
                     </motion.div>
 
-                    {/* Enhanced Floating Elements */}
+                    {/* Simplified Floating Elements - only 3 instead of 8 */}
                     <AnimatePresence>
                       {isHovered && (
                         <>
-                          {[...Array(8)].map((_, i) => (
+                          {[...Array(3)].map((_, i) => ( // Reduced from 8 to 3
                             <motion.div
                               key={i}
-                              className={`absolute w-2 h-2 bg-gradient-to-r ${category.color} rounded-full shadow-lg`}
+                              className={`absolute w-1.5 h-1.5 bg-gradient-to-r ${category.color} rounded-full shadow-lg`} // Smaller size
                               style={{
                                 left: `${20 + Math.random() * 60}%`,
                                 top: `${20 + Math.random() * 60}%`,
                               }}
                               initial={{ scale: 0, opacity: 0 }}
                               animate={{ 
-                                scale: [0, 1, 0],
-                                opacity: [0, 1, 0],
-                                y: [0, -40, -80],
-                                x: [0, Math.random() * 60 - 30, Math.random() * 120 - 60],
+                                scale: [0, 0.8, 0], // Reduced scale
+                                opacity: [0, 0.6, 0], // Reduced opacity
+                                y: [0, -20, -40], // Reduced movement
+                                x: [0, Math.random() * 20 - 10, Math.random() * 40 - 20], // Reduced movement
                               }}
                               exit={{ scale: 0, opacity: 0 }}
                               transition={{
-                                duration: 2.5,
-                                delay: i * 0.1,
+                                duration: 1.5, // Faster
+                                delay: i * 0.05, // Reduced delay
                                 ease: "easeOut"
                               }}
                             />
@@ -323,8 +327,8 @@ const CategorySections = () => {
                     <div>
                       <motion.div
                         className="mb-4"
-                        animate={isHovered ? { y: -5 } : { y: 0 }}
-                        transition={{ duration: 0.3 }}
+                        animate={isHovered ? { y: -2 } : { y: 0 }} // Reduced movement
+                        transition={{ duration: 0.2 }} // Faster
                       >
                         <div className="flex items-center justify-between mb-3">
                           <span className={`text-sm font-bold ${category.accentColor} opacity-90 tracking-wide`}>
@@ -332,7 +336,7 @@ const CategorySections = () => {
                           </span>
                           <motion.div
                             className="flex items-center gap-1"
-                            animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
+                            animate={isHovered ? { scale: 1.05 } : { scale: 1 }} // Reduced scale
                           >
                             <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                             <span className="text-sm font-bold">4.8</span>
@@ -353,7 +357,7 @@ const CategorySections = () => {
                         className="mb-6"
                         initial={{ opacity: 0 }}
                         animate={isHovered ? { opacity: 1 } : { opacity: 0.8 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: 0.2 }} // Faster
                       >
                         <div className="flex flex-wrap gap-2">
                           {category.featured.map((item, i) => (
@@ -362,7 +366,7 @@ const CategorySections = () => {
                               className="px-3 py-1 bg-muted/60 rounded-full text-xs font-bold border border-border/30"
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: i * 0.1 + 0.3 }}
+                              transition={{ delay: i * 0.05 + 0.2 }} // Reduced delay
                             >
                               {item}
                             </motion.span>
@@ -374,8 +378,8 @@ const CategorySections = () => {
                     {/* Enhanced Stats Grid */}
                     <motion.div 
                       className="grid grid-cols-3 gap-4 mb-6"
-                      animate={isHovered ? { y: -3 } : { y: 0 }}
-                      transition={{ duration: 0.3 }}
+                      animate={isHovered ? { y: -1 } : { y: 0 }} // Reduced movement
+                      transition={{ duration: 0.2 }} // Faster
                     >
                       <div className="text-center">
                         <div className="text-xl font-black">{category.stats.items}</div>
@@ -393,8 +397,8 @@ const CategorySections = () => {
 
                     {/* Enhanced CTA Button */}
                     <motion.button
-                      className={`w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r ${category.color} text-white rounded-2xl font-bold text-sm group-hover:shadow-xl transition-all duration-300 border-2 border-transparent group-hover:border-white/20`}
-                      whileHover={{ scale: 1.02, y: -2 }}
+                      className={`w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r ${category.color} text-white rounded-2xl font-bold text-sm group-hover:shadow-lg transition-all duration-200 border-2 border-transparent group-hover:border-white/20`} // Reduced shadow and duration
+                      whileHover={{ scale: 1.01, y: -1 }} // Reduced scale and movement
                       whileTap={{ scale: 0.98 }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -403,22 +407,22 @@ const CategorySections = () => {
                     >
                       <span>Explore Collection</span>
                       <motion.div
-                        animate={isHovered ? { x: 5 } : { x: 0 }}
-                        transition={{ duration: 0.3 }}
+                        animate={isHovered ? { x: 2 } : { x: 0 }} // Reduced movement
+                        transition={{ duration: 0.2 }} // Faster
                       >
                         <ArrowRight className="w-4 h-4" />
                       </motion.div>
                     </motion.button>
                   </div>
 
-                  {/* Enhanced Hover Glow Effect */}
+                  {/* Simplified Hover Glow Effect */}
                   <motion.div 
-                    className={`absolute inset-0 bg-gradient-to-r ${category.bgGradient} opacity-0 group-hover:opacity-40 transition-opacity duration-500 blur-xl -z-10`}
-                    animate={isHovered ? { scale: 1.2 } : { scale: 1 }}
+                    className={`absolute inset-0 bg-gradient-to-r ${category.bgGradient} opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-lg -z-10`} // Reduced opacity and duration
+                    animate={isHovered ? { scale: 1.1 } : { scale: 1 }} // Reduced scale
                   />
 
-                  {/* Enhanced 3D Shadow */}
-                  <div className="absolute inset-0 bg-black/10 transform translate-y-2 -z-20 rounded-3xl" />
+                  {/* Simplified 3D Shadow */}
+                  <div className="absolute inset-0 bg-black/5 transform translate-y-1 -z-20 rounded-3xl" /> // Reduced shadow
                 </motion.div>
               </motion.div>
             );
@@ -428,22 +432,22 @@ const CategorySections = () => {
         {/* Enhanced Bottom CTA */}
         <motion.div
           className="text-center"
-          initial={{ opacity: 0, y: 50 }}
+          initial={{ opacity: 0, y: 30 }} // Reduced movement
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 1.2 }}
+          transition={{ duration: 0.6, delay: 0.8 }} // Faster
         >
           <motion.button
-            className="inline-flex items-center gap-4 px-12 py-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-bold text-lg shadow-2xl hover:shadow-purple-500/25 transition-all relative overflow-hidden group"
+            className="inline-flex items-center gap-4 px-12 py-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-bold text-lg shadow-xl hover:shadow-purple-500/20 transition-all relative overflow-hidden group" // Reduced shadow
             whileHover={{ 
-              scale: 1.05, 
-              y: -5,
-              boxShadow: "0 25px 50px rgba(139, 92, 246, 0.3)"
+              scale: 1.02, // Reduced scale
+              y: -2, // Reduced movement
+              boxShadow: "0 15px 30px rgba(139, 92, 246, 0.2)" // Reduced shadow
             }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.98 }}
           >
             {/* Animated background */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200" // Faster
               initial={{ x: "-100%" }}
               whileHover={{ x: 0 }}
             />
