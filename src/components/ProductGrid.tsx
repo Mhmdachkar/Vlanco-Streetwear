@@ -371,16 +371,16 @@ const ProductGrid = () => {
               },
             ].map((stat, i) => {
               // Count-up logic
-              let displayValue = stat.value;
+              let displayValue: string | number = stat.value;
               if (isInView) {
                 if (stat.label === 'Reviews') {
-                  displayValue = useCountUp(1200, 1200, 0, 'K+');
+                  displayValue = String(useCountUp(1200, 1200, 0, 'K+'));
                 } else if (stat.label === 'Rating') {
-                  displayValue = useCountUp(4.8, 1200, 1);
+                  displayValue = String(useCountUp(4.8, 1200, 1));
                 } else if (stat.label === 'Trending') {
-                  displayValue = useCountUp(25, 1200, 0, '%');
+                  displayValue = String(useCountUp(25, 1200, 0, '%'));
                 } else {
-                  displayValue = useCountUp(6, 1200, 0);
+                  displayValue = String(useCountUp(6, 1200, 0));
                 }
               }
               return (
@@ -488,34 +488,27 @@ const ProductGrid = () => {
           ) : (
             <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-              initial={{ opacity: 0 }}
-              animate={isInView ? { opacity: 1 } : {}}
-              transition={{ duration: 0.8, delay: 1 }}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={{
+                hidden: {},
+                visible: { transition: { staggerChildren: 0.12 } }
+              }}
             >
               {enhancedProducts.map((product, index) => (
                 <motion.div
                     key={product.id}
                   className="group relative"
-                  initial={{ opacity: 0, y: 60, scale: 0.9 }}
-                  animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
-                  transition={{ 
-                    duration: 0.8, 
-                    delay: index * 0.1,
-                    type: "spring",
-                    stiffness: 100
-                  }}
+                  variants={{ hidden: { opacity: 0, y: 40, scale: 0.98 }, visible: { opacity: 1, y: 0, scale: 1 } }}
+                  transition={{ type: "spring", stiffness: 120, damping: 14 }}
                   onHoverStart={() => setHoveredProduct(product.id)}
                   onHoverEnd={() => setHoveredProduct(null)}
                 >
                   {/* Main Product Card */}
                   <motion.div
                     className="bg-gradient-to-br from-background/80 to-muted/20 backdrop-blur-sm rounded-3xl border border-border/50 overflow-hidden cursor-pointer group-hover:shadow-2xl transition-all duration-500"
-                    whileHover={{ 
-                      y: -15, 
-                      scale: 1.02,
-                      rotateY: 5,
-                      transition: { duration: 0.3 }
-                    }}
+                    whileHover={{ y: -12, scale: 1.02, transition: { duration: 0.25 } }}
                     onClick={() => navigate(`/product/${product.slug}`)}
                     style={{
                       transformStyle: 'preserve-3d',
@@ -526,9 +519,9 @@ const ProductGrid = () => {
                       <motion.img
                         src={product.displayImage}
                         alt={product.name}
-                        className="w-full h-full object-cover"
-                        animate={hoveredProduct === product.id ? { scale: 1.1 } : { scale: 1 }}
-                        transition={{ duration: 0.6 }}
+                        className="w-full h-full object-cover will-change-transform"
+                        animate={hoveredProduct === product.id ? { scale: 1.06 } : { scale: 1 } as any}
+                        transition={{ duration: 0.35 }}
                       />
                       
                       {/* Enhanced Gradient Overlay */}

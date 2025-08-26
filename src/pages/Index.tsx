@@ -252,14 +252,24 @@ const Index = () => {
       </div>
 
       <main className="relative z-10">
-        <HeroSection />
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6 }}>
+          <HeroSection />
+        </motion.div>
         <NeuralSectionDivider icon={Sparkles} />
-        <CategorySections />
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
+          <CategorySections />
+        </motion.div>
         <NeuralSectionDivider icon={Star} />
-        <LimitedDrops />
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
+          <LimitedDrops />
+        </motion.div>
         <NeuralSectionDivider icon={Zap} />
-        <FeaturesSection />
-        <VlancoCommunity />
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
+          <FeaturesSection />
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
+          <VlancoCommunity />
+        </motion.div>
       </main>
       
       <footer className="relative z-10">

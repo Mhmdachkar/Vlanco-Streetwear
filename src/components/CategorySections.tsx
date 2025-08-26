@@ -3,6 +3,7 @@ import { useInView } from "framer-motion";
 import { useRef, useState, useCallback, useMemo } from "react";
 import { ArrowRight, Shirt, Shield, Watch, Sparkles, Eye, ShoppingCart, Heart, Zap, Star, Timer, TrendingUp, Users, Package } from 'lucide-react';
 import MagneticButton from '@/components/ui/MagneticButton';
+import ParallaxHeading from '@/components/ui/ParallaxHeading';
 
 // Import product photos from assets
 import product1Image from '@/assets/product-1.jpg';
@@ -146,23 +147,29 @@ const CategorySections = () => {
             animate={isInView ? { opacity: 1, scale: 1 } : {}}
             transition={{ duration: 0.6, delay: 0.2 }} // Faster
           >
-            <motion.div
+            <ParallaxHeading>
+              <motion.div
               className="p-3 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full border border-purple-500/30"
               animate={{ rotate: [0, 360] }}
               transition={{ duration: 30, repeat: Infinity, ease: "linear" }} // Much slower
             >
               <Sparkles className="w-5 h-5 text-purple-400 fill-purple-400" />
             </motion.div>
-            <h2 className="text-3xl md:text-5xl font-black bg-gradient-to-r from-foreground via-purple-400 to-blue-400 bg-clip-text text-transparent">
+            </ParallaxHeading>
+            <ParallaxHeading offset={24}>
+              <h2 className="text-3xl md:text-5xl font-black bg-gradient-to-r from-foreground via-purple-400 to-blue-400 bg-clip-text text-transparent">
               Explore Collections
             </h2>
-            <motion.div
+            </ParallaxHeading>
+            <ParallaxHeading>
+              <motion.div
               className="p-3 bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-full border border-purple-500/30"
               animate={{ rotate: [360, 0] }}
               transition={{ duration: 30, repeat: Infinity, ease: "linear" }} // Much slower
             >
               <Sparkles className="w-5 h-5 text-purple-400 fill-purple-400" />
             </motion.div>
+            </ParallaxHeading>
           </motion.div>
           
           <motion.p 
