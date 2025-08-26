@@ -177,17 +177,17 @@ const CategorySections = () => {
 
         {/* Enhanced Filter Tabs */}
         <motion.div
-          className="flex justify-center mb-10 sm:mb-16 px-2"
+          className="flex justify-center mb-10 sm:mb-16 px-2 overflow-x-auto no-scrollbar"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.4 }} // Faster
         >
-          <div className="inline-flex bg-muted/30 backdrop-blur-sm rounded-2xl p-2 border border-border/50 shadow-xl">
+          <div className="inline-flex bg-muted/30 backdrop-blur-sm rounded-2xl p-2 border border-border/50 shadow-xl whitespace-nowrap">
             {filters.map((filter, index) => (
               <motion.button
                 key={filter.id}
                 onClick={() => setActiveFilter(filter.id)}
-                className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 ${
+                className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 shrink-0 ${
                   activeFilter === filter.id
                     ? 'text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground'

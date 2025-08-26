@@ -658,17 +658,17 @@ const LimitedDrops = ({ className = "" }) => {
 
         {/* Tab Navigation */}
         <motion.div
-          className="flex justify-center mb-10 sm:mb-12"
+          className="flex justify-center mb-10 sm:mb-12 px-2 overflow-x-auto no-scrollbar"
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 1 }}
         >
-          <div className="inline-flex bg-white/5 backdrop-blur-sm rounded-2xl p-2 border border-white/10">
+          <div className="inline-flex bg-white/5 backdrop-blur-sm rounded-2xl p-2 border border-white/10 whitespace-nowrap">
             {tabs.map((tab) => (
               <motion.button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 ${
+                className={`relative px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 shrink-0 ${
                   activeTab === tab.id
                     ? 'text-white'
                     : 'text-gray-400 hover:text-white'
