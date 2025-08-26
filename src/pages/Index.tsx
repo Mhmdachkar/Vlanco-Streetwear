@@ -234,6 +234,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-black relative overflow-x-hidden">
+      {/* Scroll Progress Bar (desktop only) */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-cyan-500 to-pink-500 origin-left z-[60] hidden md:block"
+        style={{ scaleX: scrollYProgress }}
+      />
       
       {/* Background hidden on mobile for performance */}
       {!isMobile && <AnimatedBackground opacity={backgroundOpacity} />}

@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState, useCallback, useMemo } from "react";
 import { ArrowRight, Shirt, Shield, Watch, Sparkles, Eye, ShoppingCart, Heart, Zap, Star, Timer, TrendingUp, Users, Package } from 'lucide-react';
+import MagneticButton from '@/components/ui/MagneticButton';
 
 // Import product photos from assets
 import product1Image from '@/assets/product-1.jpg';
@@ -436,14 +437,8 @@ const CategorySections = () => {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.8 }} // Faster
         >
-          <motion.button
-            className="inline-flex items-center gap-3 sm:gap-4 px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-bold text-base sm:text-lg shadow-xl hover:shadow-purple-500/20 transition-all relative overflow-hidden group"
-            whileHover={{ 
-              scale: 1.02, // Reduced scale
-              y: -2, // Reduced movement
-              boxShadow: "0 15px 30px rgba(139, 92, 246, 0.2)" // Reduced shadow
-            }}
-            whileTap={{ scale: 0.98 }}
+          <MagneticButton
+            className="inline-flex items-center gap-3 sm:gap-4 px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-full font-bold text-base sm:text-lg shadow-xl hover:shadow-purple-500/20 transition-all relative overflow-hidden group hidden md:inline-flex"
           >
             {/* Animated background */}
             <motion.div
@@ -456,7 +451,7 @@ const CategorySections = () => {
               <Eye className="w-5 h-5" />
               View All Collections
             </span>
-          </motion.button>
+          </MagneticButton>
         </motion.div>
       </div>
     </section>
