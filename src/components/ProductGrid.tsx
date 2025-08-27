@@ -8,6 +8,7 @@ import { useCart } from '@/hooks/useCart';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import AuthModal from './AuthModal';
+import OptimizedImage from './OptimizedImage';
 
 // Add a custom hook for count-up animation
 function useCountUp(target: number, duration = 1200, decimals = 0, suffix = '') {
@@ -562,13 +563,20 @@ const ProductGrid = () => {
                   >
                     {/* Product Image with 3D Effects */}
                     <div className="relative h-80 overflow-hidden">
-                      <motion.img
-                        src={product.displayImage}
-                        alt={product.name}
-                        className="w-full h-full object-cover will-change-transform"
+                      <motion.div
+                        className="w-full h-full"
                         animate={hoveredProduct === product.id ? { scale: 1.06 } : { scale: 1 } as any}
                         transition={{ duration: 0.35 }}
-                      />
+                      >
+                        <OptimizedImage
+                          src={product.displayImage}
+                          alt={product.name}
+                          className="w-full h-full object-cover will-change-transform"
+                          priority={index < 4} // Prioritize first 4 products
+                          lazy={true}
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                        />
+                      </motion.div>
                       
                       {/* Enhanced Gradient Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent" />

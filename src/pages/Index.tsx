@@ -7,6 +7,8 @@ import FeaturesSection from '@/components/FeaturesSection';
 import VlancoCommunity from '@/components/VlancoCommunity';
 import LimitedDrops from '@/components/LimitedDrops';
 import Footer from '@/components/Footer';
+import ImagePreloader from '../components/ImagePreloader';
+import { useImagePerformance } from '../hooks/useImagePerformance';
 import { ArrowUp, Sparkles, Star, Zap } from 'lucide-react';
 
 // --- Optimized Animated Background Component ---
@@ -191,6 +193,23 @@ const Index = () => {
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
 
+  // Image performance monitoring
+  const { getPerformanceSummary, startMonitoring } = useImagePerformance({
+    trackAllImages: true,
+    logMetrics: true,
+    onImageLoad: (metrics) => {
+      if (metrics.loadTime > 1000) {
+        console.warn(`Slow image load detected: ${metrics.loadTime}ms`);
+      }
+    }
+  });
+
+  // Critical images to preload (hero images, main product images)
+  const criticalImages = [
+    // Add your critical image URLs here
+    // Example: '/images/hero-bg.jpg', '/images/featured-product.jpg'
+  ];
+
   // Animate background opacity based on scroll position
   // It will be invisible (0) at the top and fully visible (1) after scrolling down 15% of the viewport height.
   const backgroundOpacity = useTransform(scrollYProgress, [0, 0.15], [0, 1]);
@@ -214,6 +233,9 @@ const Index = () => {
       mouseY.set(e.clientY);
     };
 
+    // Start image performance monitoring
+    startMonitoring();
+
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('mousemove', handleMouseMove);
     return () => {
@@ -226,74 +248,86 @@ const Index = () => {
         mq.removeListener(onChange);
       }
     };
-  }, [mouseX, mouseY]);
+  }, [mouseX, mouseY, startMonitoring]);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-x-hidden">
-      {/* Scroll Progress Bar (desktop only) */}
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-cyan-500 to-pink-500 origin-left z-[60] hidden md:block"
-        style={{ scaleX: scrollYProgress }}
-      />
-      
-      {/* Background hidden on mobile for performance */}
-      {!isMobile && <AnimatedBackground opacity={backgroundOpacity} />}
-      
-      {/* Cursor effect hidden on mobile */}
-      {!isMobile && <NeuralCursor mouseX={mouseX} mouseY={mouseY} />}
-      
-      {/* --- Main Page Content --- */}
-      <div className="relative z-20">
-        <Navigation />
+    <ImagePreloader 
+      criticalImages={criticalImages}
+      fallback={
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-white text-lg">Loading VLANCO...</p>
+          </div>
+        </div>
+      }
+    >
+      <div className="min-h-screen bg-black relative overflow-x-hidden">
+        {/* Scroll Progress Bar (desktop only) */}
+        <motion.div
+          className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-cyan-500 to-pink-500 origin-left z-[60] hidden md:block"
+          style={{ scaleX: scrollYProgress }}
+        />
+        
+        {/* Background hidden on mobile for performance */}
+        {!isMobile && <AnimatedBackground opacity={backgroundOpacity} />}
+        
+        {/* Cursor effect hidden on mobile */}
+        {!isMobile && <NeuralCursor mouseX={mouseX} mouseY={mouseY} />}
+        
+        {/* --- Main Page Content --- */}
+        <div className="relative z-20">
+          <Navigation />
+        </div>
+
+        <main className="relative z-10">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6 }}>
+            <HeroSection />
+          </motion.div>
+          <NeuralSectionDivider icon={Sparkles} />
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
+            <CategorySections />
+          </motion.div>
+          <NeuralSectionDivider icon={Star} />
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
+            <LimitedDrops />
+          </motion.div>
+          <NeuralSectionDivider icon={Zap} />
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
+            <FeaturesSection />
+          </motion.div>
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
+            <VlancoCommunity />
+          </motion.div>
+        </main>
+        
+        <footer className="relative z-10">
+          <div className="absolute inset-0 bg-gradient-to-t from-purple-900/10 to-transparent" />
+          <Footer />
+        </footer>
+
+        {/* Scroll to Top Button */}
+        <AnimatePresence>
+          {showScrollTop && (
+            <motion.button
+              onClick={scrollToTop}
+              className="fixed bottom-6 right-6 md:bottom-8 md:right-8 p-2 md:p-3 bg-gradient-to-br from-purple-600 to-cyan-600 text-white rounded-full shadow-lg z-50"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <ArrowUp className="w-5 h-5 md:w-6 md:h-6" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
-
-      <main className="relative z-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6 }}>
-          <HeroSection />
-        </motion.div>
-        <NeuralSectionDivider icon={Sparkles} />
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
-          <CategorySections />
-        </motion.div>
-        <NeuralSectionDivider icon={Star} />
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
-          <LimitedDrops />
-        </motion.div>
-        <NeuralSectionDivider icon={Zap} />
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
-          <FeaturesSection />
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.6, delay: 0.1 }}>
-          <VlancoCommunity />
-        </motion.div>
-      </main>
-      
-      <footer className="relative z-10">
-        <div className="absolute inset-0 bg-gradient-to-t from-purple-900/10 to-transparent" />
-        <Footer />
-      </footer>
-
-      {/* Scroll to Top Button */}
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.button
-            onClick={scrollToTop}
-            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 p-2 md:p-3 bg-gradient-to-br from-purple-600 to-cyan-600 text-white rounded-full shadow-lg z-50"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <ArrowUp className="w-5 h-5 md:w-6 md:h-6" />
-          </motion.button>
-        )}
-      </AnimatePresence>
-    </div>
+    </ImagePreloader>
   );
 };
 

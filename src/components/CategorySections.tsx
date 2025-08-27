@@ -4,6 +4,7 @@ import { useRef, useState, useCallback, useMemo } from "react";
 import { ArrowRight, Shirt, Shield, Watch, Sparkles, Eye, ShoppingCart, Heart, Zap, Star, Timer, TrendingUp, Users, Package } from 'lucide-react';
 import MagneticButton from '@/components/ui/MagneticButton';
 import ParallaxHeading from '@/components/ui/ParallaxHeading';
+import OptimizedImage from './OptimizedImage';
 
 // Import product photos from assets
 import product1Image from '@/assets/product-1.jpg';
@@ -257,13 +258,19 @@ const CategorySections = () => {
                   {/* Enhanced Background Image Section (60% of card) */}
                   <div className="relative h-[240px] sm:h-[320px] lg:h-[360px] overflow-hidden">
                     <motion.div 
-                      className="absolute inset-0 bg-cover bg-center"
-                      style={{
-                        backgroundImage: `url(${category.image})`,
-                      }}
+                      className="absolute inset-0"
                       animate={isHovered ? { scale: 1.05 } : { scale: 1 }} // Reduced scale
                       transition={{ duration: 0.3 }} // Faster
-                    />
+                    >
+                      <OptimizedImage
+                        src={category.image}
+                        alt={category.name}
+                        className="w-full h-full object-cover"
+                        priority={index < 2} // Prioritize first 2 images
+                        lazy={true}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    </motion.div>
                     
                     {/* Enhanced Gradient Overlay */}
                     <div className={`absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent`} />

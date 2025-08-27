@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { Camera, Star, Eye, Heart, ArrowRight, Sparkles, Zap, Crown } from 'lucide-react';
+import OptimizedImage from './OptimizedImage';
 
 // Import product photos from assets
 import product1Image from '@/assets/product-1.jpg';
@@ -298,13 +299,20 @@ const FeaturesSection = () => {
                 >
                   {/* Photo Container */}
                   <div className={`relative overflow-hidden ${photo.featured ? 'h-[380px] sm:h-[500px]' : 'h-[220px] sm:h-[300px]'}`}>
-                    <motion.img
-                      src={photo.image}
-                      alt={photo.title}
-                      className="w-full h-full object-cover transition-transform duration-700"
+                    <motion.div
+                      className="w-full h-full"
                       animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
                       transition={{ duration: 0.6, ease: "easeOut" }}
-                    />
+                    >
+                      <OptimizedImage
+                        src={photo.image}
+                        alt={photo.title}
+                        className="w-full h-full object-cover"
+                        priority={photo.featured} // Prioritize featured images
+                        lazy={true}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    </motion.div>
                     
                     {/* Enhanced Gradient Overlay */}
                     <motion.div
@@ -481,10 +489,12 @@ const FeaturesSection = () => {
                 exit={{ scale: 0.8, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <img
-                  src={photoGallery.find(p => p.id === selectedPhoto)?.image}
+                <OptimizedImage
+                  src={photoGallery.find(p => p.id === selectedPhoto)?.image || ''}
                   alt="Full size photo"
                   className="w-full h-full object-contain"
+                  priority={true} // Modal images should load immediately
+                  lazy={false}
                 />
                 <button
                   className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"

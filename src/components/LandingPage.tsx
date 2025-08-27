@@ -2,7 +2,7 @@ import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-bg.jpg";
-import { doesNotMatch } from "assert";
+import OptimizedImage from "./OptimizedImage";
 
 interface LandingPageProps {
   onEnter: () => void;
@@ -206,13 +206,8 @@ export const LandingPage = ({ onEnter }: LandingPageProps) => {
     >
       {/* Animated Background Overlay */}
       <motion.div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: `url(${heroImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          y: springY,
-        }}
+        className="absolute inset-0 overflow-hidden"
+        style={{ y: springY }}
         animate={{
           scale: [1, 1.05, 1],
           opacity: [0.3, 0.2, 0.3],
@@ -222,7 +217,16 @@ export const LandingPage = ({ onEnter }: LandingPageProps) => {
           repeat: Infinity,
           ease: "easeInOut",
         }}
-      />
+      >
+        <OptimizedImage
+          src={heroImage}
+          alt="VLANCO Hero Background"
+          className="w-full h-full object-cover"
+          priority={true} // Hero image should load immediately
+          lazy={false}
+          sizes="100vw"
+        />
+      </motion.div>
       
       {/* Dynamic Gradient Overlay */}
       <motion.div 
