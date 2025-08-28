@@ -1,0 +1,309 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* VLANCO Design System - Dark streetwear aesthetic for teenagers */
+
+@layer base {
+  /* Smooth Scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Enhanced smooth scrolling for better performance */
+  * {
+    scroll-behavior: smooth;
+  }
+  
+  /* Performance optimizations */
+  * {
+    will-change: auto;
+  }
+  
+  /* Optimize animations for better performance */
+  .motion-div,
+  [data-framer-motion] {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  :root {
+    /* Core Brand Colors - Dark Theme */
+    --background: 0 0% 3%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 5%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 95%;
+
+    /* VLANCO Brand Colors */
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 8%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
+
+    /* Electric Blue Accent for Energy */
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 8%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+
+    /* Custom VLANCO Design Tokens */
+    --brand-electric: 217 91% 60%;
+    --brand-silver: 0 0% 85%;
+    --brand-charcoal: 0 0% 12%;
+    
+    /* Gradients */
+    --gradient-brand: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--brand-charcoal)));
+    --gradient-electric: linear-gradient(135deg, hsl(var(--brand-electric)), hsl(217 91% 70%));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--secondary)));
+    
+    /* Shadows & Effects */
+    --shadow-brand: 0 10px 40px -10px hsl(var(--brand-electric) / 0.3);
+    --shadow-deep: 0 25px 50px -12px hsl(0 0% 0% / 0.8);
+    --shadow-glow: 0 0 30px hsl(var(--brand-electric) / 0.4);
+    
+    /* Animation Timing */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  /* VLANCO Component Styles */
+  .hero-text {
+    @apply text-4xl md:text-6xl lg:text-7xl font-black tracking-tight;
+    background: linear-gradient(135deg, hsl(var(--foreground)), hsl(var(--brand-silver)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .brand-gradient {
+    background: var(--gradient-brand);
+  }
+
+  .electric-gradient {
+    background: var(--gradient-electric);
+  }
+
+  .glass-effect {
+    @apply backdrop-blur-md;
+    background: hsl(var(--card) / 0.1);
+    border: 1px solid hsl(var(--border) / 0.2);
+  }
+
+  .glow-effect {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .product-card {
+    @apply relative overflow-hidden rounded-lg bg-card border transition-all duration-500;
+    box-shadow: var(--shadow-deep);
+  }
+
+  .product-card:hover {
+    @apply scale-105;
+    box-shadow: var(--shadow-brand);
+  }
+
+  .category-card {
+    @apply relative overflow-hidden rounded-xl cursor-pointer;
+    background: var(--gradient-subtle);
+    transition: var(--transition-smooth);
+  }
+
+  .category-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-brand);
+  }
+
+  .btn-primary {
+    @apply relative overflow-hidden px-8 py-4 rounded-lg font-semibold text-accent-foreground;
+    background: var(--gradient-electric);
+    transition: var(--transition-smooth);
+    box-shadow: var(--shadow-brand);
+  }
+
+  .btn-primary:hover {
+    @apply scale-105;
+    box-shadow: var(--shadow-glow);
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 rounded-lg font-medium bg-secondary text-secondary-foreground border border-border;
+    transition: var(--transition-smooth);
+  }
+
+  .btn-secondary:hover {
+    @apply bg-muted border-accent;
+  }
+
+  /* Animation Classes */
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite alternate;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+  }
+
+  @keyframes pulse-glow {
+    0% { box-shadow: var(--shadow-brand); }
+    100% { box-shadow: var(--shadow-glow); }
+  }
+
+  @keyframes slide-up {
+    0% { 
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+/* Custom Animations for Revolutionary Streetwear Design */
+.animate-border-flash {
+  animation: border-flash 2s ease-in-out infinite;
+}
+
+@keyframes border-flash {
+  0%, 100% { border-color: rgba(236, 72, 153, 0.6); }
+  50% { border-color: rgba(236, 72, 153, 1); }
+}
+
+.animate-holographic-glow {
+  animation: holographic-glow 3s ease-in-out infinite;
+}
+
+@keyframes holographic-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.5), 0 0 40px rgba(139, 92, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(236, 72, 153, 0.6), 0 0 60px rgba(139, 92, 246, 0.4);
+  }
+}
+
+.animate-portal-ripple {
+  animation: portal-ripple 4s ease-in-out infinite;
+}
+
+@keyframes portal-ripple {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+  50% { transform: scale(1.1) rotate(180deg); opacity: 0.4; }
+  100% { transform: scale(1) rotate(360deg); opacity: 0.8; }
+}
+
+.animate-particle-float {
+  animation: particle-float 6s ease-in-out infinite;
+}
+
+@keyframes particle-float {
+  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-20px) scale(1.2); opacity: 1; }
+}
+
