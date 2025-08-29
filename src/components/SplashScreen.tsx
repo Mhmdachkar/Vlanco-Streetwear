@@ -62,12 +62,12 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           exit={{ opacity: 0 }}
           transition={{ duration: 1.2, ease: smoothEase }}
         >
-          {/* Enhanced Matrix-style background particles */}
+          {/* Enhanced Matrix-style background particles - Responsive */}
           <div className="absolute inset-0">
             {[...Array(80)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-1 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
+                className="absolute w-0.5 sm:w-1 h-0.5 sm:h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
@@ -89,8 +89,33 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             ))}
           </div>
 
-          {/* Refined Sound Wave Effect */}
+          {/* Refined Sound Wave Effect - Responsive */}
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2">
+            {[...Array(24)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-0.5 sm:w-1 bg-gradient-to-t from-blue-400 to-cyan-400 rounded-full"
+                style={{
+                  left: `${(i - 12) * 12}px`,
+                  height: '15px',
+                }}
+                animate={{
+                  height: animationPhase >= 1 ? [15, 60, 15] : 15,
+                  opacity: animationPhase >= 1 ? [0.4, 1, 0.4] : 0.4,
+                  scaleY: animationPhase >= 1 ? [1, 1.2, 1] : 1,
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: animationPhase >= 1 ? Infinity : 0,
+                  delay: i * 0.08,
+                  ease: "easeInOut",
+                }}
+              />
+            ))}
+          </div>
+          
+          {/* Desktop Sound Wave Effect */}
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 hidden sm:block">
             {[...Array(24)].map((_, i) => (
               <motion.div
                 key={i}
@@ -114,19 +139,19 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             ))}
           </div>
 
-          {/* Enhanced Main splash image container */}
+          {/* Enhanced Main splash image container - Responsive */}
           <motion.div
-            className="relative w-full h-full flex items-center justify-center"
+            className="relative w-full h-full flex items-center justify-center px-4 sm:px-0"
             animate={{
               scale: animationPhase >= 1 ? [1, 1.05, 1.1] : 1,
-              y: animationPhase >= 2 ? [-50, -150, -300, -500, -800, -1200, -1600] : 0,
+              y: animationPhase >= 2 ? [-30, -100, -200, -400, -600, -800, -1000] : 0,
             }}
             transition={{
               duration: animationPhase >= 1 ? 2.5 : 0,
               ease: animationPhase >= 2 ? dramaticEase : smoothEase,
             }}
           >
-            {/* Enhanced Image with sophisticated effects */}
+            {/* Enhanced Image with sophisticated effects - Responsive */}
             <motion.div
               className="relative"
               animate={{
@@ -141,9 +166,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
               <motion.img
                 src={splashImage}
                 alt="VLANCO Store"
-                className="max-w-4xl max-h-[80vh] object-contain rounded-2xl shadow-2xl"
+                className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-4xl max-h-[60vh] sm:max-h-[70vh] md:max-h-[80vh] object-contain rounded-xl sm:rounded-2xl shadow-2xl"
                 style={{
-                  filter: 'drop-shadow(0 0 40px rgba(59, 130, 246, 0.6))',
+                  filter: 'drop-shadow(0 0 20px rgba(59, 130, 246, 0.6))',
                 }}
                 initial={{ opacity: 0, scale: 0.7, rotateY: -15 }}
                 animate={{
@@ -158,9 +183,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 onLoad={handleImageLoad}
               />
 
-              {/* Enhanced Glowing border effect */}
+              {/* Enhanced Glowing border effect - Responsive */}
               <motion.div
-                className="absolute inset-0 rounded-2xl"
+                className="absolute inset-0 rounded-xl sm:rounded-2xl"
                 style={{
                   background: 'linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4, #3b82f6)',
                   backgroundSize: '400% 400%',
@@ -177,9 +202,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 initial={{ opacity: 0 }}
               />
 
-              {/* Enhanced Shimmer effect */}
+              {/* Enhanced Shimmer effect - Responsive */}
               <motion.div
-                className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                className="absolute inset-0 rounded-xl sm:rounded-2xl bg-gradient-to-r from-transparent via-white/30 to-transparent"
                 animate={{
                   x: animationPhase >= 1 ? ['-100%', '100%'] : '-100%',
                 }}
@@ -190,9 +215,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 }}
               />
 
-              {/* Enhanced Pulse effect */}
+              {/* Enhanced Pulse effect - Responsive */}
               <motion.div
-                className="absolute inset-0 rounded-2xl border-2 border-blue-500/60"
+                className="absolute inset-0 rounded-xl sm:rounded-2xl border-2 border-blue-500/60"
                 animate={{
                   scale: animationPhase >= 1 ? [1, 1.03, 1] : 1,
                   opacity: animationPhase >= 1 ? [0.6, 0.9, 0.6] : 0.6,
@@ -204,9 +229,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 }}
               />
 
-              {/* Additional glow layers */}
+              {/* Additional glow layers - Responsive */}
               <motion.div
-                className="absolute inset-0 rounded-2xl border border-cyan-400/40"
+                className="absolute inset-0 rounded-xl sm:rounded-2xl border border-cyan-400/40"
                 animate={{
                   scale: animationPhase >= 1 ? [1, 1.05, 1] : 1,
                   opacity: animationPhase >= 1 ? [0.3, 0.6, 0.3] : 0.3,
@@ -220,9 +245,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
               />
             </motion.div>
 
-            {/* Enhanced Floating text overlay */}
+            {/* Enhanced Floating text overlay - Responsive */}
             <motion.div
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10"
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10 px-4"
               initial={{ opacity: 0, y: 30, scale: 0.9 }}
               animate={{
                 opacity: imageLoaded ? 1 : 0,
@@ -232,9 +257,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
               transition={{ duration: 1.8, delay: 0.8, ease: elasticEase }}
             >
               <motion.h1
-                className="text-6xl md:text-8xl font-bold text-white mb-4 tracking-wider"
+                className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white mb-2 sm:mb-4 tracking-wider"
                 style={{
-                  textShadow: '0 0 30px rgba(59, 130, 246, 0.8)',
+                  textShadow: '0 0 20px rgba(59, 130, 246, 0.8)',
                   background: 'linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4)',
                   backgroundClip: 'text',
                   WebkitBackgroundClip: 'text',
@@ -243,10 +268,10 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
                 animate={{
                   scale: animationPhase >= 1 ? [1, 1.05, 1] : 1,
                   textShadow: animationPhase >= 1 ? [
-                    '0 0 30px rgba(59, 130, 246, 0.8)',
-                    '0 0 60px rgba(59, 130, 246, 1)',
-                    '0 0 30px rgba(59, 130, 246, 0.8)'
-                  ] : '0 0 30px rgba(59, 130, 246, 0.8)',
+                    '0 0 20px rgba(59, 130, 246, 0.8)',
+                    '0 0 40px rgba(59, 130, 246, 1)',
+                    '0 0 20px rgba(59, 130, 246, 0.8)'
+                  ] : '0 0 20px rgba(59, 130, 246, 0.8)',
                 }}
                 transition={{
                   duration: 3,
@@ -258,7 +283,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
               </motion.h1>
               
               <motion.p
-                className="text-xl md:text-2xl text-blue-300 font-light tracking-wide"
+                className="text-sm sm:text-lg md:text-xl lg:text-2xl text-blue-300 font-light tracking-wide"
                 animate={{
                   opacity: animationPhase >= 1 ? [1, 0.7, 1] : 1,
                   y: animationPhase >= 1 ? [0, -5, 0] : 0,
@@ -273,9 +298,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
               </motion.p>
             </motion.div>
 
-            {/* Enhanced Loading indicator */}
+            {/* Enhanced Loading indicator - Responsive */}
             <motion.div
-              className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+              className="absolute bottom-6 sm:bottom-10 left-1/2 transform -translate-x-1/2"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ 
                 opacity: imageLoaded ? 1 : 0,
@@ -284,7 +309,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
               transition={{ duration: 1, delay: 1.2, ease: smoothEase }}
             >
               <motion.div
-                className="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full"
+                className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full"
                 animate={{
                   rotate: [0, 360],
                 }}
@@ -310,7 +335,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             }}
           />
 
-          {/* Enhanced Energy Wave Effects */}
+          {/* Enhanced Energy Wave Effects - Responsive */}
           {animationPhase >= 1 && (
             <div className="absolute inset-0 pointer-events-none">
               {[...Array(6)].map((_, i) => (
@@ -332,9 +357,9 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             </div>
           )}
 
-          {/* Enhanced Corner Glow Effects */}
+          {/* Enhanced Corner Glow Effects - Responsive */}
           <motion.div
-            className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-br from-blue-500/30 to-transparent rounded-full"
+            className="absolute top-0 left-0 w-20 h-20 sm:w-40 sm:h-40 bg-gradient-to-br from-blue-500/30 to-transparent rounded-full"
             animate={{
               scale: animationPhase >= 1 ? [1, 1.3, 1] : 1,
               opacity: animationPhase >= 1 ? [0.4, 0.7, 0.4] : 0.4,
@@ -346,7 +371,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             }}
           />
           <motion.div
-            className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-500/30 to-transparent rounded-full"
+            className="absolute top-0 right-0 w-20 h-20 sm:w-40 sm:h-40 bg-gradient-to-bl from-purple-500/30 to-transparent rounded-full"
             animate={{
               scale: animationPhase >= 1 ? [1, 1.3, 1] : 1,
               opacity: animationPhase >= 1 ? [0.4, 0.7, 0.4] : 0.4,
@@ -359,7 +384,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             }}
           />
           <motion.div
-            className="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-cyan-500/30 to-transparent rounded-full"
+            className="absolute bottom-0 left-0 w-20 h-20 sm:w-40 sm:h-40 bg-gradient-to-tr from-cyan-500/30 to-transparent rounded-full"
             animate={{
               scale: animationPhase >= 1 ? [1, 1.3, 1] : 1,
               opacity: animationPhase >= 1 ? [0.4, 0.7, 0.4] : 0.4,
@@ -372,7 +397,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             }}
           />
           <motion.div
-            className="absolute bottom-0 right-0 w-40 h-40 bg-gradient-to-tl from-blue-500/30 to-transparent rounded-full"
+            className="absolute bottom-0 right-0 w-20 h-20 sm:w-40 sm:h-40 bg-gradient-to-tl from-blue-500/30 to-transparent rounded-full"
             animate={{
               scale: animationPhase >= 1 ? [1, 1.3, 1] : 1,
               opacity: animationPhase >= 1 ? [0.4, 0.7, 0.4] : 0.4,
@@ -385,13 +410,13 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             }}
           />
 
-          {/* Floating geometric elements for added sophistication */}
+          {/* Floating geometric elements for added sophistication - Responsive */}
           {animationPhase >= 1 && (
             <>
               {[...Array(8)].map((_, i) => (
                 <motion.div
                   key={i}
-                  className="absolute w-2 h-2 bg-cyan-400/60 rounded-full"
+                  className="absolute w-1 h-1 sm:w-2 sm:h-2 bg-cyan-400/60 rounded-full"
                   style={{
                     left: `${20 + (i % 4) * 20}%`,
                     top: `${20 + Math.floor(i / 4) * 20}%`,
