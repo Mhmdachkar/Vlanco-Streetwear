@@ -103,162 +103,170 @@ const SmokeDisappearText = ({ text, className, delay = 0, isInView }: {
             }
             return newSet;
           });
-        }, 800); // Disappear one word every 800ms
-        
-        // Stop after all words have disappeared
-        setTimeout(() => {
-          clearInterval(disappearInterval);
-        }, words.length * 800 + 2000);
-        
+        }, 200);
+
         return () => clearInterval(disappearInterval);
-      }, 4000); // Start disappearing after 4 seconds
-      
+      }, 3000);
+
       return () => clearTimeout(timer);
     }
-  }, [isInView, words.length]);
-  
+  }, [isInView, words]);
+
   return (
     <span className={className}>
       {words.map((word, index) => (
         <motion.span
           key={index}
-          className="inline-block mr-2 relative"
-          initial={{ 
-            opacity: 0, 
-            y: 30, 
-            scale: 0.8,
-            filter: "blur(8px)"
-          }}
-          animate={isInView ? { 
-            opacity: 1, 
-            y: 0, 
-            scale: 1,
-            filter: "blur(0px)"
+          className="inline-block mr-2"
+          animate={disappearingWords.has(index) ? {
+            opacity: [1, 0.3, 0],
+            y: [0, -20, -40],
+            scale: [1, 1.1, 0.8],
+            filter: ["blur(0px)", "blur(4px)", "blur(8px)"]
           } : {}}
           transition={{
-            duration: 1.2,
-            delay: delay + index * 0.15,
-            ease: [0.25, 0.46, 0.45, 0.94]
+            duration: 1.5,
+            ease: "easeOut"
           }}
         >
-          {/* Main word */}
-          <motion.span
-            animate={disappearingWords.has(index) ? {
-              opacity: [1, 0.8, 0.4, 0],
-              scale: [1, 1.1, 0.8, 0],
-              y: [0, -10, -20, -40],
-              filter: ["blur(0px)", "blur(2px)", "blur(4px)", "blur(8px)"],
-              rotate: [0, 5, -5, 0]
-            } : {}}
-            transition={{
-              duration: 2,
-              ease: "easeOut"
-            }}
-          >
-            {word}
-          </motion.span>
-          
-          {/* Smoke particles effect */}
-          {disappearingWords.has(index) && (
-            <>
-              {[...Array(6)].map((_, particleIndex) => (
-                <motion.div
-                  key={`particle-${index}-${particleIndex}`}
-                  className="absolute inset-0 w-1 h-1 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full"
-                  initial={{
-                    x: 0,
-                    y: 0,
-                    opacity: 0.8,
-                    scale: 0
-                  }}
-                  animate={{
-                    x: (Math.random() - 0.5) * 60,
-                    y: -30 - Math.random() * 40,
-                    opacity: [0.8, 0.6, 0.3, 0],
-                    scale: [0, 1, 0.5, 0],
-                    rotate: [0, 180, 360]
-                  }}
-                  transition={{
-                    duration: 2.5,
-                    delay: particleIndex * 0.1,
-                    ease: "easeOut"
-                  }}
-                />
-              ))}
-            </>
-          )}
-          
-          {/* Enhanced glow effect */}
-          <motion.div
-            className="absolute inset-0 opacity-0"
-            animate={isInView ? { 
-              opacity: [0, 0.3, 0],
-              scale: [0.8, 1.1, 1]
-            } : {}}
-            transition={{
-              duration: 1.8,
-              delay: delay + index * 0.15,
-              ease: "easeOut"
-            }}
-            style={{
-              background: 'linear-gradient(45deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))',
-              filter: 'blur(2px)',
-              borderRadius: '4px'
-            }}
-          />
+          {word}
         </motion.span>
       ))}
     </span>
   );
 };
 
-const HeroSection = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true });
+// Professional Cursor Trail Component - Replaces circular mouse follower
+const ProfessionalCursorTrail = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  
+  const [isMoving, setIsMoving] = useState(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-
-  const rotateX = useTransform(mouseY, [0, 1], [10, -10]);
-  const rotateY = useTransform(mouseX, [0, 1], [-10, 10]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const moveTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Optimized mouse tracking with throttling and useCallback
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (rect) {
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
-      mouseX.set(x);
-      mouseY.set(y);
-      setMousePosition({ x, y });
+    if (!containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    
+    mouseX.set(x);
+    mouseY.set(y);
+    setMousePosition({ x, y });
+    setIsMoving(true);
+    
+    // Clear existing timeout
+    if (moveTimeoutRef.current) {
+      clearTimeout(moveTimeoutRef.current);
     }
+    
+    // Set timeout to stop movement indicator
+    moveTimeoutRef.current = setTimeout(() => {
+      setIsMoving(false);
+    }, 100);
   }, [mouseX, mouseY]);
 
   useEffect(() => {
-    let animationFrame: number;
-    
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Throttled mouse move handler for better performance
+    let ticking = false;
     const throttledMouseMove = (e: MouseEvent) => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleMouseMove(e);
+          ticking = false;
+        });
+        ticking = true;
       }
-      
-      animationFrame = requestAnimationFrame(() => {
-        handleMouseMove(e);
-      });
     };
 
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('mousemove', throttledMouseMove, { passive: true });
-      return () => {
-        container.removeEventListener('mousemove', throttledMouseMove);
-        if (animationFrame) {
-          cancelAnimationFrame(animationFrame);
-        }
-      };
-    }
+    container.addEventListener('mousemove', throttledMouseMove, { passive: true });
+    
+    return () => {
+      container.removeEventListener('mousemove', throttledMouseMove);
+      if (moveTimeoutRef.current) {
+        clearTimeout(moveTimeoutRef.current);
+      }
+    };
   }, [handleMouseMove]);
+
+  return (
+    <div ref={containerRef} className="absolute inset-0 pointer-events-none z-20 hidden sm:block">
+      {/* Main cursor dot */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{
+          left: mousePosition.x * 100 + '%',
+          top: mousePosition.y * 100 + '%',
+          x: '-50%',
+          y: '-50%',
+        }}
+        animate={{
+          scale: isMoving ? [1, 1.2, 1] : 1,
+          opacity: isMoving ? 1 : 0.7,
+        }}
+        transition={{
+          duration: 0.3,
+          ease: "easeOut",
+        }}
+      >
+        <div className="w-2 h-2 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full shadow-lg" />
+      </motion.div>
+
+      {/* Subtle trail effect */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{
+          left: mousePosition.x * 100 + '%',
+          top: mousePosition.y * 100 + '%',
+          x: '-50%',
+          y: '-50%',
+        }}
+        animate={{
+          scale: isMoving ? [0, 1, 0] : 0,
+          opacity: isMoving ? [0, 0.3, 0] : 0,
+        }}
+        transition={{
+          duration: 0.6,
+          ease: "easeOut",
+        }}
+      >
+        <div className="w-8 h-8 bg-gradient-to-r from-cyan-400/20 to-blue-500/20 rounded-full" />
+      </motion.div>
+
+      {/* Energy pulse when moving */}
+      {isMoving && (
+        <motion.div
+          className="absolute pointer-events-none"
+          style={{
+            left: mousePosition.x * 100 + '%',
+            top: mousePosition.y * 100 + '%',
+            x: '-50%',
+            y: '-50%',
+          }}
+          initial={{ scale: 0, opacity: 0.5 }}
+          animate={{ scale: [0, 1.5, 0], opacity: [0.5, 0, 0] }}
+          transition={{
+            duration: 0.8,
+            ease: "easeOut",
+          }}
+        >
+          <div className="w-16 h-16 border border-cyan-400/30 rounded-full" />
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
+const HeroSection = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(containerRef, { once: true });
+
 
   return (
     <section 
@@ -987,27 +995,7 @@ const HeroSection = () => {
       </div>
 
       {/* Interactive Mouse Follower */}
-      <motion.div
-        className="absolute pointer-events-none z-20 hidden sm:block"
-        style={{
-          left: mousePosition.x * 100 + '%',
-          top: mousePosition.y * 100 + '%',
-          x: '-50%',
-          y: '-50%',
-        }}
-      >
-        <motion.div
-          className="w-32 h-32 border border-cyan-400/30 rounded-full"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-        >
-          <motion.div
-            className="w-4 h-4 bg-cyan-400 rounded-full absolute top-0 left-1/2 transform -translate-x-1/2"
-            animate={{ scale: [1, 1.5, 1] }}
-            transition={{ duration: 1, repeat: Infinity }}
-          />
-        </motion.div>
-      </motion.div>
+      <ProfessionalCursorTrail />
     </section>
   );
 };

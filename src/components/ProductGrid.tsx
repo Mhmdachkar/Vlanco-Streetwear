@@ -8,6 +8,7 @@ import { useCart } from '@/hooks/useCart';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import AuthModal from './AuthModal';
+import { useWishlist } from '@/hooks/useWishlist';
 
 // Optimized count-up animation hook with better performance
 function useCountUp(target: number, duration = 1200, decimals = 0, suffix = '') {
@@ -112,9 +113,9 @@ const ProductCard = React.memo(({
   product: any;
   index: number;
   onAddToCart: (e: React.MouseEvent, product: any) => void;
-  onToggleWishlist: (productId: number) => void;
+  onToggleWishlist: (product: any) => void;
   onNavigate: (slug: string) => void;
-  wishlist: number[];
+  wishlist: string[];
   isInView: boolean;
 }) => {
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
@@ -201,7 +202,7 @@ const ProductCard = React.memo(({
             <motion.button
               onClick={(e) => {
                 e.stopPropagation();
-                onToggleWishlist(product.id);
+                onToggleWishlist(product);
               }}
               className="p-3 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background transition-colors"
               whileHover={{ scale: 1.1 }}
@@ -209,7 +210,7 @@ const ProductCard = React.memo(({
             >
               <Heart 
                 className={`w-4 h-4 ${
-                  wishlist.includes(product.id) 
+                  wishlist.includes(String(product.id))
                     ? 'text-red-500 fill-red-500' 
                     : 'text-muted-foreground'
                 }`} 
@@ -355,13 +356,13 @@ const ProductGrid = () => {
   const navigate = useNavigate();
   const { products, loading } = useProducts();
   const { addToCart, removeFromCart, items } = useCart();
+  const { items: wishlistItems, addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [wishlist, setWishlist] = useState<number[]>([]);
 
   // Memoized handlers for better performance
   const handleAddToCart = useCallback(async (e: React.MouseEvent, product: any) => {
@@ -418,13 +419,50 @@ const ProductGrid = () => {
     });
   }, [user, addToCart, items, removeFromCart]);
 
-  const toggleWishlist = useCallback((productId: number) => {
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
-  }, []);
+  const handleToggleWishlist = useCallback(async (product: any) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    try {
+      if (isInWishlist(product.id)) {
+        await removeFromWishlist(product.id);
+        toast({
+          title: 'Removed from Wishlist',
+          description: `${product.name} has been removed from your wishlist.`,
+          duration: 3000
+        });
+      } else {
+        await addToWishlist({
+          id: product.id,
+          name: product.name,
+          price: product.displayPrice ?? product.price ?? 0,
+          image: product.displayImage,
+          category: product.category || 'Streetwear',
+          description: product.description,
+          rating: product.rating,
+          reviews: product.reviews,
+          isLimited: product.isLimited,
+          isNew: product.isNew,
+          colors: product.colors,
+          sizes: product.sizes
+        });
+        toast({
+          title: 'Added to Wishlist',
+          description: `${product.name} has been added to your wishlist!`,
+          duration: 3000
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update wishlist. Please try again.',
+        variant: 'destructive',
+        duration: 5000
+      });
+    }
+  }, [user, isInWishlist, removeFromWishlist, addToWishlist]);
 
   const handleNavigate = useCallback((slug: string) => {
     navigate(`/product/${slug}`);
@@ -814,9 +852,9 @@ const ProductGrid = () => {
                   product={product}
                   index={index}
                   onAddToCart={handleAddToCart}
-                  onToggleWishlist={toggleWishlist}
+                  onToggleWishlist={handleToggleWishlist}
                   onNavigate={handleNavigate}
-                  wishlist={wishlist}
+                  wishlist={wishlistItems.map(item => String(item.id))}
                   isInView={isInView}
                 />
               ))}

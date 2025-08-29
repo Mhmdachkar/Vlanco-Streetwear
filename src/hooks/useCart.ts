@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import type { Tables } from '@/integrations/supabase/types';
 import { toast } from '@/hooks/use-toast';
+import { createCheckoutSession } from '@/services/edgeFunctions';
 
 type CartItem = Tables<'cart_items'> & {
   product: Tables<'products'>;
@@ -154,12 +155,7 @@ export function useCart() {
       setError(null);
       
       // Get product and variant details for price
-      let price = 0;
-      if (productDetails?.variant?.price) {
-        price = productDetails.variant.price;
-      } else if (productDetails?.product?.base_price) {
-        price = productDetails.product.base_price;
-      }
+      // Price is used client-side only; not persisted in cart_items schema
       
       // Check if item already exists in cart
       const { data: existingItem } = await supabase
@@ -172,13 +168,13 @@ export function useCart() {
 
       if (existingItem) {
         // Update existing item quantity
-        const newQuantity = existingItem.quantity + quantity;
+        const currentQuantity = typeof (existingItem as any).quantity === 'number' ? (existingItem as any).quantity : 0;
+        const newQuantity = currentQuantity + quantity;
         const { error: updateError } = await supabase
           .from('cart_items')
           .update({ 
             quantity: newQuantity,
-            price_at_time: price,
-            updated_at: new Date().toISOString()
+            // aligned to schema: no extra fields
           })
           .eq('id', existingItem.id);
 
@@ -192,9 +188,7 @@ export function useCart() {
             product_id: productId,
             variant_id: variantId,
             quantity,
-            price_at_time: price,
             added_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
           });
 
         if (insertError) throw insertError;
@@ -365,5 +359,15 @@ export function useCart() {
     getItemById,
     isInCart,
     refetch: fetchCartItems,
+    createCheckout: async (discountCode?: string) => {
+      if (!items.length) return;
+      const payload = items.map((i: any) => ({ product_id: i.product_id, variant_id: i.variant_id, quantity: i.quantity }));
+      try {
+        const { url } = await createCheckoutSession(payload, discountCode);
+        window.location.href = url;
+      } catch (e: any) {
+        toast({ title: 'Checkout error', description: e.message || 'Failed to start checkout', variant: 'destructive' });
+      }
+    }
   };
 }

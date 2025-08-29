@@ -32,6 +32,7 @@ import { useAuth } from '@/hooks/useAuth';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 import ProductViewer3D from '@/components/ProductViewer3D';
+import { toast } from '@/components/ui/use-toast';
 
 interface WishlistItem {
   id: string;
@@ -115,34 +116,42 @@ const Wishlist = () => {
     setShowProductDetail(true);
   };
 
-  const handleAddToCart = (item: WishlistItem) => {
+  const handleAddToCart = async (item: WishlistItem) => {
     if (!user) {
       alert('Please sign in to add items to cart');
       return;
     }
 
-    const cartItem = {
-      id: `${item.id}-${selectedSize || 'default'}-${selectedColor || 'default'}`,
-      productId: item.id,
-      name: item.name,
-      price: item.price,
-      image: item.image,
-      size: selectedSize || item.sizes?.[0] || 'M',
-      color: selectedColor || item.colors?.[0] || 'Black',
-      quantity: selectedQuantity
-    };
+    try {
+      // Use the proper cart hook instead of localStorage
+      await addToCart(String(item.id), String(item.id), selectedQuantity, {
+        price: item.price,
+        product: { 
+          base_price: item.price,
+          name: item.name,
+          description: item.description,
+          compare_price: item.compare_price
+        },
+        variant: { 
+          price: item.price,
+          color: selectedColor || item.colors?.[0] || 'Black',
+          size: selectedSize || item.sizes?.[0] || 'M'
+        }
+      });
 
-    const existingCart = JSON.parse(localStorage.getItem('vlanco_cart') || '[]');
-    const existingItemIndex = existingCart.findIndex((cartItem: any) => cartItem.id === cartItem.id);
-
-    if (existingItemIndex > -1) {
-      existingCart[existingItemIndex].quantity += selectedQuantity;
-    } else {
-      existingCart.push(cartItem);
+      toast({
+        title: 'Added to Cart',
+        description: `${item.name} has been added to your cart!`,
+        duration: 3000
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to add item to cart. Please try again.',
+        variant: 'destructive',
+        duration: 5000
+      });
     }
-
-    localStorage.setItem('vlanco_cart', JSON.stringify(existingCart));
-    alert(`Added ${item.name} to cart!`);
   };
 
   const sortedItems = [...wishlistItems].sort((a, b) => {

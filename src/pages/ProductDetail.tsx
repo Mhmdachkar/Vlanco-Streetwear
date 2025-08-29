@@ -17,6 +17,10 @@ import { toast } from '@/hooks/use-toast';
 import { validateQuantity, logSecurityEvent } from '@/utils/security';
 
 // Local product images from assets folder
+// Guard against early references during build-time evaluation
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const product: any = (globalThis as any).__pd_placeholder || undefined;
+
 const productImages = [
   "/src/assets/product-1.jpg",
   "/src/assets/product-2.jpg", 
@@ -89,9 +93,10 @@ const GlitchButton = ({ children, onClick, variant = 'primary', className = '', 
     `
   };
 
+  // URL preselect will be handled inside the main product component where state exists
+
   return (
     <>
-      <Navigation />
       <motion.button
         className={`
           relative overflow-hidden font-bold rounded-xl transition-all duration-300

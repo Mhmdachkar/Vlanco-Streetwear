@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { X, ShoppingBag, Plus, Minus, Loader2, AlertCircle, Trash2, Heart, Zap, Timer, Sparkles, Shield, Lock, CreditCard, Gift, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { useCart } from '@/hooks/useCart';
+import { applyDiscount } from '@/services/edgeFunctions';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import CartItemCard from './CartItemCard';
@@ -364,7 +365,7 @@ const UndoNotification = ({ item, progress, onUndo, onCancel }: {
 // Main CartSidebar Component
 const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
-  const { items, loading, error, removeFromCart, updateQuantity, addToWishlist } = useCart();
+  const { items, loading, error, removeFromCart, updateQuantity, addToWishlist, createCheckout } = useCart();
   const { toast } = useToast();
   
   const {
@@ -379,6 +380,8 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   
   const { triggerPulse, cartShake, pulseCart, shakeCart } = useCartAnimations();
   const { recentlyDeleted, undoProgress, startUndo, cancelUndo, executeUndo } = useUndoSystem();
+  const [promoCode, setPromoCode] = useState<string>('');
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
   
   const [showSummary, setShowSummary] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
@@ -448,16 +451,33 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
 
   // Handle checkout
   const handleCheckout = useCallback(() => {
-    toast({
-      title: "Checkout Coming Soon",
-      description: "Secure checkout process will be available soon!"
-    });
-  }, [toast]);
+    createCheckout(promoCode || undefined);
+  }, [createCheckout, promoCode]);
 
   // Calculate totals
   const subtotal = useMemo(() => {
     return items.reduce((total, item) => total + getItemTotal(item), 0);
   }, [items]);
+  // Listen for promo apply from CartSummary
+  useEffect(() => {
+    const onApply = async (ev: Event) => {
+      const detail = (ev as CustomEvent).detail as { code: string } | undefined;
+      const code = detail?.code?.trim();
+      if (!code) return;
+      try {
+        const res = await applyDiscount(code, Math.round(subtotal));
+        setPromoCode(code);
+        setDiscountAmount(res.amountOff || 0);
+        toast({ title: 'Promo applied', description: `${code} saved $${(res.amountOff || 0).toFixed(2)}` });
+      } catch (e: any) {
+        setPromoCode('');
+        setDiscountAmount(0);
+        toast({ title: 'Invalid promo', description: e.message || 'Could not apply code', variant: 'destructive' });
+      }
+    };
+    window.addEventListener('apply-promo', onApply as EventListener);
+    return () => window.removeEventListener('apply-promo', onApply as EventListener);
+  }, [subtotal, toast]);
 
   const totalItems = useMemo(() => {
     return items.reduce((total, item) => total + item.quantity, 0);

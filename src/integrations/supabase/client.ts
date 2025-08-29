@@ -28,8 +28,16 @@ const mockSupabaseClient = {
   from: () => ({
     select: () => Promise.resolve({ data: [], error: null }),
     insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    upsert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
     update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
     delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    eq: () => ({
+      select: () => Promise.resolve({ data: [], error: null }),
+      update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      single: () => Promise.resolve({ data: null, error: null }),
+      order: () => Promise.resolve({ data: [], error: null }),
+    })
   }),
 } as any;
 

@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import LandingPage from "./components/LandingPage";
+import SplashScreen from "./components/SplashScreen";
 import MaskCollection from './pages/MaskCollection';
 import AccessoriesCollection from './pages/AccessoriesCollection';
 
@@ -16,24 +17,30 @@ const Wishlist = lazy(() => import("./pages/Wishlist"));
 const TShirtCollection = lazy(() => import("./pages/TShirtCollection"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Database testing and analytics pages
-const DatabaseTestPage = lazy(() => import("./pages/DatabaseTestPage"));
-const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
-
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const hasEnteredStore = sessionStorage.getItem('vlanco_entered_store') === 'true';
   const [showLanding, setShowLanding] = useState(!hasEnteredStore);
+  const [showSplash, setShowSplash] = useState(false);
 
   const handleEnter = () => {
     setShowLanding(false);
+    setShowSplash(true);
+  };
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
     // Store the user's choice in sessionStorage
     sessionStorage.setItem('vlanco_entered_store', 'true');
   };
 
   if (showLanding) {
     return <LandingPage onEnter={handleEnter} />;
+  }
+
+  if (showSplash) {
+    return <SplashScreen onComplete={handleSplashComplete} />;
   }
 
   return (
@@ -54,10 +61,6 @@ const AppContent = () => {
         <Route path="/tshirts" element={<TShirtCollection />} />
         <Route path="/masks" element={<MaskCollection />} />
         <Route path="/accessories" element={<AccessoriesCollection />} />
-        
-        {/* Database Testing Routes */}
-        <Route path="/database-test" element={<DatabaseTestPage />} />
-        <Route path="/analytics" element={<AnalyticsPage />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>

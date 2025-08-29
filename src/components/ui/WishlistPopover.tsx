@@ -1,13 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Heart } from 'lucide-react';
+import { useWishlist } from '@/hooks/useWishlist';
 
 const WishlistPopover: React.FC = () => {
-  let items: any[] = [];
-  try {
-    const raw = localStorage.getItem('vlanco_wishlist');
-    items = raw ? JSON.parse(raw) : [];
-  } catch {}
+  const { items, itemCount } = useWishlist();
 
   if (!items || items.length === 0) {
     return (
@@ -30,7 +27,7 @@ const WishlistPopover: React.FC = () => {
           <Heart className="w-4 h-4" />
           <span>Wishlist Preview</span>
         </div>
-        <span className="text-xs text-muted-foreground">{items.length} saved</span>
+        <span className="text-xs text-muted-foreground">{itemCount} saved</span>
       </div>
       <div className="max-h-72 overflow-y-auto space-y-3 pr-1">
         {items.slice(0, 5).map((item) => (

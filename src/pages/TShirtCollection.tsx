@@ -949,7 +949,46 @@ const TShirtCollection = () => {
                     }}
                     onHoverStart={() => setHoveredProduct(product.id)}
                     onHoverEnd={() => setHoveredProduct(null)}
-                    onClick={() => navigate(`/product/${product.id}`)}
+                    onClick={() => {
+                      const colorIdx = selectedColor[product.id];
+                      const size = selectedSize[product.id] || '';
+                      const params = new URLSearchParams();
+                      
+                      // Enhanced navigation with comprehensive product data
+                      if (size) params.set('size', size);
+                      if (colorIdx !== undefined) {
+                        params.set('colorIdx', String(colorIdx));
+                        const colorEntry = (product.colors || [])[colorIdx];
+                        const colorName = typeof colorEntry === 'string' ? colorEntry : colorEntry?.name;
+                        if (colorName) params.set('color', colorName);
+                      }
+                      
+                      // Add additional context for better product detail experience
+                      params.set('category', product.category);
+                      params.set('price', product.price.toString());
+                      if (product.originalPrice) params.set('originalPrice', product.originalPrice.toString());
+                      params.set('rating', product.rating.toString());
+                      params.set('reviews', product.reviews.toString());
+                      
+                      // Store selected options in session storage for seamless experience
+                      sessionStorage.setItem(`product_${product.id}_options`, JSON.stringify({
+                        selectedColor: colorIdx,
+                        selectedSize: size,
+                        productData: {
+                          id: product.id,
+                          name: product.name,
+                          price: product.price,
+                          originalPrice: product.originalPrice,
+                          category: product.category,
+                          rating: product.rating,
+                          reviews: product.reviews,
+                          isNew: product.isNew,
+                          isBestseller: product.isBestseller
+                        }
+                      }));
+                      
+                      navigate(`/product/${product.id}${params.toString() ? `?${params.toString()}` : ''}`);
+                    }}
                   >
                     {/* Enhanced Card Container */}
                     <motion.div 
@@ -1249,14 +1288,14 @@ const TShirtCollection = () => {
                 );
               })}
             </motion.div>
-            {/* New Drop Coming Soon Section */}
+            {/* Enhanced New Drop Coming Soon Section */}
             <motion.section 
-              className="relative mt-20 py-20 overflow-hidden"
+              className="relative mt-20 py-20 overflow-hidden rounded-3xl border border-cyan-400/20"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              {/* Animated Background */}
+              {/* Enhanced Animated Background */}
               <div className="absolute inset-0">
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-blue-900/15 to-cyan-900/20"
@@ -1271,26 +1310,44 @@ const TShirtCollection = () => {
                   transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
                 />
                 
-                {/* Floating Elements */}
-                {[...Array(6)].map((_, i) => (
+                {/* Enhanced floating geometric elements */}
+                {[...Array(8)].map((_, i) => (
                   <motion.div
                     key={i}
-                    className="absolute w-3 h-3 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full"
+                    className="absolute w-4 h-4 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full"
                     style={{
                       left: `${15 + Math.random() * 70}%`,
                       top: `${20 + Math.random() * 60}%`,
                     }}
                     animate={{
-                      y: [0, -40, 0],
-                      x: [0, Math.random() * 30 - 15, 0],
-                      scale: [0, 1, 0.8, 1, 0],
-                      opacity: [0, 0.8, 0.6, 0.4, 0],
+                      y: [0, -50, 0],
+                      x: [0, Math.random() * 40 - 20, 0],
+                      scale: [0, 1.2, 0.8, 1, 0],
+                      opacity: [0, 0.9, 0.7, 0.5, 0],
                       rotate: [0, 180, 360],
                     }}
                     transition={{
-                      duration: Math.random() * 8 + 10,
+                      duration: Math.random() * 10 + 12,
                       repeat: Infinity,
-                      delay: Math.random() * 5,
+                      delay: Math.random() * 6,
+                      ease: "easeInOut",
+                    }}
+                  />
+                ))}
+                
+                {/* Enhanced energy waves */}
+                {[...Array(3)].map((_, i) => (
+                  <motion.div
+                    key={`wave-${i}`}
+                    className="absolute inset-0 border border-cyan-400/20 rounded-3xl"
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.3, 0.6, 0.3],
+                    }}
+                    transition={{
+                      duration: 4,
+                      repeat: Infinity,
+                      delay: i * 1.5,
                       ease: "easeInOut",
                     }}
                   />

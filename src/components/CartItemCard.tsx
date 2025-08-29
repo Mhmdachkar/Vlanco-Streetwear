@@ -34,7 +34,8 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
   };
 
   const getItemPrice = () => {
-    return item.price_at_time || item.product?.base_price || 0;
+    // Prioritize variant price, then product base price, then fallback
+    return item.variant?.price || item.product?.base_price || 0;
   };
 
   const getTotalPrice = () => {
@@ -42,7 +43,7 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
   };
 
   const getSavings = () => {
-    const comparePrice = item.product?.compare_price || item.variant?.compare_price;
+    const comparePrice = item.product?.compare_price || 0;
     if (comparePrice && comparePrice > getItemPrice()) {
       return (comparePrice - getItemPrice()) * item.quantity;
     }
@@ -54,6 +55,24 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
     if (stock === 0) return { status: 'out', color: 'red', text: 'Out of Stock' };
     if (stock <= 5) return { status: 'low', color: 'orange', text: 'Low Stock' };
     return { status: 'in', color: 'green', text: 'In Stock' };
+  };
+
+  const getStockStatusClass = (status: string) => {
+    switch (status) {
+      case 'out': return 'bg-red-500';
+      case 'low': return 'bg-orange-500';
+      case 'in': return 'bg-green-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getStockStatusTextClass = (status: string) => {
+    switch (status) {
+      case 'out': return 'text-red-400';
+      case 'low': return 'text-orange-400';
+      case 'in': return 'text-green-400';
+      default: return 'text-gray-400';
+    }
   };
 
   const stockStatus = getStockStatus();
@@ -205,8 +224,8 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
             {/* Stock Status */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full bg-${stockStatus.color}-500`} />
-                <span className={`text-sm text-${stockStatus.color}-400`}>
+                <div className={`w-2 h-2 rounded-full ${getStockStatusClass(stockStatus.status)}`} />
+                <span className={`text-sm ${getStockStatusTextClass(stockStatus.status)}`}>
                   {stockStatus.text}
                 </span>
               </div>

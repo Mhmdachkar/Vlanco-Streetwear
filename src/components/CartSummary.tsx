@@ -14,6 +14,9 @@ interface CartSummaryProps {
 }
 
 const CartSummary: React.FC<CartSummaryProps> = ({ items, onCheckout }) => {
+  const [promo, setPromo] = React.useState('');
+  const [applying, setApplying] = React.useState(false);
+  const [discount, setDiscount] = React.useState<{ code: string; amountOff: number } | null>(null);
   const getSubtotal = () => {
     return items.reduce((total, item) => {
       const price = item.price_at_time || item.product?.base_price || 0;
@@ -191,6 +194,26 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items, onCheckout }) => {
             </span>
           </div>
           
+          {/* Promo code */}
+          <div className="flex items-center gap-2">
+            <input
+              value={promo}
+              onChange={(e) => setPromo(e.target.value)}
+              placeholder="Promo code"
+              className="flex-1 px-3 py-2 bg-slate-800/60 border border-slate-700/60 rounded-lg text-slate-200 placeholder-slate-500"
+            />
+            <button
+              disabled={applying || !promo.trim()}
+              onClick={() => {
+                const ev = new CustomEvent('apply-promo', { detail: { code: promo.trim() }, bubbles: true });
+                (e => e)(document.dispatchEvent(ev));
+              }}
+              className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white disabled:opacity-50"
+            >
+              Apply
+            </button>
+          </div>
+
           <div className="flex items-center justify-between">
             <span className="text-slate-300">Tax</span>
             <span className="text-white font-medium">${tax.toFixed(2)}</span>
