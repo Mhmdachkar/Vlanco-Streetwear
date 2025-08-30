@@ -743,60 +743,68 @@ const TShirtCollection = () => {
                 
                 {[
                   {
-                    icon: <Package className="w-7 h-7 mx-auto text-cyan-400 drop-shadow-[0_0_12px_#22d3ee]" />,
+                    icon: <Package className="w-8 h-8 mx-auto text-cyan-400 drop-shadow-[0_0_20px_#22d3ee]" />,
                     value: productsCount,
                     label: 'Products',
                     tooltip: 'Total number of t-shirts in this collection',
                     decimals: 0,
                     suffix: '',
-                    glow: '0 0 16px #22d3ee, 0 0 32px #22d3ee44',
-                    border: 'border-cyan-400',
+                    glow: '0 0 20px #22d3ee, 0 0 40px #22d3ee44, 0 0 60px #22d3ee22',
+                    border: 'border-cyan-400/50',
+                    bgGradient: 'from-cyan-500/10 via-cyan-400/5 to-transparent',
+                    pulseColor: 'cyan',
                   },
                   {
-                    icon: <Users className="w-7 h-7 mx-auto text-green-400 drop-shadow-[0_0_12px_#22c55e]" />,
+                    icon: <Users className="w-8 h-8 mx-auto text-green-400 drop-shadow-[0_0_20px_#22c55e]" />,
                     value: reviewsCount,
                     label: 'Reviews',
                     tooltip: 'Based on verified customer reviews',
                     decimals: 0,
                     suffix: 'K+',
-                    glow: '0 0 16px #22c55e, 0 0 32px #22c55e44',
-                    border: 'border-green-400',
+                    glow: '0 0 20px #22c55e, 0 0 40px #22c55e44, 0 0 60px #22c55e22',
+                    border: 'border-green-400/50',
+                    bgGradient: 'from-green-500/10 via-green-400/5 to-transparent',
+                    pulseColor: 'green',
                   },
                   {
-                    icon: <Star className="w-7 h-7 mx-auto text-yellow-400 fill-yellow-400 drop-shadow-[0_0_12px_#fde047]" />,
+                    icon: <Star className="w-8 h-8 mx-auto text-yellow-400 fill-yellow-400 drop-shadow-[0_0_20px_#fde047]" />,
                     value: ratingCount,
                     label: 'Rating',
                     tooltip: 'Average customer rating for this collection',
                     decimals: 1,
                     suffix: '',
-                    glow: '0 0 16px #fde047, 0 0 32px #fde04744',
-                    border: 'border-yellow-400',
+                    glow: '0 0 20px #fde047, 0 0 40px #fde04744, 0 0 60px #fde04722',
+                    border: 'border-yellow-400/50',
+                    bgGradient: 'from-yellow-500/10 via-yellow-400/5 to-transparent',
+                    pulseColor: 'yellow',
                   },
                   {
                     icon: (
                       <div className="relative">
-                        <TrendingUp className="w-7 h-7 mx-auto text-purple-400 drop-shadow-[0_0_12px_#a855f7]" />
-                        {/* Animated trending arrow */}
+                        <TrendingUp className="w-8 h-8 mx-auto text-purple-400 drop-shadow-[0_0_20px_#a855f7]" />
+                        {/* Enhanced animated trending arrow */}
                         <motion.div
                           className="absolute -top-1 -right-1"
                           animate={{
-                            y: [0, -3, 0],
-                            rotate: [0, 5, -5, 0],
+                            y: [0, -4, 0],
+                            rotate: [0, 8, -8, 0],
+                            scale: [1, 1.1, 1],
                           }}
                           transition={{
-                            duration: 2,
+                            duration: 2.5,
                             repeat: Infinity,
                             ease: "easeInOut"
                           }}
                         >
-                          <div className="w-3 h-3 bg-green-400 rounded-full flex items-center justify-center">
+                          <div className="w-4 h-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
                             <motion.div
-                              className="w-1.5 h-1.5 bg-white rounded-full"
+                              className="w-2 h-2 bg-white rounded-full"
                               animate={{
-                                scale: [1, 1.2, 1],
+                                scale: [1, 1.3, 1],
+                                opacity: [0.8, 1, 0.8],
                               }}
                               transition={{
-                                duration: 1.5,
+                                duration: 1.8,
                                 repeat: Infinity,
                                 ease: "easeInOut"
                               }}
@@ -810,31 +818,49 @@ const TShirtCollection = () => {
                     tooltip: 'How much this collection is trending this month',
                     decimals: 0,
                     suffix: '%',
-                    glow: '0 0 16px #a855f7, 0 0 32px #a855f744',
-                    border: 'border-purple-400',
+                    glow: '0 0 20px #a855f7, 0 0 40px #a855f744, 0 0 60px #a855f722',
+                    border: 'border-purple-400/50',
+                    bgGradient: 'from-purple-500/10 via-purple-400/5 to-transparent',
+                    pulseColor: 'purple',
                   },
                 ].map((stat, i) => {
                   const [showConfetti, setShowConfetti] = useState(false);
+                  const [isHovered, setIsHovered] = useState(false);
                   
                   return (
                     <Tooltip key={stat.label} content={stat.tooltip}>
                       <motion.div
-                        className={`relative flex flex-col items-center justify-center rounded-2xl px-10 py-8 min-w-[120px] z-10 overflow-hidden backdrop-blur-md bg-white/10 border border-white/20 shadow-xl`}
-                        style={{ boxShadow: stat.glow }}
-                        initial={{ opacity: 0, y: 40 }}
-                        animate={isInView ? { opacity: 1, y: 0 } : {}}
-                        transition={{ duration: 0.7, delay: 0.2 + i * 0.15, type: 'spring', stiffness: 80 }}
-                        whileHover={{ 
-                          scale: 1.08, 
-                          boxShadow: `${stat.glow}, 0 0 0 2px var(--tw-shadow-color)`,
+                        className={`relative flex flex-col items-center justify-center rounded-3xl px-12 py-10 min-w-[140px] z-10 overflow-hidden backdrop-blur-xl bg-gradient-to-br ${stat.bgGradient} border ${stat.border} shadow-2xl`}
+                        style={{ 
+                          boxShadow: `${stat.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`,
                         }}
-                        onHoverStart={() => setShowConfetti(true)}
-                        onHoverEnd={() => setShowConfetti(false)}
+                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                        animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
+                        transition={{ 
+                          duration: 0.8, 
+                          delay: 0.3 + i * 0.2, 
+                          type: 'spring', 
+                          stiffness: 100,
+                          damping: 15
+                        }}
+                        whileHover={{ 
+                          scale: 1.12, 
+                          y: -8,
+                          boxShadow: `${stat.glow}, 0 0 0 3px rgba(255,255,255,0.1), inset 0 1px 0 rgba(255,255,255,0.2)`,
+                        }}
+                        onHoverStart={() => {
+                          setShowConfetti(true);
+                          setIsHovered(true);
+                        }}
+                        onHoverEnd={() => {
+                          setShowConfetti(false);
+                          setIsHovered(false);
+                        }}
                       >
-                        {/* Confetti effect */}
+                        {/* Enhanced Confetti effect */}
                         <Confetti isVisible={showConfetti} />
                         
-                        {/* Ripple/Sparkle effect on hover */}
+                        {/* Enhanced Ripple/Sparkle effect on hover */}
                         <motion.div
                           className="absolute inset-0 pointer-events-none z-20"
                           initial={{ opacity: 0, scale: 0.7 }}
@@ -880,8 +906,77 @@ const TShirtCollection = () => {
           className="min-h-screen bg-gradient-to-br from-background via-muted/5 to-background relative overflow-hidden"
         >
           {/* Enhanced Background Effects */}
-          <FloatingParticles count={15} />
+          <FloatingParticles count={25} />
           <FloatingElements />
+          
+          {/* Enhanced geometric background elements */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Large geometric shapes */}
+            <motion.div
+              className="absolute top-20 left-10 w-32 h-32 border border-cyan-400/10 rounded-lg"
+              animate={{
+                rotate: [0, 90, 180, 270, 360],
+                scale: [1, 1.1, 1],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{
+                duration: 20,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+            
+            <motion.div
+              className="absolute top-40 right-20 w-24 h-24 border border-purple-400/10 rounded-full"
+              animate={{
+                rotate: [360, 270, 180, 90, 0],
+                scale: [1, 1.2, 1],
+                opacity: [0.2, 0.5, 0.2],
+              }}
+              transition={{
+                duration: 25,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+            
+            <motion.div
+              className="absolute bottom-40 left-1/4 w-20 h-20 border border-green-400/10 transform rotate-45"
+              animate={{
+                rotate: [45, 135, 225, 315, 405],
+                scale: [1, 1.15, 1],
+                opacity: [0.4, 0.7, 0.4],
+              }}
+              transition={{
+                duration: 18,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+            
+            {/* Floating dots */}
+            {[...Array(8)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-2 h-2 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full"
+                style={{
+                  left: `${20 + i * 10}%`,
+                  top: `${30 + (i % 3) * 20}%`,
+                }}
+                animate={{
+                  y: [0, -20, 0],
+                  opacity: [0.3, 0.8, 0.3],
+                  scale: [1, 1.5, 1],
+                }}
+                transition={{
+                  duration: 3 + i * 0.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 0.3,
+                }}
+              />
+            ))}
+          </div>
           
           {/* Dynamic gradient orbs */}
           <motion.div
@@ -916,10 +1011,245 @@ const TShirtCollection = () => {
           />
 
           <div className="max-w-7xl mx-auto px-6 py-16">
-            {/* Headline and Subheadline */}
-            <div className="text-center mb-12">
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">T-Shirt Collection</h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Discover our premium collection of streetwear t-shirts, designed for those who dare to stand out. Each piece combines comfort, style, and authentic urban culture.</p>
+            {/* Enhanced Headline and Subheadline */}
+            <div className="text-center mb-16">
+              <motion.div
+                className="flex items-center justify-center gap-3 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.8, delay: 0.1 }}
+              >
+                <motion.div
+                  className="w-1 h-8 bg-gradient-to-b from-cyan-400 to-purple-500 rounded-full"
+                  animate={{ scaleY: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <span className="text-sm font-medium text-cyan-400 tracking-wider uppercase">Premium Collection</span>
+                <motion.div
+                  className="w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"
+                  animate={{ scaleY: [1, 1.2, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                />
+              </motion.div>
+              
+              <motion.h1 
+                className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 bg-gradient-to-r from-white via-cyan-100 to-purple-100 bg-clip-text text-transparent"
+                initial={{ opacity: 0, y: 30 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 1, delay: 0.2 }}
+              >
+                T-Shirt Collection
+                <motion.span
+                  className="inline-block ml-4"
+                  animate={{ 
+                    rotate: [0, 5, -5, 0],
+                    scale: [1, 1.05, 1]
+                  }}
+                  transition={{ 
+                    duration: 3, 
+                    repeat: Infinity, 
+                    ease: "easeInOut" 
+                  }}
+                >
+                  <Crown className="w-8 h-8 md:w-10 md:h-10 text-purple-400 drop-shadow-[0_0_15px_#a855f7]" />
+                </motion.span>
+              </motion.h1>
+              
+              {/* Enhanced Animated Description */}
+              <motion.div
+                className="max-w-4xl mx-auto relative"
+                initial={{ opacity: 0, y: 30 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 1, delay: 0.4 }}
+              >
+                {/* Animated background glow */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-purple-500/5 to-cyan-500/5 rounded-2xl blur-xl"
+                  animate={{
+                    scale: [1, 1.05, 1],
+                    opacity: [0.3, 0.6, 0.3],
+                  }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                {/* Enhanced description with word-by-word animation */}
+                <motion.div
+                  className="relative text-xl md:text-2xl text-muted-foreground leading-relaxed p-6 backdrop-blur-sm"
+                  animate={{
+                    textShadow: [
+                      '0 0 5px rgba(6, 182, 212, 0.2)',
+                      '0 0 10px rgba(6, 182, 212, 0.4)',
+                      '0 0 5px rgba(6, 182, 212, 0.2)',
+                    ]
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  {[
+                    { text: "Discover", color: "text-cyan-300" },
+                    { text: " our ", color: "text-white" },
+                    { text: "premium", color: "text-purple-300" },
+                    { text: " collection of ", color: "text-white" },
+                    { text: "streetwear", color: "text-cyan-300" },
+                    { text: " t-shirts, ", color: "text-white" },
+                    { text: "designed", color: "text-purple-300" },
+                    { text: " for those who ", color: "text-white" },
+                    { text: "dare", color: "text-cyan-300" },
+                    { text: " to stand out. ", color: "text-white" },
+                    { text: "Each piece", color: "text-purple-300" },
+                    { text: " combines ", color: "text-white" },
+                    { text: "comfort", color: "text-cyan-300" },
+                    { text: ", ", color: "text-white" },
+                    { text: "style", color: "text-purple-300" },
+                    { text: ", and ", color: "text-white" },
+                    { text: "authentic", color: "text-cyan-300" },
+                    { text: " urban ", color: "text-white" },
+                    { text: "culture", color: "text-purple-300" },
+                    { text: ".", color: "text-white" },
+                  ].map((word, index) => (
+                    <motion.span
+                      key={index}
+                      className={`${word.color} inline-block`}
+                      initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                      animate={isInView ? { 
+                        opacity: 1, 
+                        y: 0, 
+                        scale: 1,
+                        textShadow: [
+                          '0 0 5px rgba(6, 182, 212, 0.3)',
+                          '0 0 10px rgba(6, 182, 212, 0.6)',
+                          '0 0 5px rgba(6, 182, 212, 0.3)',
+                        ]
+                      } : {}}
+                      transition={{ 
+                        duration: 0.6, 
+                        delay: 0.6 + index * 0.1,
+                        ease: "easeOut",
+                        textShadow: { duration: 3, repeat: Infinity, ease: "easeInOut", delay: index * 0.1 }
+                      }}
+                      whileHover={{
+                        scale: 1.1,
+                        y: -2,
+                        transition: { duration: 0.2 }
+                      }}
+                    >
+                      {word.text}
+                    </motion.span>
+                  ))}
+                </motion.div>
+                
+                {/* Floating particles around text */}
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute w-1 h-1 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full"
+                    style={{
+                      left: `${15 + i * 15}%`,
+                      top: '50%',
+                      marginTop: '-2px',
+                    }}
+                    animate={{
+                      y: [0, -20, 0],
+                      x: [0, Math.sin(i * 60 * Math.PI / 180) * 15, 0],
+                      opacity: [0, 0.8, 0],
+                      scale: [0, 1.5, 0],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      delay: i * 0.4,
+                      ease: "easeInOut",
+                    }}
+                  />
+                ))}
+                
+                {/* Animated underline effect */}
+                <motion.div
+                  className="absolute bottom-0 left-0 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
+                  initial={{ width: 0 }}
+                  animate={isInView ? { width: '100%' } : {}}
+                  transition={{ duration: 1.5, delay: 2, ease: "easeOut" }}
+                />
+                
+                {/* Professional highlight effect */}
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-cyan-400/10 via-purple-400/10 to-cyan-400/10 rounded-lg"
+                  initial={{ scaleX: 0, opacity: 0 }}
+                  animate={isInView ? { 
+                    scaleX: 1, 
+                    opacity: [0, 0.3, 0],
+                  } : {}}
+                  transition={{ 
+                    duration: 2, 
+                    delay: 1.5, 
+                    ease: "easeOut",
+                    opacity: { duration: 2, delay: 1.5 }
+                  }}
+                  style={{ transformOrigin: 'left' }}
+                />
+                
+                {/* Floating highlight particles */}
+                {[...Array(4)].map((_, i) => (
+                  <motion.div
+                    key={`highlight-${i}`}
+                    className="absolute w-2 h-2 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full"
+                    style={{
+                      left: `${25 + i * 20}%`,
+                      top: '20%',
+                    }}
+                    animate={{
+                      y: [0, -15, 0],
+                      opacity: [0, 0.8, 0],
+                      scale: [0, 1.2, 0],
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      delay: i * 0.6,
+                      ease: "easeInOut",
+                    }}
+                  />
+                ))}
+              </motion.div>
+              
+                              {/* Enhanced decorative elements with typing cursor effect */}
+                <motion.div
+                  className="flex items-center justify-center gap-4 mt-8"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                  transition={{ duration: 0.8, delay: 0.6 }}
+                >
+                  {/* Typing cursor effect */}
+                  <motion.div
+                    className="w-0.5 h-8 bg-gradient-to-b from-cyan-400 to-purple-500 rounded-full"
+                    animate={{
+                      opacity: [1, 0, 1],
+                      scaleY: [1, 0.5, 1],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                <motion.div
+                  className="w-16 h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
+                  animate={{ scaleX: [0, 1, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div
+                  className="w-3 h-3 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-full"
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    rotate: [0, 180, 360]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div
+                  className="w-16 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent"
+                  animate={{ scaleX: [0, 1, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                />
+              </motion.div>
             </div>
             {/* Enhanced Product Grid with 3D Effects */}
             <motion.div
