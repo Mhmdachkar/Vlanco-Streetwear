@@ -274,7 +274,7 @@ const HeroSection = () => {
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900"
     >
       {/* Optimized Background Elements - Reduced for Performance */}
-      <div className="absolute inset-0 pointer-events-none hidden sm:block">
+      <div className="absolute inset-0 pointer-events-none">
         {/* Simplified Animated Grid */}
         <motion.div 
           className="absolute inset-0 opacity-20"
@@ -323,7 +323,7 @@ const HeroSection = () => {
 
         {/* Simplified Gradient Orbs */}
         <motion.div
-          className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-gradient-to-r from-blue-500/30 to-cyan-500/30 rounded-full blur-3xl"
+          className="absolute top-1/4 left-1/4 w-[200px] h-[200px] md:w-[400px] md:h-[400px] bg-gradient-to-r from-blue-500/30 to-cyan-500/30 rounded-full blur-3xl"
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.6, 0.3],
@@ -334,7 +334,7 @@ const HeroSection = () => {
         />
         
         <motion.div
-          className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full blur-3xl"
+          className="absolute bottom-1/4 right-1/4 w-[250px] h-[250px] md:w-[500px] md:h-[500px] bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full blur-3xl"
           animate={{
             scale: [1.2, 1, 1.2],
             opacity: [0.6, 0.3, 0.6],
@@ -346,13 +346,13 @@ const HeroSection = () => {
 
         {/* Simplified Geometric Shapes */}
         <motion.div
-          className="absolute top-20 left-20 w-32 h-32 border border-cyan-400/30 transform rotate-45"
+          className="absolute top-20 left-20 w-16 h-16 md:w-32 md:h-32 border border-cyan-400/30 transform rotate-45"
           animate={{ rotate: [45, 405, 45] }}
           transition={{ duration: 15, repeat: Infinity }}
         />
         
         <motion.div
-          className="absolute bottom-32 right-32 w-24 h-24 border border-purple-400/30 rounded-full"
+          className="absolute bottom-32 right-32 w-12 h-12 md:w-24 md:h-24 border border-purple-400/30 rounded-full"
           animate={{ 
             scale: [1, 1.3, 1],
             rotate: [0, 180, 360]
@@ -372,7 +372,7 @@ const HeroSection = () => {
           transition={{ duration: 1, delay: 0.3 }}
         >
               <motion.h1
-            className="text-5xl md:text-7xl lg:text-9xl font-black text-center relative"
+            className="text-4xl sm:text-5xl md:text-7xl lg:text-9xl font-black text-center relative"
             initial={{ opacity: 0, scale: 0.5, rotateX: -90 }}
             animate={isInView ? { opacity: 1, scale: 1, rotateX: 0 } : {}}
             transition={{ duration: 1.2, delay: 0.5, type: "spring" as const }}
@@ -423,7 +423,7 @@ const HeroSection = () => {
             <motion.div
               className="h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
               initial={{ width: 0 }}
-              animate={isInView ? { width: '400px' } : { width: 0 }}
+              animate={isInView ? { width: '200px' } : { width: 0 }}
               transition={{ duration: 2, delay: 1.5 }}
             />
             <motion.div
@@ -449,7 +449,7 @@ const HeroSection = () => {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1.2, delay: 0.8 }}
         >
-          <div className="text-lg md:text-xl lg:text-2xl text-gray-300 leading-relaxed max-w-4xl mx-auto text-center relative">
+          <div className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 leading-relaxed max-w-4xl mx-auto text-center relative">
             {/* Fallback Static Text - Always Visible with Better Contrast */}
             <div className="opacity-30">
               <div className="mb-3">
@@ -506,14 +506,14 @@ const HeroSection = () => {
 
         {/* Enhanced Action Buttons */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center mb-16"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center items-center mb-12 sm:mb-16 px-4"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 1.0, delay: 5.2 }}
         >
           {/* Enhanced Shop Now Button */}
           <motion.button
-            className="group relative px-8 py-4 sm:px-10 sm:py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl font-semibold text-base sm:text-lg shadow-2xl overflow-hidden"
+            className="group relative px-6 py-3 sm:px-8 sm:py-4 md:px-10 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl font-semibold text-sm sm:text-base md:text-lg shadow-2xl overflow-hidden w-full sm:w-auto"
             whileHover={{ 
               scale: 1.05, 
               y: -3,
@@ -586,7 +586,7 @@ const HeroSection = () => {
 
           {/* Enhanced Watch Film Button */}
           <motion.button
-            className="group relative px-8 py-4 sm:px-10 sm:py-4 border-2 border-cyan-400/50 text-gray-300 rounded-xl font-semibold text-base sm:text-lg backdrop-blur-sm bg-white/5 overflow-hidden"
+            className="group relative px-6 py-3 sm:px-8 sm:py-4 md:px-10 border-2 border-cyan-400/50 text-gray-300 rounded-xl font-semibold text-sm sm:text-base md:text-lg backdrop-blur-sm bg-white/5 overflow-hidden w-full sm:w-auto"
             whileHover={{ 
               scale: 1.05,
               borderColor: "rgba(59, 130, 246, 1)",
@@ -672,7 +672,7 @@ const HeroSection = () => {
                }}
              >
                <motion.h2
-                 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center leading-relaxed"
+                 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center leading-relaxed"
                  initial={{ opacity: 0 }}
                  animate={isInView ? { opacity: 1 } : {}}
                  transition={{ duration: 1, delay: 1.6 }}
@@ -782,7 +782,7 @@ const HeroSection = () => {
              whileHover={{ scale: 1.05 }}
            >
              <motion.h3
-               className="text-lg md:text-xl font-semibold text-gray-300 text-center"
+               className="text-base sm:text-lg md:text-xl font-semibold text-gray-300 text-center"
                     animate={{
                  opacity: [0.6, 1, 0.6],
                  y: [0, -2, 0]

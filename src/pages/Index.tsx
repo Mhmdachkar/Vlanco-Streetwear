@@ -15,18 +15,27 @@ const AnimatedBackground = ({ opacity }) => {
   const mousePos = useRef({ x: 0, y: 0 });
   const [particles, setParticles] = useState([]);
   const animationFrameId = useRef<number | undefined>(undefined);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Initialize particles only once
-    const newParticles = [...Array(40)].map((_, i) => ({
+    // Check if mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    // Initialize particles based on device
+    const particleCount = isMobile ? 20 : 40;
+    const newParticles = [...Array(particleCount)].map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      vx: (Math.random() - 0.5) * 0.1,
-      vy: (Math.random() - 0.5) * 0.1,
-      size: Math.random() * 2 + 1,
+      vx: (Math.random() - 0.5) * (isMobile ? 0.05 : 0.1),
+      vy: (Math.random() - 0.5) * (isMobile ? 0.05 : 0.1),
+      size: Math.random() * (isMobile ? 1.5 : 2) + 1,
       color: ['#8B5CF6', '#06B6D4', '#EC4899'][Math.floor(Math.random() * 3)],
-      connectionDistance: Math.random() * 15 + 10,
+      connectionDistance: Math.random() * (isMobile ? 10 : 15) + 10,
     }));
     setParticles(newParticles);
 
@@ -38,6 +47,7 @@ const AnimatedBackground = ({ opacity }) => {
 
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('resize', checkMobile);
       cancelAnimationFrame(animationFrameId.current);
     };
   }, []);
@@ -102,24 +112,24 @@ const AnimatedBackground = ({ opacity }) => {
       />
       
       {/* Quantum Orbs */}
-      {[...Array(3)].map((_, i) => (
+      {[...Array(isMobile ? 2 : 3)].map((_, i) => (
         <motion.div
           key={i}
           className="absolute rounded-full blur-3xl"
           style={{
-            width: `${250 + i * 100}px`,
-            height: `${250 + i * 100}px`,
+            width: `${isMobile ? 150 + i * 50 : 250 + i * 100}px`,
+            height: `${isMobile ? 150 + i * 50 : 250 + i * 100}px`,
             left: `${10 + i * 25}%`,
             top: `${15 + i * 20}%`,
             background: ['#8B5CF630', '#06B6D430', '#EC489930'][i]
           }}
           animate={{
-            x: [0, 40, -30, 0],
-            y: [0, -30, 40, 0],
+            x: [0, isMobile ? 20 : 40, isMobile ? -15 : -30, 0],
+            y: [0, isMobile ? -15 : -30, isMobile ? 20 : 40, 0],
             scale: [1, 1.1, 0.9, 1],
           }}
           transition={{
-            duration: 20 + i * 5,
+            duration: isMobile ? 15 + i * 3 : 20 + i * 5,
             repeat: Infinity,
             ease: "easeInOut"
           }}
@@ -234,16 +244,16 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-black relative overflow-x-hidden">
-      {/* Scroll Progress Bar (desktop only) */}
+      {/* Scroll Progress Bar */}
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-cyan-500 to-pink-500 origin-left z-[60] hidden md:block"
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-cyan-500 to-pink-500 origin-left z-[60]"
         style={{ scaleX: scrollYProgress }}
       />
       
-      {/* Background hidden on mobile for performance */}
-      {!isMobile && <AnimatedBackground opacity={backgroundOpacity} />}
+      {/* Background - simplified on mobile for performance */}
+      <AnimatedBackground opacity={backgroundOpacity} />
       
-      {/* Cursor effect hidden on mobile */}
+      {/* Cursor effect - simplified on mobile */}
       {!isMobile && <NeuralCursor mouseX={mouseX} mouseY={mouseY} />}
       
       {/* --- Main Page Content --- */}
@@ -299,14 +309,14 @@ const Index = () => {
 
 // Simple Section Divider Component
 const NeuralSectionDivider = ({ icon: Icon }) => (
-  <div className="relative py-12 flex justify-center">
-    <div className="w-48 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+  <div className="relative py-8 md:py-12 flex justify-center">
+    <div className="w-24 md:w-48 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
     {Icon && (
-      <div className="mx-4 p-2 bg-purple-500/10 rounded-full border border-purple-500/30">
-        <Icon className="w-5 h-5 text-purple-400" />
+      <div className="mx-2 md:mx-4 p-2 bg-purple-500/10 rounded-full border border-purple-500/30">
+        <Icon className="w-4 h-4 md:w-5 md:h-5 text-purple-400" />
       </div>
     )}
-    <div className="w-48 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+    <div className="w-24 md:w-48 h-[1px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
   </div>
 );
 
