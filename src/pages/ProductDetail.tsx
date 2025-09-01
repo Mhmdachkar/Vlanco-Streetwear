@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useInView, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, Heart, Share2, ShoppingCart, Star, ChevronLeft, ChevronRight,
   Shield, Truck, RotateCcw, Award, Zap, Check, Info, Package, Sparkles,
@@ -521,34 +522,68 @@ const EnhancedPhotoGallery = ({ images, currentIndex, onImageChange, onZoom }) =
           onMouseUp={handleDragEnd}
           onMouseLeave={handleDragEnd}
         >
-          <motion.img
-            ref={imageRef}
-            src={images[currentIndex]}
-            alt={`Product ${currentIndex + 1}`}
-            className="w-full h-full object-cover select-none cursor-zoom-in"
-            style={{
-              transform: isZoomed ? `scale(${zoomLevel})` : 'scale(1)',
-              transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-              cursor: isZoomed ? 'zoom-out' : 'zoom-in'
-            }}
-            whileHover={!isZoomed ? { scale: 1.05 } : {}}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            onClick={isZoomed ? handleZoomOut : handleZoom}
-            onMouseMove={isZoomed ? handleZoomMove : undefined}
-            onWheel={handleWheel}
-            drag={!isZoomed ? "x" : false}
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.1}
-            onDragEnd={(e, info) => {
-              if (Math.abs(info.offset.x) > 100) {
-                if (info.offset.x > 0) {
-                  handlePrevious();
-                } else {
-                  handleNext();
+          {images[currentIndex]?.type === 'video' ? (
+            <motion.video
+              ref={imageRef}
+              src={images[currentIndex].src}
+              alt={images[currentIndex].alt || `Product Video ${currentIndex + 1}`}
+              className="w-full h-full object-cover select-none"
+              controls
+              loop
+              muted
+              playsInline
+              style={{
+                transform: isZoomed ? `scale(${zoomLevel})` : 'scale(1)',
+                transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+              }}
+              whileHover={!isZoomed ? { scale: 1.05 } : {}}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              onClick={isZoomed ? handleZoomOut : handleZoom}
+              onMouseMove={isZoomed ? handleZoomMove : undefined}
+              onWheel={handleWheel}
+              drag={!isZoomed ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.1}
+              onDragEnd={(e, info) => {
+                if (Math.abs(info.offset.x) > 100) {
+                  if (info.offset.x > 0) {
+                    handlePrevious();
+                  } else {
+                    handleNext();
+                  }
                 }
-              }
-            }}
-          />
+              }}
+            />
+          ) : (
+            <motion.img
+              ref={imageRef}
+              src={images[currentIndex]?.src || images[currentIndex]}
+              alt={images[currentIndex]?.alt || `Product ${currentIndex + 1}`}
+              className="w-full h-full object-cover select-none cursor-zoom-in"
+              style={{
+                transform: isZoomed ? `scale(${zoomLevel})` : 'scale(1)',
+                transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                cursor: isZoomed ? 'zoom-out' : 'zoom-in'
+              }}
+              whileHover={!isZoomed ? { scale: 1.05 } : {}}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              onClick={isZoomed ? handleZoomOut : handleZoom}
+              onMouseMove={isZoomed ? handleZoomMove : undefined}
+              onWheel={handleWheel}
+              drag={!isZoomed ? "x" : false}
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.1}
+              onDragEnd={(e, info) => {
+                if (Math.abs(info.offset.x) > 100) {
+                  if (info.offset.x > 0) {
+                    handlePrevious();
+                  } else {
+                    handleNext();
+                  }
+                }
+              }}
+            />
+          )}
           
           {/* Enhanced Navigation Arrows */}
           <div className="absolute inset-0 flex items-center justify-between p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -644,11 +679,27 @@ const EnhancedPhotoGallery = ({ images, currentIndex, onImageChange, onZoom }) =
               whileTap={{ scale: 0.95 }}
               disabled={isNavigating}
             >
-              <img
-                src={image}
-                alt={`Thumbnail ${index + 1}`}
-                className="w-full h-full object-cover"
-              />
+              {image?.type === 'video' ? (
+                <div className="w-full h-full relative">
+                  <video
+                    src={image.src}
+                    className="w-full h-full object-cover"
+                    muted
+                    playsInline
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-6 h-6 bg-black/70 rounded-full flex items-center justify-center">
+                      <Play className="w-3 h-3 text-white ml-0.5" />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <img
+                  src={image?.src || image}
+                  alt={image?.alt || `Thumbnail ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              )}
               
               {/* Selection indicator */}
               {currentIndex === index && (
@@ -861,6 +912,7 @@ const VaultFeatures = ({ product }) => {
 const VlancoProductPage = () => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const location = useLocation();
   
   // Enhanced State Management
   const [selectedSize, setSelectedSize] = useState('');
@@ -929,44 +981,134 @@ const VlancoProductPage = () => {
   const [stockReservation, setStockReservation] = useState(null);
 
   // Enhanced Product Data - Database Integration
-  const [product, setProduct] = useState({
-    id: '1',
-    name: "VLANCO CYBER HOODIE",
-    subtitle: "STREET EVOLUTION",
-    base_price: 189,
-    compare_price: 249,
-    discount: 24,
-    category: "PREMIUM STREETWEAR",
-    description: "Experience the future of street fashion. Engineered with nano-tech fabric and cyber-aesthetic design for the ultimate urban warrior.",
-    gallery: productImages,
-    stock_quantity: 7,
-    size_options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-    color_options: [
-      { name: 'VOID BLACK', hex: '#000000' },
-      { name: 'CYBER BLUE', hex: '#00D4FF' },
-      { name: 'NEON PINK', hex: '#FF0080' },
-      { name: 'MATRIX GREEN', hex: '#00FF41' }
-    ],
-    features: [
-      { icon: '🔥', text: 'Nano-tech thermal regulation', level: 95 },
-      { icon: '⚡', text: 'Quantum flex fiber technology', level: 98 },
-      { icon: '🛡️', text: 'Urban armor protection layer', level: 87 },
-      { icon: '💎', text: 'Limited genesis edition', level: 100 },
-      { icon: '🎯', text: 'Street-certified authenticity', level: 92 },
-      { icon: '✨', text: 'Holographic brand elements', level: 89 }
-    ],
-    stats: {
-      hypeLevel: 97,
-      streetCred: 94,
-      exclusivity: 88,
-      community: 156
-    },
-    reviews: {
-      average: 4.9,
-      total: 342,
-      verified: 287
+  const getInitialProduct = () => {
+    // Get product data from navigation state if available (from mask collection)
+    const locationProduct = location.state?.product;
+    
+    if (locationProduct) {
+      // Transform mask product data to match ProductDetail format
+      return {
+        id: locationProduct.id,
+        name: locationProduct.name,
+        subtitle: locationProduct.collection || "STREETWEAR COLLECTION",
+        base_price: locationProduct.price,
+        compare_price: locationProduct.originalPrice,
+        discount: locationProduct.originalPrice ? Math.round(((locationProduct.originalPrice - locationProduct.price) / locationProduct.originalPrice) * 100) : 0,
+        category: locationProduct.category || "STREETWEAR",
+        description: locationProduct.description,
+        gallery: locationProduct.gallery || [locationProduct.image],
+        stock_quantity: 10, // Default stock
+        size_options: locationProduct.sizes || ['Adult Size'],
+        color_options: locationProduct.colors?.map(color => ({ name: color.name, hex: color.value })) || [
+          { name: 'BLACK', hex: '#000000' },
+          { name: 'BROWN', hex: '#8B4513' }
+        ],
+        features: locationProduct.features?.map(feature => ({ icon: '✨', text: feature, level: 85 })) || [
+          { icon: '🔥', text: 'Premium Quality', level: 95 },
+          { icon: '⚡', text: 'Hand Crafted', level: 98 },
+          { icon: '🛡️', text: 'Full Protection', level: 87 },
+          { icon: '💎', text: 'Eco Friendly', level: 100 }
+        ],
+        stats: {
+          hypeLevel: 85,
+          streetCred: 90,
+          exclusivity: 75,
+          community: locationProduct.reviews || 98
+        },
+        reviews: {
+          average: locationProduct.rating || 4.1,
+          total: locationProduct.reviews || 98,
+          verified: Math.floor((locationProduct.reviews || 98) * 0.8)
+        },
+        sku: locationProduct.modelNumber || `MASK-${locationProduct.id}`,
+        price: locationProduct.price,
+        images: locationProduct.gallery || [locationProduct.image],
+        // Additional mask-specific properties
+        material: locationProduct.material,
+        protection: locationProduct.protection,
+        washable: locationProduct.washable,
+        availability: locationProduct.availability,
+        shipping: locationProduct.shipping,
+        brand: locationProduct.brand,
+        collection: locationProduct.collection,
+        modelNumber: locationProduct.modelNumber,
+        placeOfOrigin: locationProduct.placeOfOrigin,
+        applicableScenes: locationProduct.applicableScenes,
+        gender: locationProduct.gender,
+        ageGroup: locationProduct.ageGroup,
+        moq: locationProduct.moq,
+        sampleTime: locationProduct.sampleTime,
+        packaging: locationProduct.packaging,
+        singlePackageSize: locationProduct.singlePackageSize,
+        singleGrossWeight: locationProduct.singleGrossWeight,
+        // Additional properties for second mask
+        headCircumference: locationProduct.headCircumference,
+        printingMethods: locationProduct.printingMethods,
+        technics: locationProduct.technics,
+        needleDetection: locationProduct.needleDetection,
+        keywords: locationProduct.keywords,
+        logo: locationProduct.logo,
+        color: locationProduct.color,
+        usage: locationProduct.usage,
+        item: locationProduct.item,
+        label: locationProduct.label,
+        oem: locationProduct.oem,
+        use: locationProduct.use,
+        sellingUnits: locationProduct.sellingUnits,
+        detailedReviews: locationProduct.detailedReviews,
+        // Additional properties for third mask
+        design: locationProduct.design,
+        packing: locationProduct.packing,
+        service: locationProduct.service,
+        quality: locationProduct.quality
+      };
     }
-  } as any); // Temporary type assertion to avoid complex type issues
+    
+    // Default product data for regular products
+    return {
+      id: '1',
+      name: "VLANCO CYBER HOODIE",
+      subtitle: "STREET EVOLUTION",
+      base_price: 189,
+      compare_price: 249,
+      discount: 24,
+      category: "PREMIUM STREETWEAR",
+      description: "Experience the future of street fashion. Engineered with nano-tech fabric and cyber-aesthetic design for the ultimate urban warrior.",
+      gallery: productImages,
+      stock_quantity: 7,
+      size_options: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
+      color_options: [
+        { name: 'VOID BLACK', hex: '#000000' },
+        { name: 'CYBER BLUE', hex: '#00D4FF' },
+        { name: 'NEON PINK', hex: '#FF0080' },
+        { name: 'MATRIX GREEN', hex: '#00FF41' }
+      ],
+      features: [
+        { icon: '🔥', text: 'Nano-tech thermal regulation', level: 95 },
+        { icon: '⚡', text: 'Quantum flex fiber technology', level: 98 },
+        { icon: '🛡️', text: 'Urban armor protection layer', level: 87 },
+        { icon: '💎', text: 'Limited genesis edition', level: 100 },
+        { icon: '🎯', text: 'Street-certified authenticity', level: 92 },
+        { icon: '✨', text: 'Holographic brand elements', level: 89 }
+      ],
+      stats: {
+        hypeLevel: 97,
+        streetCred: 94,
+        exclusivity: 88,
+        community: 156
+      },
+      reviews: {
+        average: 4.9,
+        total: 342,
+        verified: 287
+      },
+      sku: 'VLANCO-CYBER-001',
+      price: 189,
+      images: productImages
+    };
+  };
+
+  const [product, setProduct] = useState(getInitialProduct());
 
   // Database integration
   const { user } = useAuth();
@@ -1102,19 +1244,26 @@ const VlancoProductPage = () => {
   };
 
   // Image optimization and preloading functions
-  const preloadImage = (src, index) => {
+  const preloadImage = (imageItem, index) => {
     return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
+      if (imageItem?.type === 'video') {
+        // For videos, we'll resolve immediately as we don't need to preload them
         setImagesLoaded(prev => ({ ...prev, [index]: true }));
         setImageLoadingStates(prev => ({ ...prev, [index]: 'loaded' }));
-        resolve(img);
-      };
-      img.onerror = () => {
-        setImageLoadingStates(prev => ({ ...prev, [index]: 'error' }));
-        reject(new Error(`Failed to load image ${index}`));
-      };
-      img.src = src;
+        resolve({ type: 'video', src: imageItem.src });
+      } else {
+        const img = new Image();
+        img.onload = () => {
+          setImagesLoaded(prev => ({ ...prev, [index]: true }));
+          setImageLoadingStates(prev => ({ ...prev, [index]: 'loaded' }));
+          resolve(img);
+        };
+        img.onerror = () => {
+          setImageLoadingStates(prev => ({ ...prev, [index]: 'error' }));
+          reject(new Error(`Failed to load image ${index}`));
+        };
+        img.src = imageItem?.src || imageItem;
+      }
     });
   };
 
@@ -2277,6 +2426,237 @@ const VlancoProductPage = () => {
                 >
                 {product.description}
                 </motion.p>
+                
+                {/* Mask-Specific Information */}
+                {product.material && (
+                  <motion.div 
+                    className="mt-6 p-4 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 rounded-xl"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 4.0 }}
+                  >
+                    <h4 className="text-lg font-bold text-cyan-400 mb-3 flex items-center gap-2">
+                      <Package className="w-5 h-5" />
+                      Product Specifications
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      {product.material && (
+                        <div>
+                          <span className="text-gray-400">Material:</span>
+                          <span className="text-white ml-2">{product.material}</span>
+                        </div>
+                      )}
+                      {product.protection && (
+                        <div>
+                          <span className="text-gray-400">Protection:</span>
+                          <span className="text-white ml-2">{product.protection}</span>
+                        </div>
+                      )}
+                      {product.washable && (
+                        <div>
+                          <span className="text-gray-400">Care Instructions:</span>
+                          <span className="text-white ml-2">{product.washable}</span>
+                        </div>
+                      )}
+                      {product.brand && (
+                        <div>
+                          <span className="text-gray-400">Brand:</span>
+                          <span className="text-white ml-2">{product.brand}</span>
+                        </div>
+                      )}
+                      {product.modelNumber && (
+                        <div>
+                          <span className="text-gray-400">Model:</span>
+                          <span className="text-white ml-2">{product.modelNumber}</span>
+                        </div>
+                      )}
+                      {product.placeOfOrigin && (
+                        <div>
+                          <span className="text-gray-400">Origin:</span>
+                          <span className="text-white ml-2">{product.placeOfOrigin}</span>
+                        </div>
+                      )}
+                      {product.gender && (
+                        <div>
+                          <span className="text-gray-400">Gender:</span>
+                          <span className="text-white ml-2">{product.gender}</span>
+                        </div>
+                      )}
+                      {product.ageGroup && (
+                        <div>
+                          <span className="text-gray-400">Age Group:</span>
+                          <span className="text-white ml-2">{product.ageGroup}</span>
+                        </div>
+                      )}
+                      {product.headCircumference && (
+                        <div>
+                          <span className="text-gray-400">Head Circumference:</span>
+                          <span className="text-white ml-2">{product.headCircumference}</span>
+                        </div>
+                      )}
+                      {product.printingMethods && (
+                        <div>
+                          <span className="text-gray-400">Printing Methods:</span>
+                          <span className="text-white ml-2">{product.printingMethods}</span>
+                        </div>
+                      )}
+                      {product.technics && (
+                        <div>
+                          <span className="text-gray-400">Technics:</span>
+                          <span className="text-white ml-2">{product.technics}</span>
+                        </div>
+                      )}
+                      {product.needleDetection && (
+                        <div>
+                          <span className="text-gray-400">Needle Detection:</span>
+                          <span className="text-white ml-2">{product.needleDetection}</span>
+                        </div>
+                      )}
+                      {product.keywords && (
+                        <div>
+                          <span className="text-gray-400">Keywords:</span>
+                          <span className="text-white ml-2">{product.keywords}</span>
+                        </div>
+                      )}
+                      {product.usage && (
+                        <div>
+                          <span className="text-gray-400">Usage:</span>
+                          <span className="text-white ml-2">{product.usage}</span>
+                        </div>
+                      )}
+                      {product.use && (
+                        <div>
+                          <span className="text-gray-400">Use:</span>
+                          <span className="text-white ml-2">{product.use}</span>
+                        </div>
+                      )}
+                      {product.design && (
+                        <div>
+                          <span className="text-gray-400">Design:</span>
+                          <span className="text-white ml-2">{product.design}</span>
+                        </div>
+                      )}
+                      {product.moq && (
+                        <div>
+                          <span className="text-gray-400">MOQ:</span>
+                          <span className="text-white ml-2">{product.moq}</span>
+                        </div>
+                      )}
+                      {product.packing && (
+                        <div>
+                          <span className="text-gray-400">Packing:</span>
+                          <span className="text-white ml-2">{product.packing}</span>
+                        </div>
+                      )}
+                      {product.service && (
+                        <div>
+                          <span className="text-gray-400">Service:</span>
+                          <span className="text-white ml-2">{product.service}</span>
+                        </div>
+                      )}
+                      {product.quality && (
+                        <div>
+                          <span className="text-gray-400">Quality:</span>
+                          <span className="text-white ml-2">{product.quality}</span>
+                        </div>
+                      )}
+                      {product.usage && (
+                        <div>
+                          <span className="text-gray-400">Usage:</span>
+                          <span className="text-white ml-2">{product.usage}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {product.applicableScenes && product.applicableScenes.length > 0 && (
+                      <div className="mt-4">
+                        <span className="text-gray-400 text-sm">Applicable Scenes:</span>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {product.applicableScenes.map((scene, index) => (
+                            <span key={index} className="px-2 py-1 bg-cyan-500/20 text-cyan-300 text-xs rounded-full">
+                              {scene}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {(product.packaging || product.singlePackageSize || product.singleGrossWeight) && (
+                      <div className="mt-4 p-3 bg-black/20 rounded-lg">
+                        <h5 className="text-cyan-400 font-semibold mb-2">Packaging Details</h5>
+                        <div className="text-sm space-y-1">
+                          {product.packaging && (
+                            <div>
+                              <span className="text-gray-400">Packaging:</span>
+                              <span className="text-white ml-2">{product.packaging}</span>
+                            </div>
+                          )}
+                          {product.singlePackageSize && (
+                            <div>
+                              <span className="text-gray-400">Package Size:</span>
+                              <span className="text-white ml-2">{product.singlePackageSize}</span>
+                            </div>
+                          )}
+                          {product.singleGrossWeight && (
+                            <div>
+                              <span className="text-gray-400">Weight:</span>
+                              <span className="text-white ml-2">{product.singleGrossWeight}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+                
+                {/* Detailed Reviews Section */}
+                {product.detailedReviews && product.detailedReviews.length > 0 && (
+                  <motion.div 
+                    className="mt-6 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 4.2 }}
+                  >
+                    <h4 className="text-lg font-bold text-purple-400 mb-4 flex items-center gap-2">
+                      <Star className="w-5 h-5" />
+                      Customer Reviews
+                    </h4>
+                    <div className="space-y-4">
+                      {product.detailedReviews.map((review, index) => (
+                        <motion.div
+                          key={index}
+                          className="p-3 bg-black/20 rounded-lg border border-white/10"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.5, delay: 4.4 + index * 0.1 }}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="flex">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-4 h-4 ${
+                                    i < review.rating
+                                      ? 'fill-yellow-400 text-yellow-400'
+                                      : 'text-gray-600'
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-sm font-semibold text-white">{review.title}</span>
+                            {review.verified && (
+                              <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full">
+                                Verified
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-gray-300 text-sm mb-2">{review.content}</p>
+                          <div className="text-xs text-gray-400">- {review.author}</div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
                 
                 {/* Enhanced Stats Grid */}
                 <motion.div 

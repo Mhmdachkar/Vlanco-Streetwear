@@ -56,6 +56,7 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/mask/:id" element={<ProductDetail />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/collection/t-shirts" element={<TShirtCollection />} />
         <Route path="/tshirts" element={<TShirtCollection />} />

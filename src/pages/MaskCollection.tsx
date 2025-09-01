@@ -45,6 +45,28 @@ import product2Image from '@/assets/product-2.jpg';
 import product3Image from '@/assets/product-3.jpg';
 import product4Image from '@/assets/product-4.jpg';
 
+// Import mask media files
+import s9775MaskImage1 from '@/assets/mask_photos/Screenshot 2025-09-01 181745.png';
+import s9775MaskImage2 from '@/assets/mask_photos/H6cee3d9b0fa6474cb47f0ad8c979cb23s.avif';
+import s9775MaskImage3 from '@/assets/mask_photos/Hb0fc3f9595074f3ebb8bbbbbcd0b8a83R.avif';
+import s9775MaskVideo from '@/assets/mask_photos/Screen Recording 2025-09-01 184718.mp4';
+
+// Import mask 2 media files
+import mask2Image1 from '@/assets/mask_photos/mask_photos_2/Screenshot 2025-09-01 190050.png';
+import mask2Image2 from '@/assets/mask_photos/mask_photos_2/Screenshot 2025-09-01 190058.png';
+import mask2Image3 from '@/assets/mask_photos/mask_photos_2/Screenshot 2025-09-01 190107.png';
+import mask2Image4 from '@/assets/mask_photos/mask_photos_2/Screenshot 2025-09-01 190113.png';
+import mask2Image5 from '@/assets/mask_photos/mask_photos_2/Screenshot 2025-09-01 190120.png';
+import mask2Image6 from '@/assets/mask_photos/mask_photos_2/Screenshot 2025-09-01 190147.png';
+
+// Import mask 3 media files
+import mask3Image1 from '@/assets/mask_photos_3/Screenshot 2025-09-01 192717.png';
+import mask3Image2 from '@/assets/mask_photos_3/Screenshot 2025-09-01 192736.png';
+import mask3Image3 from '@/assets/mask_photos_3/Screenshot 2025-09-01 192745.png';
+import mask3Image4 from '@/assets/mask_photos_3/Screenshot 2025-09-01 192752.png';
+import mask3Image5 from '@/assets/mask_photos_3/Screenshot 2025-09-01 192759.png';
+import mask3Image6 from '@/assets/mask_photos_3/Screenshot 2025-09-01 193012.png';
+
 // 3D Floating Mask Component - Optimized
 const FloatingMask = ({ position, rotation, scale, color }) => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -588,6 +610,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
           price: product.price,
           originalPrice: product.originalPrice,
           image: product.image,
+          gallery: product.gallery,
           rating: product.rating,
           reviews: product.reviews,
           isNew: product.isNew,
@@ -604,7 +627,17 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
           availability: product.availability,
           shipping: product.shipping,
           brand: product.brand,
-          collection: product.collection
+          collection: product.collection,
+          modelNumber: product.modelNumber,
+          placeOfOrigin: product.placeOfOrigin,
+          applicableScenes: product.applicableScenes,
+          gender: product.gender,
+          ageGroup: product.ageGroup,
+          moq: product.moq,
+          sampleTime: product.sampleTime,
+          packaging: product.packaging,
+          singlePackageSize: product.singlePackageSize,
+          singleGrossWeight: product.singleGrossWeight
         }
       }
     });
@@ -903,86 +936,233 @@ const MaskCollection = () => {
   const mockMasks = [
     {
       id: 1,
-      name: 'Urban Street Mask',
-      price: 35,
-      originalPrice: 45,
-      image: heroBgImage,
-      rating: 4.8,
-      reviews: 234,
+      name: 'Full Ski Mask Hand Knitted Bear Balaclava Facemask with Chains',
+      price: 7.55,
+      originalPrice: null,
+      image: s9775MaskImage1,
+      gallery: [
+        { type: 'image', src: s9775MaskImage1, alt: 'S9775 Mask Front View' },
+        { type: 'image', src: s9775MaskImage2, alt: 'S9775 Mask Side View' },
+        { type: 'image', src: s9775MaskImage3, alt: 'S9775 Mask Detail View' },
+        { type: 'video', src: s9775MaskVideo, alt: 'S9775 Mask Product Video' }
+      ],
+      rating: 4.1,
+      reviews: 98,
       isNew: true,
       isBestseller: false,
       colors: [
         { name: 'Black', value: '#000000' },
-        { name: 'White', value: '#FFFFFF' },
-        { name: 'Navy', value: '#1e40af' }
+        { name: 'Brown', value: '#8B4513' }
       ],
-      sizes: ['S', 'M', 'L', 'XL'],
-      category: 'Standard',
+      sizes: ['Adult Size'],
+      category: 'Character',
       section: 'standard',
-      features: ['Comfortable', 'Breathable', 'Washable'],
-      description: 'Essential streetwear protection with urban style. Made from premium cotton blend for ultimate comfort and breathability.',
-      material: 'Premium Cotton Blend',
-      protection: '3-Layer Protection',
-      washable: 'Machine Washable',
+      features: ['Eco-friendly', 'Hand Knitted', 'Warm', 'Full Face Coverage', 'Custom Logo Available'],
+      description: 'S9775 New 2023 Custom Christmas Hat Caps. Winter warm crochet full ski mask hand knitted bear balaclava facemask with chains. Perfect for outdoor activities, skiing, cycling, and daily use. Made from 100% acrylic material with character style design. Model: S9775, Brand: Sunland, Origin: Jiangsu, China.',
+      material: '100% Acrylic',
+      protection: 'Full Face Coverage',
+      washable: 'Hand Wash Recommended',
       availability: 'In Stock',
-      shipping: 'Free Shipping',
-      brand: 'VLANCO',
-      collection: 'Urban Essentials'
+      shipping: 'Standard Shipping',
+      brand: 'Sunland',
+      collection: 'Winter Essentials',
+      modelNumber: 'S9775',
+      placeOfOrigin: 'Jiangsu, China',
+      applicableScenes: ['Beach', 'Casual', 'Outdoor', 'Travel', 'Sports', 'Cycling', 'Shopping', 'Party', 'Business', 'Fishing', 'SKI', 'Home Use', 'Daily'],
+      gender: 'Unisex',
+      ageGroup: 'Adults',
+      moq: '100 pieces',
+      sampleTime: '5-7 days',
+      packaging: 'One piece/OPP bag and 100pcs/ctn',
+      singlePackageSize: '25X15X2 cm',
+      singleGrossWeight: '0.150 kg'
     },
     {
       id: 2,
-      name: 'Luxury Designer Mask',
-      price: 85,
-      originalPrice: 120,
-      image: product1Image,
-      rating: 5.0,
-      reviews: 92,
+      name: 'Breathable Winter Warm Fleece Cycling Mask',
+      price: 3.25,
+      originalPrice: null,
+      image: mask2Image1,
+      gallery: [
+        { type: 'image', src: mask2Image1, alt: 'Breathable Fleece Mask Front View' },
+        { type: 'image', src: mask2Image2, alt: 'Breathable Fleece Mask Side View' },
+        { type: 'image', src: mask2Image3, alt: 'Breathable Fleece Mask Detail View' },
+        { type: 'image', src: mask2Image4, alt: 'Breathable Fleece Mask Usage View' },
+        { type: 'image', src: mask2Image5, alt: 'Breathable Fleece Mask Stretch View' },
+        { type: 'image', src: mask2Image6, alt: 'Breathable Fleece Mask Outdoor View' }
+      ],
+      rating: 4.8,
+      reviews: 127,
+      isNew: true,
+      isBestseller: true,
+      colors: [
+        { name: 'Sky Blue', value: '#87CEEB' },
+        { name: 'Purple', value: '#800080' },
+        { name: 'Pink', value: '#FFC0CB' }
+      ],
+      sizes: ['One Size Fits Most'],
+      category: 'Sports',
+      section: 'standard',
+      features: ['Breathable Design', 'Windproof Protection', 'Multi-Functional', 'Ergonomic Fit', 'Outdoor-Ready'],
+      description: 'Breathable Winter Warm Fleece Cycling Mask – Cold & Windproof Head Cover. Stay protected and comfortable during outdoor winter activities with this breathable, warm fleece cycling head cover. Designed to shield you from cold, wind, and dust, it ensures maximum comfort without compromising breathability. Perfect for cycling, skiing, snowboarding, hiking, and other outdoor sports.',
+      material: 'High-quality breathable fleece (polyester spandex)',
+      protection: 'Windproof & Cold Protection',
+      washable: 'Machine Washable',
+      availability: 'In Stock',
+      shipping: 'Standard Shipping',
+      brand: 'Sewing Hub',
+      collection: 'Winter Sports',
+      modelNumber: 'sh-10053',
+      placeOfOrigin: 'Pakistan',
+      applicableScenes: ['Outdoor', 'Cycling', 'Skiing', 'Snowboarding', 'Hiking', 'Running', 'Motorcycling', 'Winter Sports'],
+      gender: 'Unisex',
+      ageGroup: 'Adults',
+      headCircumference: '50-52cm',
+      printingMethods: 'Digital Printing',
+      technics: 'Silk Screen Printing',
+      needleDetection: 'Yes',
+      keywords: 'Face Mask Hood Hat Cap',
+      logo: 'Accept Customized Logo',
+      color: 'Custom Color',
+      usage: 'Sports Sunscreen',
+      item: 'OEM Service Custom',
+      sampleTime: '7 Working Days',
+      label: 'Accept Customized Labels',
+      oem: 'Accept OEM Customization',
+      use: 'Outdoor Face Mask',
+      sellingUnits: 'Single item',
+      // Enhanced reviews data
+      detailedReviews: [
+        {
+          rating: 5,
+          title: "Perfect for cycling in winter!",
+          content: "I use this every morning for my bike commute and it keeps my face warm even in strong wind. The fleece is soft, breathable, and doesn't make me feel suffocated. Fits perfectly under my helmet too.",
+          author: "Cycling Enthusiast",
+          verified: true
+        },
+        {
+          rating: 5,
+          title: "Great for skiing and snowboarding",
+          content: "Wore this on a ski trip and it was amazing. My face stayed warm but I could still breathe easily. Didn't fog up my goggles either. Definitely worth it!",
+          author: "Winter Sports Fan",
+          verified: true
+        },
+        {
+          rating: 4,
+          title: "Warm and comfortable",
+          content: "This mask is really cozy and windproof. The only thing is I wish it came in more colors, but overall it's a great buy for winter sports.",
+          author: "Outdoor Adventurer",
+          verified: true
+        },
+        {
+          rating: 5,
+          title: "Must-have for outdoor runners",
+          content: "I go for runs even in freezing weather, and this mask makes a huge difference. Breathable, lightweight, and doesn't slip off while moving. Highly recommended.",
+          author: "Marathon Runner",
+          verified: true
+        },
+        {
+          rating: 4,
+          title: "Good quality, fits well",
+          content: "The material feels premium and it stretches enough to fit comfortably. I used it for motorcycling in cold weather and it did the job well.",
+          author: "Motorcycle Rider",
+          verified: true
+        }
+      ]
+    },
+    {
+      id: 3,
+      name: 'Best Fabric Motorcycle Filter Mask Helmet Lining Breathable Balaclava',
+      price: 12.99,
+      originalPrice: 18.99,
+      image: mask3Image1,
+      gallery: [
+        { type: 'image', src: mask3Image1, alt: 'Motorcycle Filter Mask Front View' },
+        { type: 'image', src: mask3Image2, alt: 'Motorcycle Filter Mask Side View' },
+        { type: 'image', src: mask3Image3, alt: 'Motorcycle Filter Mask Detail View' },
+        { type: 'image', src: mask3Image4, alt: 'Motorcycle Filter Mask Usage View' },
+        { type: 'image', src: mask3Image5, alt: 'Motorcycle Filter Mask Stretch View' },
+        { type: 'image', src: mask3Image6, alt: 'Motorcycle Filter Mask Outdoor View' }
+      ],
+      rating: 4.6,
+      reviews: 89,
       isNew: true,
       isBestseller: true,
       colors: [
         { name: 'Black', value: '#000000' },
-        { name: 'Gold', value: '#fbbf24' },
-        { name: 'Silver', value: '#9ca3af' }
+        { name: 'Navy Blue', value: '#000080' },
+        { name: 'Gray', value: '#808080' },
+        { name: 'Dark Red', value: '#8B0000' },
+        { name: 'Olive Green', value: '#808000' }
       ],
-      sizes: ['S', 'M', 'L', 'XL'],
-      category: 'Premium',
-      section: 'premium',
-      features: ['Luxury Material', 'Handcrafted', 'Exclusive Design'],
-      description: 'Luxury meets protection in this handcrafted designer mask. Each piece is individually crafted with premium materials.',
-      material: 'Silk & Cashmere Blend',
-      protection: '5-Layer Protection',
-      washable: 'Dry Clean Only',
-      availability: 'Limited Stock',
-      shipping: 'Express Shipping',
-      brand: 'VLANCO',
-      collection: 'Luxury Designer'
-    },
-    {
-      id: 3,
-      name: 'Artist Collaboration Mask',
-      price: 125,
-      originalPrice: 180,
-      image: product2Image,
-      rating: 5.0,
-      reviews: 78,
-      isNew: true,
-      isBestseller: true,
-      colors: [
-        { name: 'Limited Black', value: '#000000' },
-        { name: 'Limited Gold', value: '#fbbf24' }
-      ],
-      sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-      category: 'Limited',
-      section: 'limited',
-      features: ['Artist Signed', 'Limited Run', 'Collector Item'],
-      description: 'Exclusive artist collaboration featuring unique hand-painted designs. Limited to only 500 pieces worldwide.',
-      material: 'Premium Canvas & Silk',
-      protection: '4-Layer Protection',
-      washable: 'Hand Wash Only',
-      availability: 'Only 47 Left',
-      shipping: 'Express Shipping',
-      brand: 'VLANCO x Artist',
-      collection: 'Limited Edition'
+      sizes: ['48-50cm', '50-52cm', '52-54cm', '54-56cm', '56-58cm'],
+      category: 'Motorcycle',
+      section: 'standard',
+      features: ['Dust & Pollution Protection', 'Helmet Lining Function', 'All-Season Use', 'Full Face & Neck Coverage', 'Ergonomic Design'],
+      description: 'Best Fabric Motorcycle Filter Mask – Breathable Helmet Lining Balaclava & Neck Head Cover. Ride with comfort, safety, and confidence using this premium motorcycle balaclava and helmet liner.',
+      material: 'High-performance breathable fabric (100% Polyester)',
+      protection: 'Dust & Pollution Protection with Filter Layer',
+      washable: 'Machine Washable',
+      availability: 'In Stock',
+      shipping: 'Standard Shipping',
+      brand: 'CUSTOM',
+      collection: 'Motorcycle Gear',
+      modelNumber: 'MM-BC-0105',
+      placeOfOrigin: 'Pakistan',
+      applicableScenes: ['Outdoor', 'Casual', 'Motorcycling', 'Cycling', 'Skiing', 'Snowboarding', 'Hiking', 'Outdoor Work'],
+      gender: 'Unisex',
+      ageGroup: 'Adults',
+      headCircumference: '48-50cm, 50-52cm, 52-54cm, 54-56cm, 56-58cm',
+      printingMethods: 'Digital Printing',
+      technics: '3D Embroidery',
+      needleDetection: 'NO',
+      keywords: 'Top Quality Men Balaclava',
+      logo: 'Accept Customized Logo',
+      color: 'Customized Colors',
+      design: 'Accept Custom Designs',
+      moq: '20pcs',
+      packing: 'Custom Packing',
+      service: 'OEM Custom Service',
+      quality: 'High Quality',
+      label: 'Accept Customized Labels',
+      usage: 'Helmet liner, face mask, balaclava, neck gaiter',
+      detailedReviews: [
+        {
+          rating: 5,
+          title: "Excellent under my helmet",
+          content: "This balaclava fits perfectly under my motorcycle helmet. It keeps the sweat away, prevents itching, and makes the helmet much more comfortable to wear on long rides. Very breathable even in warm weather.",
+          author: "Motorcycle Rider",
+          verified: true
+        },
+        {
+          rating: 5,
+          title: "Great dust protection for city riding",
+          content: "I ride daily in traffic, and this mask really helps filter out dust and pollution. Breathing feels easier, and I don't arrive home with my face covered in dirt. Plus, it's soft and doesn't irritate my skin.",
+          author: "City Commuter",
+          verified: true
+        },
+        {
+          rating: 4,
+          title: "Good quality, works in all seasons",
+          content: "Used it in both summer and winter. In the heat, it keeps sweat under control, and in cold weather, it gives enough warmth around the neck. Only downside is I wish the filter was replaceable, but otherwise very solid.",
+          author: "All-Season Rider",
+          verified: true
+        },
+        {
+          rating: 5,
+          title: "Perfect for long rides",
+          content: "I wore this on a 5-hour road trip. It stayed in place the entire time and kept me comfortable. No fogging in my visor and no itching. Definitely a must-have for bikers.",
+          author: "Long Distance Rider",
+          verified: true
+        },
+        {
+          rating: 4,
+          title: "Breathable and lightweight",
+          content: "I was surprised at how light it feels. Doesn't make me sweat too much, even during summer rides. The fabric stretches well and fits snugly without being tight.",
+          author: "Summer Rider",
+          verified: true
+        }
+      ]
     },
     {
       id: 4,
