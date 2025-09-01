@@ -1060,7 +1060,11 @@ const VlancoProductPage = () => {
         design: locationProduct.design,
         packing: locationProduct.packing,
         service: locationProduct.service,
-        quality: locationProduct.quality
+        quality: locationProduct.quality,
+        // Additional properties for fourth mask
+        season: locationProduct.season,
+        functionality: locationProduct.function,
+        feature: locationProduct.feature
       };
     }
     
@@ -2564,6 +2568,24 @@ const VlancoProductPage = () => {
                         <div>
                           <span className="text-gray-400">Usage:</span>
                           <span className="text-white ml-2">{product.usage}</span>
+                        </div>
+                      )}
+                      {product.season && (
+                        <div>
+                          <span className="text-gray-400">Season:</span>
+                          <span className="text-white ml-2">{product.season}</span>
+                        </div>
+                      )}
+                      {product.functionality && (
+                        <div>
+                          <span className="text-gray-400">Function:</span>
+                          <span className="text-white ml-2">{product.functionality}</span>
+                        </div>
+                      )}
+                      {product.feature && (
+                        <div>
+                          <span className="text-gray-400">Feature:</span>
+                          <span className="text-white ml-2">{product.feature}</span>
                         </div>
                       )}
                     </div>

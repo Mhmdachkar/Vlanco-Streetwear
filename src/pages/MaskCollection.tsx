@@ -67,6 +67,14 @@ import mask3Image4 from '@/assets/mask_photos_3/Screenshot 2025-09-01 192752.png
 import mask3Image5 from '@/assets/mask_photos_3/Screenshot 2025-09-01 192759.png';
 import mask3Image6 from '@/assets/mask_photos_3/Screenshot 2025-09-01 193012.png';
 
+// Import mask 4 media files
+import mask4Image1 from '@/assets/mask_photos4/Screenshot 2025-09-02 013315.png';
+import mask4Image2 from '@/assets/mask_photos4/Screenshot 2025-09-02 013326.png';
+import mask4Image3 from '@/assets/mask_photos4/Screenshot 2025-09-02 013449.png';
+import mask4Image4 from '@/assets/mask_photos4/Screenshot 2025-09-02 013524.png';
+import mask4Image5 from '@/assets/mask_photos4/Screenshot 2025-09-02 013530.png';
+import mask4Image6 from '@/assets/mask_photos4/Screenshot 2025-09-02 013614.png';
+
 // 3D Floating Mask Component - Optimized
 const FloatingMask = ({ position, rotation, scale, color }) => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -879,7 +887,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
              className="p-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full shadow-md hover:shadow-cyan-500/30 transition-all"
              whileHover={{ scale: 1.05 }}
              whileTap={{ scale: 0.95 }}
-             onClick={handleQuickAdd}
+             onClick={() => onQuickAdd(product)}
            >
              <ShoppingCart className="w-4 h-4" />
            </motion.button>
@@ -939,7 +947,7 @@ const MaskCollection = () => {
       name: 'Full Ski Mask Hand Knitted Bear Balaclava Facemask with Chains',
       price: 7.55,
       originalPrice: null,
-      image: s9775MaskImage1,
+      image: s9775MaskImage2,
       gallery: [
         { type: 'image', src: s9775MaskImage1, alt: 'S9775 Mask Front View' },
         { type: 'image', src: s9775MaskImage2, alt: 'S9775 Mask Side View' },
@@ -1080,9 +1088,7 @@ const MaskCollection = () => {
         { type: 'image', src: mask3Image1, alt: 'Motorcycle Filter Mask Front View' },
         { type: 'image', src: mask3Image2, alt: 'Motorcycle Filter Mask Side View' },
         { type: 'image', src: mask3Image3, alt: 'Motorcycle Filter Mask Detail View' },
-        { type: 'image', src: mask3Image4, alt: 'Motorcycle Filter Mask Usage View' },
-        { type: 'image', src: mask3Image5, alt: 'Motorcycle Filter Mask Stretch View' },
-        { type: 'image', src: mask3Image6, alt: 'Motorcycle Filter Mask Outdoor View' }
+        { type: 'image', src: mask3Image5, alt: 'Motorcycle Filter Mask Stretch View' }
       ],
       rating: 4.6,
       reviews: 89,
@@ -1166,31 +1172,96 @@ const MaskCollection = () => {
     },
     {
       id: 4,
-      name: 'VIP Exclusive Mask',
-      price: 200,
-      originalPrice: 280,
-      image: product3Image,
-      rating: 5.0,
-      reviews: 45,
+      name: 'Winter Thermal Funny Character Balaclava 3D Cartoon Full Face Mask',
+      price: 2.36,
+      originalPrice: null,
+      image: mask4Image1,
+      gallery: [
+        { type: 'image', src: mask4Image1, alt: 'Winter Thermal Balaclava Front View' },
+        { type: 'image', src: mask4Image2, alt: 'Winter Thermal Balaclava Side View' },
+        { type: 'image', src: mask4Image3, alt: 'Winter Thermal Balaclava Detail View' },
+        { type: 'image', src: mask4Image4, alt: 'Winter Thermal Balaclava Usage View' },
+        { type: 'image', src: mask4Image5, alt: 'Winter Thermal Balaclava Stretch View' },
+        { type: 'image', src: mask4Image6, alt: 'Winter Thermal Balaclava Outdoor View' }
+      ],
+      rating: 4.3,
+      reviews: 156,
       isNew: true,
       isBestseller: true,
       colors: [
-        { name: 'Exclusive Black', value: '#000000' },
-        { name: 'Exclusive White', value: '#FFFFFF' }
+        { name: 'Black', value: '#000000' },
+        { name: 'Gray', value: '#808080' },
+        { name: 'Navy Blue', value: '#000080' },
+        { name: 'Red', value: '#FF0000' },
+        { name: 'Green', value: '#008000' }
       ],
-      sizes: ['M', 'L', 'XL'],
-      category: 'Exclusive',
-      section: 'exclusive',
-      features: ['VIP Only', 'Handcrafted', 'Premium Materials'],
-      description: 'VIP exclusive mask crafted with the finest materials. Each piece is handcrafted by master artisans.',
-      material: 'Pure Silk & Gold Thread',
-      protection: '6-Layer Protection',
-      washable: 'Dry Clean Only',
-      availability: 'VIP Only',
-      shipping: 'White Glove Delivery',
-      brand: 'VLANCO VIP',
-      collection: 'Exclusive VIP'
-    }
+      sizes: ['56-58cm', '58-60cm', '60-62cm'],
+      category: 'Character',
+      section: 'standard',
+      features: ['Thermal Protection', '3D Cartoon & Anime Prints', 'Full Face Coverage', 'Breathable & Stretchable', 'Multi-Functional Wear'],
+      description: 'Winter Thermal 3D Cartoon Balaclava – Funny Character Full Face Mask for Motorcycle, Ski & Cosplay. Turn heads while staying warm with this unique winter thermal balaclava, featuring funny character and anime-inspired 3D cartoon prints.',
+      material: '93% Polyester + 7% Spandex',
+      protection: 'Thermal & Wind Protection',
+      washable: 'Machine Washable',
+      availability: 'In Stock',
+      shipping: 'Standard Shipping',
+      brand: 'ZRCE',
+      collection: 'Winter Essentials',
+      modelNumber: 'NKR',
+      placeOfOrigin: 'Guangdong, China',
+      applicableScenes: ['Sports', 'SKI', 'Outdoor', 'Daily', 'Casual', 'Business', 'Fishing', 'Cycling', 'Home Use'],
+      gender: 'Unisex',
+      ageGroup: 'Adults',
+      headCircumference: '56-58cm, 58-60cm, 60-62cm',
+      printingMethods: 'Sublimation Transfer Print',
+      technics: 'Heat-Transfer Printing',
+      needleDetection: 'Yes',
+      keywords: 'Thermal Ski Mask',
+      logo: 'Accept Customized Logo',
+      color: 'Picture Shows',
+      size: 'Adult Size',
+      moq: '2pcs',
+      season: 'Winter',
+      function: 'Keeping Warm',
+      feature: 'Fashion, Comfortable, Durable',
+      detailedReviews: [
+        {
+          rating: 4,
+          title: "Perfect fit for small head",
+          content: "Perfect! Fit small cus i got big head but material good",
+          author: "j***z",
+          verified: true
+        },
+        {
+          rating: 4,
+          title: "Good quality with small logo",
+          content: "Hat is good quality logo small but perfect make I wish could be bigger",
+          author: "E***n",
+          verified: true
+        },
+        {
+          rating: 5,
+          title: "Great hats with awesome logos",
+          content: "Great hats, logos look awesome, fast delivery, and easy to communicate with.",
+          author: "P***s",
+          verified: true
+        },
+        {
+          rating: 5,
+          title: "Professional supplier",
+          content: "Fournisseur très professionnel et réactif. La communication est fluide, les délais sont respectés, et la qualité des produits est toujours au rendez-vous.",
+          author: "E***s",
+          verified: true
+        },
+        {
+          rating: 5,
+          title: "Good quality hats",
+          content: "Good quality hats. Fast Delivery. Great Customer Service.",
+          author: "C***z",
+          verified: true
+        }
+      ]
+    },
   ];
 
   const filteredProducts = mockMasks.filter(product => 
@@ -1201,8 +1272,17 @@ const MaskCollection = () => {
     const variantId = `${product.id}-default`;
     await addToCart(product.id.toString(), variantId, 1, {
       price: product.price,
-      product: { base_price: product.price },
-      variant: { price: product.price }
+      product: { 
+        base_price: product.price,
+        name: product.name,
+        description: product.description,
+        compare_price: product.originalPrice
+      },
+      variant: { 
+        price: product.price,
+        color: product.colors?.[0]?.name || 'Default',
+        size: product.sizes?.[0] || 'One Size'
+      }
     });
   };
 
