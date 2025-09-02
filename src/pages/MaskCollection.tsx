@@ -75,6 +75,10 @@ import mask4Image4 from '@/assets/mask_photos4/Screenshot 2025-09-02 013524.png'
 import mask4Image5 from '@/assets/mask_photos4/Screenshot 2025-09-02 013530.png';
 import mask4Image6 from '@/assets/mask_photos4/Screenshot 2025-09-02 013614.png';
 
+// Import mask 5 media files
+import mask5Image1 from '@/assets/mask_photos5/Screenshot 2025-09-02 134038.png';
+import mask5Image2 from '@/assets/mask_photos5/Screenshot 2025-09-02 134045.png';
+
 // 3D Floating Mask Component - Optimized
 const FloatingMask = ({ position, rotation, scale, color }) => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -659,15 +663,15 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
   return (
     <motion.div
       ref={cardRef}
-      className="group relative h-[500px] rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-800 border border-white/10 shadow-xl cursor-pointer"
+      className="group relative h-[500px] rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-800 border border-white/10 shadow-[0_12px_36px_-16px_rgba(0,0,0,0.6)] cursor-pointer"
       style={{ y, scale }}
       initial={{ opacity: 0, y: 50, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.6, delay: index * 0.1 }}
       whileHover={{ 
-        y: -10, 
-        scale: 1.01,
-        boxShadow: "0 20px 40px -12px rgba(0, 212, 255, 0.15)"
+        y: -12, 
+        scale: 1.015,
+        boxShadow: "0 30px 80px -30px rgba(0, 255, 255, 0.25), 0 20px 50px -25px rgba(255, 0, 200, 0.15)"
       }}
              onHoverStart={handleHoverStart}
        onHoverEnd={handleHoverEnd}
@@ -732,7 +736,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
              {/* Product Image with Enhanced Effects */}
        <div className="relative h-3/5 overflow-hidden">
          <motion.img
-           src={product.image}
+           src={(isHovered && product.gallery && product.gallery[1] && product.gallery[1].type === 'image') ? product.gallery[1].src : product.image}
            alt={product.name}
            className="w-full h-full object-cover"
            animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
@@ -781,7 +785,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
           )}
         </div>
 
-        {/* Rating Badge */}
+        {/* Rating & Reviews Badge */}
         <motion.div
           className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-full"
           initial={{ opacity: 0, x: 10 }}
@@ -790,7 +794,44 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
         >
           <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
           <span className="text-xs font-medium text-white">{product.rating}</span>
+          {typeof product.reviews === 'number' && (
+            <span className="text-[10px] text-white/70">({product.reviews})</span>
+          )}
         </motion.div>
+
+        {/* Discount Badge */}
+        {product.originalPrice && product.price && product.originalPrice > product.price && (
+          <motion.div
+            className="absolute bottom-3 left-3 px-2 py-1 bg-red-600/80 text-white text-xs font-bold rounded-full"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.45 + index * 0.1 }}
+          >
+            {Math.max(1, Math.round((1 - (product.price / product.originalPrice)) * 100))}% OFF
+          </motion.div>
+        )}
+
+        {/* Quick Actions */}
+        <div className="absolute bottom-3 right-3 flex gap-2">
+          <motion.button
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={(e) => { e.stopPropagation(); }}
+            aria-label="Add to Wishlist"
+          >
+            <Heart className="w-4 h-4" />
+          </motion.button>
+          <motion.button
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={(e) => { e.stopPropagation(); handleCardClick(); }}
+            aria-label="Quick View"
+          >
+            <Eye className="w-4 h-4" />
+          </motion.button>
+        </div>
       </div>
 
       {/* Content Section */}
@@ -851,6 +892,19 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
         </motion.p>
 
         {/* Key Features */}
+        {Array.isArray(product.colors) && product.colors.length > 0 && (
+          <div className="flex items-center gap-2 mb-3">
+            {product.colors.slice(0, 4).map((c, i) => (
+              <div key={`${c.name}-${i}`} className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: c.value }} />
+            ))}
+            {product.colors.length > 4 && (
+              <span className="text-xs text-white/60">+{product.colors.length - 4}</span>
+            )}
+          </div>
+        )}
+
+        {/* Key Features */}
+        {Array.isArray(product.features) && product.features.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-3">
           {product.features.slice(0, 2).map((feature, idx) => (
             <motion.span
@@ -864,6 +918,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
             </motion.span>
           ))}
         </div>
+        )}
 
         {/* Price & Add to Cart */}
         <div className="flex items-center justify-between">
@@ -896,15 +951,13 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
 
       {/* Animated Border Glow */}
       <motion.div
-        className="absolute inset-0 rounded-3xl border-2 border-transparent"
+        className="pointer-events-none absolute inset-0 rounded-3xl"
         animate={isHovered ? {
-          borderColor: "rgba(0, 212, 255, 0.5)",
-          boxShadow: "0 0 30px rgba(0, 212, 255, 0.3)"
+          boxShadow: "inset 0 0 0 2px rgba(0, 212, 255, 0.35), 0 0 0 6px rgba(0, 212, 255, 0.06), 0 30px 80px -20px rgba(0,0,0,0.6)"
         } : {
-          borderColor: "transparent",
-          boxShadow: "none"
+          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)"
         }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.35 }}
       />
     </motion.div>
   );
@@ -1260,6 +1313,65 @@ const MaskCollection = () => {
           author: "C***z",
           verified: true
         }
+      ]
+    },
+    {
+      id: 5,
+      name: 'Handmade Distress Crochet Ski Balaclava Helmet Cover',
+      price: 6.85,
+      originalPrice: null,
+      image: mask5Image1,
+      gallery: [
+        { type: 'image', src: mask5Image1, alt: 'S9151 Handmade Crochet Ski Mask Front' },
+        { type: 'image', src: mask5Image2, alt: 'S9151 Handmade Crochet Ski Mask Side' }
+      ],
+      rating: 4.4,
+      reviews: 210,
+      isNew: true,
+      isBestseller: false,
+      colors: [
+        { name: 'Custom Colors', value: '#000000' }
+      ],
+      sizes: ['Adult Size'],
+      category: 'Crochet',
+      section: 'standard',
+      features: ['Handmade Craftsmanship', 'Warm & Cozy', 'Distress Design', 'Helmet-Compatible', 'Multi-Purpose Wear'],
+      description: 'S9151 Handmade Crochet Ski Mask – Distress Balaclava Winter Warm Helmet Cover. Unisex crochet hat that blends warmth, creativity, and edgy fashion. Perfect under helmets or as a statement winter accessory.',
+      material: '100% Acrylic',
+      protection: 'Full Face & Neck Coverage',
+      washable: 'Hand Wash Recommended',
+      availability: 'In Stock',
+      shipping: 'Standard Shipping',
+      brand: 'Sunland',
+      collection: 'Winter Essentials',
+      modelNumber: 'S9151',
+      placeOfOrigin: 'Jiangsu, China',
+      applicableScenes: ['Beach', 'Casual', 'Outdoor', 'Travel', 'Sports', 'Cycling', 'Shopping', 'Party', 'Business', 'Fishing', 'SKI', 'Home Use', 'Daily', 'Traveling'],
+      gender: 'Unisex',
+      ageGroup: 'Adults',
+      moq: '100 pieces',
+      sampleTime: '5-7 days',
+      packaging: 'One piece/OPP bag and 100pcs/ctn',
+      singlePackageSize: '25X15X2 cm',
+      singleGrossWeight: '0.150 kg',
+      printingMethods: '—',
+      technics: 'Dobby / Crochet',
+      needleDetection: '—',
+      keywords: 'Crochet Ski Mask, Distress Balaclava',
+      logo: 'Custom Logo',
+      color: 'Any color',
+      usage: 'Motorcycling, skiing, fashion, cosplay, casual wear',
+      item: 'Custom Women Men Motorcycle Helmet Cover Winter Warm Crochet Hat',
+      label: 'Customizable',
+      oem: 'Welcome',
+      use: 'Winter Warmth & Style',
+      sellingUnits: 'Single item',
+      detailedReviews: [
+        { rating: 5, title: 'Very satisfied', content: 'The goods have been received, the quality is very good, very satisfied', author: 'U***e (SG)', verified: true },
+        { rating: 5, title: 'Will buy again', content: 'I am satisfied with this purchase, and will continue to buy next time if necessary', author: 'M***e (UK)', verified: true },
+        { rating: 5, title: 'Great quality and service', content: 'Great quality of the product and fantastic customers service!', author: 'A***a (IS)', verified: true },
+        { rating: 5, title: 'Beautiful colors, fast delivery', content: 'Beautiful colors and good quality. Great customer service. Fast delivery.', author: 'U***e (US)', verified: true },
+        { rating: 5, title: 'Excellent communication', content: 'Great communication, sample is great quality and design is well done.', author: 'A***o (CR)', verified: true }
       ]
     },
   ];
