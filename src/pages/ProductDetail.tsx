@@ -526,7 +526,6 @@ const EnhancedPhotoGallery = ({ images, currentIndex, onImageChange, onZoom }) =
             <motion.video
               ref={imageRef}
               src={images[currentIndex].src}
-              alt={images[currentIndex].alt || `Product Video ${currentIndex + 1}`}
               className="w-full h-full object-cover select-none"
               controls
               loop
@@ -539,8 +538,8 @@ const EnhancedPhotoGallery = ({ images, currentIndex, onImageChange, onZoom }) =
               whileHover={!isZoomed ? { scale: 1.05 } : {}}
               transition={{ duration: 0.3, ease: "easeOut" }}
               onClick={isZoomed ? handleZoomOut : handleZoom}
-              onMouseMove={isZoomed ? handleZoomMove : undefined}
-              onWheel={handleWheel}
+              onMouseMove={isZoomed ? (e) => handleZoomMove(e, imageRef.current) : undefined}
+              onWheel={(e) => handleWheel(e, imageRef.current)}
               drag={!isZoomed ? "x" : false}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.1}
@@ -568,8 +567,8 @@ const EnhancedPhotoGallery = ({ images, currentIndex, onImageChange, onZoom }) =
               whileHover={!isZoomed ? { scale: 1.05 } : {}}
               transition={{ duration: 0.3, ease: "easeOut" }}
               onClick={isZoomed ? handleZoomOut : handleZoom}
-              onMouseMove={isZoomed ? handleZoomMove : undefined}
-              onWheel={handleWheel}
+              onMouseMove={isZoomed ? (e) => handleZoomMove(e, imageRef.current) : undefined}
+              onWheel={(e) => handleWheel(e, imageRef.current)}
               drag={!isZoomed ? "x" : false}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.1}
@@ -1505,25 +1504,34 @@ const VlancoProductPage = () => {
       // Add to cart with enhanced error handling and product details
       const productDetails = {
         product: {
-          id: product.id,
+          id: String(product.id),
           name: product.name,
           base_price: product.base_price,
           compare_price: product.compare_price,
           description: product.description,
-          sku: product.sku
+          sku: product.sku,
+          image: Array.isArray(product.images) ? (product.images[0]?.src || product.images[0]) : undefined,
+          images: Array.isArray(product.images) ? product.images : undefined,
+          rating: product.reviews?.average,
+          reviews: product.reviews?.total,
+          brand: product.brand,
+          collection: product.collection,
+          material: product.material,
+          protection: product.protection,
         },
         variant: {
-          id: variant.id,
+          id: String(variant.id),
           color: product.color_options[selectedColor].name,
           size: selectedSize,
           price: product.base_price,
           sku: variant.sku,
           stock_quantity: variant.stock_quantity
         },
-        price: product.base_price
+        price: product.base_price,
+        quantity
       };
       
-      await addToCart(product.id, variant.id, quantity, productDetails);
+      await addToCart(String(product.id), String(variant.id), quantity, productDetails);
       
       // Update product stock in database
       const newStockQuantity = Math.max(0, product.stock_quantity - quantity);

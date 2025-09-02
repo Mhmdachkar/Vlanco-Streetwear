@@ -568,7 +568,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
 
             {/* Content */}
             <div className="flex-1 overflow-hidden">
-              {!user ? (
+              {!user && items.length === 0 ? (
                 <SignInPrompt onClose={onClose} />
               ) : items.length === 0 ? (
                 <EmptyCart onClose={onClose} />
