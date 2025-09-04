@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform, AnimatePresence } from 'framer-motion';
 import { useProducts } from '@/hooks/useProducts';
 import { useCart } from '@/hooks/useCart';
+import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import { ShoppingCart, Heart, Eye, Zap, Star } from 'lucide-react';
+import AuthModal from './AuthModal';
 
 interface LatestDropsSectionProps {
   currentProductId?: string;
@@ -12,8 +14,10 @@ interface LatestDropsSectionProps {
 const LatestDropsSection = ({ currentProductId }: LatestDropsSectionProps) => {
   const { products, loading } = useProducts();
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const mouseX = useMotionValue(0);
@@ -43,12 +47,54 @@ const LatestDropsSection = ({ currentProductId }: LatestDropsSectionProps) => {
 
   const handleAddToCart = (productId: string) => {
     if (!user) return;
-    
     const product = products.find(p => p.id === productId);
     const defaultVariant = product?.product_variants?.[0];
-    
-    if (defaultVariant) {
-      addToCart(productId, defaultVariant.id);
+    if (product && defaultVariant) {
+      addToCart(String(product.id), String(defaultVariant.id), 1, {
+        product: {
+          name: product.name,
+          base_price: product.base_price ?? product.price ?? 0,
+          image_url: product.image_url || product.image,
+          category: product.category?.name || product.category,
+          description: product.description
+        },
+        variant: {
+          id: defaultVariant.id,
+          price: defaultVariant.price ?? product.base_price ?? 0,
+          name: defaultVariant.name || 'Default'
+        },
+        price: defaultVariant.price ?? product.base_price ?? 0
+      });
+    }
+  };
+
+  const handleToggleWishlist = async (product: any) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    try {
+      if (isInWishlist(product.id)) {
+        await removeFromWishlist(product.id);
+      } else {
+        await addToWishlist({
+          id: product.id,
+          name: product.name,
+          price: product.base_price || product.price || 0,
+          image: product.image_url || product.image,
+          category: product.category?.name || 'Latest Drops',
+          description: product.description,
+          rating: product.rating_average || 4.5,
+          reviews: product.rating_count || 0,
+          isLimited: product.is_limited_edition || false,
+          isNew: product.is_new_arrival || true,
+          colors: product.color_options || ['Black', 'White'],
+          sizes: product.size_options || ['S', 'M', 'L', 'XL']
+        });
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
     }
   };
 
@@ -258,11 +304,12 @@ const LatestDropsSection = ({ currentProductId }: LatestDropsSectionProps) => {
                                 <ShoppingCart className="w-5 h-5" />
                               </motion.button>
                               <motion.button
+                                onClick={() => handleToggleWishlist(product)}
                                 className="p-3 bg-background/80 backdrop-blur-sm text-foreground rounded-full hover:bg-background transition-colors"
                                 whileHover={{ scale: 1.2 }}
                                 whileTap={{ scale: 0.9 }}
                               >
-                                <Heart className="w-5 h-5" />
+                                <Heart className={`w-5 h-5 ${isInWishlist(product.id) ? 'text-red-500 fill-red-500' : ''}`} />
                               </motion.button>
                               <motion.button
                                 className="p-3 bg-background/80 backdrop-blur-sm text-foreground rounded-full hover:bg-background transition-colors"
@@ -394,6 +441,13 @@ const LatestDropsSection = ({ currentProductId }: LatestDropsSectionProps) => {
           </motion.button>
         </motion.div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        defaultMode="signin"
+      />
     </section>
   );
 };

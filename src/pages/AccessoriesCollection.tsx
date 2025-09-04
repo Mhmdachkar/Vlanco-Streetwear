@@ -159,7 +159,30 @@ const AccessoriesCollection = () => {
                       onClick={() => {
                         if (!canAdd || !canAddSize) return;
                         const variantId = `${product.id}-${colorIdx ?? ''}-${size ?? ''}`;
-                        addToCart(product.id.toString(), variantId, 1);
+                        const selectedColorData = colorOptions[colorIdx];
+                        addToCart(product.id.toString(), variantId, 1, {
+                          price: product.price,
+                          product: { 
+                            base_price: product.price,
+                            name: product.name,
+                            description: product.description || `${product.name} - Premium accessories collection`,
+                            compare_price: product.originalPrice,
+                            image: product.image,
+                            brand: product.brand || 'VLANCO',
+                            collection: product.category || 'Accessories',
+                            material: product.material || 'Premium Materials',
+                            modelNumber: `ACC-${product.id}`,
+                            rating: product.rating,
+                            reviews: product.reviews
+                          },
+                          variant: { 
+                            price: product.price,
+                            color: selectedColorData?.name || 'Default',
+                            color_value: selectedColorData?.value || '#000000',
+                            size: size,
+                            sku: `${product.id}-${colorIdx}-${size}`
+                          }
+                        });
                       }}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-5 h-5">

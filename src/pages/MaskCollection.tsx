@@ -36,6 +36,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useProducts } from '@/hooks/useProducts';
 import { useCart } from '@/hooks/useCart';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import AuthModal from '@/components/AuthModal';
 
 // Import photos from assets
 import heroBgImage from '@/assets/hero-bg.jpg';
@@ -149,7 +153,7 @@ const AnimatedParticles = ({ count = 100 }) => {
 };
 
 // 3D Mask Scene Component with Enhanced Background - Optimized
-const MaskScene = () => {
+const MaskScene = ({ performanceMode = false }) => {
   return (
     <Canvas 
       camera={{ position: [0, 0, 8], fov: 75 }}
@@ -176,7 +180,7 @@ const MaskScene = () => {
         <MaskPortal />
         
         {/* Animated Particles */}
-        <AnimatedParticles count={200} /> {/* Reduced count for performance */}
+        <AnimatedParticles count={performanceMode ? 80 : 200} />
         <MaskWave />
         
         {/* Floating Masks */}
@@ -587,8 +591,8 @@ const AnimatedScrollWords = ({ words, className = "" }) => {
   );
 };
 
-// Elegant Mask Card Component with Enhanced Animations
-const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
+// Enhanced PowerMaskCard Component with Improved Readability and Visual Impact
+const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggleWishlist, isInWishlist }) => {
   const cardRef = useRef(null);
   const navigate = useNavigate();
   const { scrollYProgress } = useScroll({
@@ -663,109 +667,63 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
   return (
     <motion.div
       ref={cardRef}
-      className="group relative h-[500px] rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 via-black to-gray-800 border border-white/10 shadow-[0_12px_36px_-16px_rgba(0,0,0,0.6)] cursor-pointer"
+      className="group relative h-[650px] rounded-3xl overflow-hidden bg-gradient-to-br from-background via-muted/20 to-background border border-border/50 shadow-2xl cursor-pointer"
       style={{ y, scale }}
       initial={{ opacity: 0, y: 50, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.6, delay: index * 0.1 }}
-      whileHover={{ 
-        y: -12, 
-        scale: 1.015,
-        boxShadow: "0 30px 80px -30px rgba(0, 255, 255, 0.25), 0 20px 50px -25px rgba(255, 0, 200, 0.15)"
-      }}
-             onHoverStart={handleHoverStart}
-       onHoverEnd={handleHoverEnd}
-       onClick={handleCardClick}
-     >
-       {/* Enhanced Animated Background */}
-       <motion.div
-         className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/5 to-pink-500/10"
-         animate={{
-           background: [
-             "linear-gradient(45deg, rgba(0, 212, 255, 0.1), rgba(139, 92, 246, 0.05), rgba(236, 72, 153, 0.1))",
-             "linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(0, 212, 255, 0.05), rgba(139, 92, 246, 0.1))",
-             "linear-gradient(225deg, rgba(139, 92, 246, 0.1), rgba(236, 72, 153, 0.05), rgba(0, 212, 255, 0.1))",
-           ]
-         }}
-         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-       />
-       
-                {/* Floating Mask Particles - Optimized */}
-         <motion.div
-           className="absolute inset-0 pointer-events-none"
-           animate={isAnimating ? { opacity: 1 } : { opacity: 0 }}
-           transition={{ duration: 0.3 }}
-         >
-           {[...Array(4)].map((_, i) => ( // Reduced count for performance
-             <motion.div
-               key={i}
-               className="absolute w-1 h-1 bg-cyan-400 rounded-full"
-               style={{
-                 left: `${10 + Math.random() * 80}%`,
-                 top: `${20 + Math.random() * 60}%`,
-               }}
-               animate={{
-                 y: [0, -15, 0], // Reduced movement range
-                 x: [0, Math.random() * 8 - 4, 0], // Reduced movement range
-                 scale: [0, 1, 0],
-                 opacity: [0, 0.8, 0], // Reduced opacity
-               }}
-               transition={{
-                 duration: 1.5, // Reduced duration
-                 repeat: Infinity,
-                 delay: i * 0.3, // Increased delay
-                 ease: "easeInOut",
-               }}
-             />
-           ))}
-         </motion.div>
-         
-         {/* 3D Mask Hover Effect */}
-         <motion.div
-           className="absolute top-4 right-4 w-20 h-20 opacity-0"
-           animate={isAnimating ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-           transition={{ duration: 0.5 }}
-         >
-           <Canvas camera={{ position: [0, 0, 2], fov: 75 }}>
-             <ambientLight intensity={0.6} />
-             <pointLight position={[5, 5, 5]} />
-             <FloatingMaskHover isVisible={isAnimating} />
-           </Canvas>
-         </motion.div>
+      whileHover={{ y: -12, scale: 1.02 }}
+      onHoverStart={handleHoverStart}
+      onHoverEnd={handleHoverEnd}
+      onClick={handleCardClick}
+    >
+      {/* Spotlight glow (match T-Shirt cards) */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none z-10"
+        animate={isHovered ? { opacity: 1 } : { opacity: 0 }}
+        style={{
+          background: 'radial-gradient(circle at 60% 40%, rgba(0, 212, 255, 0.15) 0%, transparent 70%)',
+          transition: 'all 0.4s ease'
+        }}
+      />
 
-             {/* Product Image with Enhanced Effects */}
-       <div className="relative h-3/5 overflow-hidden">
-         <motion.img
-           src={(isHovered && product.gallery && product.gallery[1] && product.gallery[1].type === 'image') ? product.gallery[1].src : product.image}
-           alt={product.name}
-           className="w-full h-full object-cover"
-           animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
-           transition={{ duration: 0.5 }}
-         />
-         
-         {/* Enhanced Gradient Overlay */}
-         <motion.div 
-           className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
-           animate={isAnimating ? { opacity: 0.8 } : { opacity: 1 }}
-           transition={{ duration: 0.3 }}
-         />
-         
-         {/* 3D Mask Icon Overlay */}
-         <motion.div
-           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0"
-           animate={isAnimating ? { opacity: 0.3, scale: 1.2 } : { opacity: 0, scale: 1 }}
-           transition={{ duration: 0.5 }}
-         >
-           <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-full flex items-center justify-center shadow-2xl">
-             <Shield className="w-8 h-8 text-white" />
-           </div>
-         </motion.div>
+      {/* Neon border (match T-Shirt cards) */}
+      <motion.div
+        className="absolute inset-0 rounded-2xl border-2 border-primary/40 pointer-events-none z-20"
+        animate={isHovered ? {
+          boxShadow: '0 0 30px 4px rgba(0, 212, 255, 0.3)',
+          borderColor: 'rgba(0, 212, 255, 0.8)',
+          opacity: 1
+        } : {
+          boxShadow: '0 0 0px 0px rgba(0, 212, 255, 0)',
+          borderColor: 'rgba(0, 212, 255, 0.2)',
+          opacity: 0.3
+        }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      />
+      
+      {/* Product Image with Effects */}
+      <div className="relative h-3/5 overflow-hidden">
+        <motion.img
+          src={(isHovered && product.gallery && product.gallery[1] && product.gallery[1].type === 'image') ? product.gallery[1].src : product.image}
+          alt={product.name}
+          className="w-full h-full object-cover"
+          animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        />
+        
+        {/* Gradient Overlay for Better Text Readability */}
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+          animate={isAnimating ? { opacity: 0.9 } : { opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        />
         
         {/* Floating Badges */}
-        <div className="absolute top-3 left-3 flex gap-2">
+        <div className="absolute top-4 left-4 flex gap-2">
           {product.isNew && (
             <motion.div
-              className="px-2 py-1 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-medium rounded-full"
+              className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white text-xs font-bold rounded-full shadow-lg"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.2 + index * 0.1 }}
@@ -775,7 +733,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
           )}
           {product.isBestseller && (
             <motion.div
-              className="px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-medium rounded-full"
+              className="px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-full shadow-lg"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.3 + index * 0.1 }}
@@ -785,24 +743,24 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
           )}
         </div>
 
-        {/* Rating & Reviews Badge */}
+        {/* Enhanced Rating & Reviews Badge */}
         <motion.div
-          className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-full"
+          className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 bg-black/80 backdrop-blur-md rounded-full border border-white/20"
           initial={{ opacity: 0, x: 10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 + index * 0.1 }}
         >
-          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-          <span className="text-xs font-medium text-white">{product.rating}</span>
+          <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+          <span className="text-sm font-bold text-white">{product.rating}</span>
           {typeof product.reviews === 'number' && (
-            <span className="text-[10px] text-white/70">({product.reviews})</span>
+            <span className="text-xs text-white/80">({product.reviews})</span>
           )}
         </motion.div>
 
         {/* Discount Badge */}
         {product.originalPrice && product.price && product.originalPrice > product.price && (
           <motion.div
-            className="absolute bottom-3 left-3 px-2 py-1 bg-red-600/80 text-white text-xs font-bold rounded-full"
+            className="absolute bottom-4 left-4 px-3 py-1.5 bg-red-600/90 text-white text-sm font-bold rounded-full shadow-lg border border-red-500/50"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.45 + index * 0.1 }}
@@ -811,42 +769,45 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
           </motion.div>
         )}
 
-        {/* Quick Actions */}
-        <div className="absolute bottom-3 right-3 flex gap-2">
-          <motion.button
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={(e) => { e.stopPropagation(); }}
-            aria-label="Add to Wishlist"
-          >
-            <Heart className="w-4 h-4" />
-          </motion.button>
-          <motion.button
-            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={(e) => { e.stopPropagation(); handleCardClick(); }}
-            aria-label="Quick View"
-          >
-            <Eye className="w-4 h-4" />
-          </motion.button>
-        </div>
+          {/* Quick Actions */}
+          <div className="absolute bottom-4 right-4 flex gap-2">
+            <motion.button
+              className="p-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm border border-white/20"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                onToggleWishlist(product);
+              }}
+              aria-label="Add to Wishlist"
+            >
+              <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-current text-red-400' : ''}`} />
+            </motion.button>
+            <motion.button
+              className="p-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm border border-white/20"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={(e) => { e.stopPropagation(); handleCardClick(); }}
+              aria-label="Quick View"
+            >
+              <Eye className="w-4 h-4" />
+            </motion.button>
+          </div>
       </div>
 
-      {/* Content Section */}
-      <div className="relative p-4 h-2/5 flex flex-col justify-between">
-        {/* Brand & Collection */}
-        <div className="flex items-center justify-between mb-2">
+      {/* Enhanced Content Section with Better Typography */}
+      <div className="relative p-6 h-2/5 flex flex-col justify-between bg-gradient-to-b from-transparent to-black/20">
+        {/* Brand & Collection with Enhanced Visibility */}
+        <div className="flex items-center justify-between mb-3">
           <div className="flex gap-2">
             <motion.span
-              className="px-2 py-1 text-xs font-medium text-white/80 bg-white/10 rounded-full"
+              className="px-3 py-1.5 text-sm font-bold text-white/90 bg-white/15 rounded-full backdrop-blur-sm border border-white/20"
               whileHover={{ scale: 1.05 }}
             >
               {product.brand}
             </motion.span>
             <motion.span
-              className="px-2 py-1 text-xs font-medium text-cyan-400 bg-cyan-400/20 rounded-full"
+              className="px-3 py-1.5 text-sm font-bold text-cyan-300 bg-cyan-400/25 rounded-full backdrop-blur-sm border border-cyan-400/30"
               whileHover={{ scale: 1.05 }}
             >
               {product.collection}
@@ -854,77 +815,84 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
           </div>
         </div>
 
-                 {/* Enhanced Product Title with 3D Effect */}
-         <motion.h3
-           className="text-lg font-bold text-white mb-2 leading-tight relative"
-           initial={{ opacity: 0, y: 10 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ delay: 0.1 }}
-         >
-           <motion.span
-             className="block"
-             animate={isAnimating ? { 
-               textShadow: "0 0 10px rgba(0, 212, 255, 0.8), 0 0 20px rgba(0, 212, 255, 0.4)" 
-             } : { 
-               textShadow: "none" 
-             }}
-             transition={{ duration: 0.3 }}
-           >
-             {product.name}
-           </motion.span>
-           
-           {/* 3D Text Glow */}
-           <motion.div
-             className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 to-transparent blur-sm"
-             animate={isAnimating ? { opacity: 0.5 } : { opacity: 0 }}
-             transition={{ duration: 0.3 }}
-           />
-         </motion.h3>
+        {/* Enhanced Product Title with Better Readability */}
+        <motion.h3
+          className="text-xl font-black text-white mb-3 leading-tight relative"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <motion.span
+            className="block"
+            animate={isAnimating ? { 
+              textShadow: "0 0 15px rgba(0, 212, 255, 0.8), 0 0 25px rgba(0, 212, 255, 0.4)" 
+            } : { 
+              textShadow: "0 2px 4px rgba(0,0,0,0.8)" 
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            {product.name}
+          </motion.span>
+          
+          {/* Enhanced Text Glow */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-cyan-400/30 to-transparent blur-sm"
+            animate={isAnimating ? { opacity: 0.6 } : { opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          />
+        </motion.h3>
 
-        {/* Brief Description */}
+        {/* Enhanced Description with Better Readability */}
         <motion.p
-          className="text-sm text-white/70 mb-3 line-clamp-2"
+          className="text-sm text-white/80 mb-4 line-clamp-2 leading-relaxed"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          {product.description.substring(0, 80)}...
+          {product.description.substring(0, 100)}...
         </motion.p>
 
-        {/* Key Features */}
+        {/* Enhanced Color Swatches */}
         {Array.isArray(product.colors) && product.colors.length > 0 && (
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xs text-white/70 font-medium">Colors:</span>
             {product.colors.slice(0, 4).map((c, i) => (
-              <div key={`${c.name}-${i}`} className="w-4 h-4 rounded-full border border-white/20" style={{ backgroundColor: c.value }} />
+              <motion.div 
+                key={`${c.name}-${i}`} 
+                className="w-5 h-5 rounded-full border-2 border-white/30 shadow-md" 
+                style={{ backgroundColor: c.value }}
+                whileHover={{ scale: 1.1 }}
+                title={c.name}
+              />
             ))}
             {product.colors.length > 4 && (
-              <span className="text-xs text-white/60">+{product.colors.length - 4}</span>
+              <span className="text-xs text-white/60 font-medium">+{product.colors.length - 4} more</span>
             )}
           </div>
         )}
 
-        {/* Key Features */}
+        {/* Enhanced Key Features */}
         {Array.isArray(product.features) && product.features.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {product.features.slice(0, 2).map((feature, idx) => (
-            <motion.span
-              key={idx}
-              className="px-2 py-1 text-xs bg-white/10 text-white/90 rounded-full"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 + idx * 0.1 }}
-            >
-              {feature}
-            </motion.span>
-          ))}
-        </div>
+          <div className="flex flex-wrap gap-2 mb-4">
+            {product.features.slice(0, 3).map((feature, idx) => (
+              <motion.span
+                key={idx}
+                className="px-3 py-1 text-xs font-medium bg-white/15 text-white/90 rounded-full backdrop-blur-sm border border-white/20"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 + idx * 0.1 }}
+              >
+                {feature}
+              </motion.span>
+            ))}
+          </div>
         )}
 
-        {/* Price & Add to Cart */}
+        {/* Enhanced Price & Add to Cart Section */}
         <div className="flex items-center justify-between">
           <div>
             <motion.div
-              className="text-xl font-bold text-white"
+              className="text-2xl font-black text-white mb-1"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
@@ -932,20 +900,21 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
               ${product.price}
             </motion.div>
             {product.originalPrice && (
-              <div className="text-xs text-white/50 line-through">
+              <div className="text-sm text-white/60 line-through font-medium">
                 ${product.originalPrice}
               </div>
             )}
           </div>
 
-                     <motion.button
-             className="p-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full shadow-md hover:shadow-cyan-500/30 transition-all"
-             whileHover={{ scale: 1.05 }}
-             whileTap={{ scale: 0.95 }}
-             onClick={() => onQuickAdd(product)}
-           >
-             <ShoppingCart className="w-4 h-4" />
-           </motion.button>
+          {/* Enhanced Add to Cart Button */}
+          <motion.button
+            className="p-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-full shadow-lg hover:shadow-cyan-500/40 transition-all border border-cyan-400/30"
+            whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(0, 212, 255, 0.3)" }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleQuickAdd}
+          >
+            <ShoppingCart className="w-5 h-5" />
+          </motion.button>
         </div>
       </div>
 
@@ -953,11 +922,11 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
       <motion.div
         className="pointer-events-none absolute inset-0 rounded-3xl"
         animate={isHovered ? {
-          boxShadow: "inset 0 0 0 2px rgba(0, 212, 255, 0.35), 0 0 0 6px rgba(0, 212, 255, 0.06), 0 30px 80px -20px rgba(0,0,0,0.6)"
+          boxShadow: "inset 0 0 0 2px rgba(0, 212, 255, 0.3), 0 0 0 6px rgba(0, 212, 255, 0.05), 0 25px 80px -20px rgba(0,0,0,0.7)"
         } : {
-          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)"
+          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)"
         }}
-        transition={{ duration: 0.35 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
       />
     </motion.div>
   );
@@ -966,6 +935,8 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd }) => {
 const MaskCollection = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   
@@ -973,6 +944,7 @@ const MaskCollection = () => {
   const [activeSection, setActiveSection] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [performanceMode, setPerformanceMode] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   useEffect(() => {
     // Simulate loading time for 3D animations
@@ -993,6 +965,37 @@ const MaskCollection = () => {
     return () => clearTimeout(timer);
   }, []);
   
+  // Wishlist handler
+  const handleToggleWishlist = async (product: any) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    try {
+      if (isInWishlist(product.id)) {
+        await removeFromWishlist(product.id);
+      } else {
+        await addToWishlist({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          category: product.category || 'Masks',
+          description: product.description,
+          rating: product.rating,
+          reviews: product.reviews,
+          isLimited: product.isBestseller,
+          isNew: product.isNew,
+          colors: product.colors?.map((c: any) => c.name) || [],
+          sizes: product.sizes || []
+        });
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+    }
+  };
+
   // Enhanced mock mask products
   const mockMasks = [
     {
@@ -1381,19 +1384,62 @@ const MaskCollection = () => {
   );
 
   const handleQuickAdd = async (product: any) => {
-    const variantId = `${product.id}-default`;
+    // Ensure a real variant exists for this mask selection
+    const defaultColor = product.colors?.[0]?.name || 'Default';
+    const defaultSize = product.sizes?.[0] || 'One Size';
+    const sku = product.modelNumber || `MASK-${product.id}-${defaultColor}-${defaultSize}`;
+    let variantId = '';
+    try {
+      const insertRes = await supabase
+        .from('product_variants')
+        .insert({
+          product_id: String(product.id),
+          color: defaultColor,
+          size: defaultSize,
+          price: Number(product.price) || 0,
+          sku,
+          stock_quantity: 999,
+          is_active: true,
+          created_at: new Date().toISOString()
+        })
+        .select('id')
+        .single();
+      if (insertRes.error) throw insertRes.error;
+      variantId = String(insertRes.data.id);
+    } catch (err) {
+      const { data: existing } = await supabase
+        .from('product_variants')
+        .select('id')
+        .eq('sku', sku)
+        .maybeSingle();
+      if (!existing?.id) throw err;
+      variantId = String(existing.id);
+    }
+
     await addToCart(product.id.toString(), variantId, 1, {
       price: product.price,
       product: { 
         base_price: product.price,
         name: product.name,
         description: product.description,
-        compare_price: product.originalPrice
+        compare_price: product.originalPrice,
+        image: product.image,
+        gallery: product.gallery,
+        brand: product.brand,
+        collection: product.collection,
+        material: product.material,
+        protection: product.protection,
+        rating: product.rating,
+        reviews: product.reviews,
+        modelNumber: product.modelNumber
       },
       variant: { 
-        price: product.price,
-        color: product.colors?.[0]?.name || 'Default',
-        size: product.sizes?.[0] || 'One Size'
+        id: variantId,
+        price: Number(product.price) || 0,
+        color: defaultColor,
+        color_value: product.colors?.[0]?.value || '#000000',
+        size: defaultSize,
+        sku
       }
     });
   };
@@ -1462,7 +1508,7 @@ const MaskCollection = () => {
          <section className="relative min-h-[80vh] bg-gradient-to-br from-black via-gray-900 to-black overflow-hidden">
            {/* 3D Background Scene */}
            <div className="absolute inset-0 opacity-30">
-             <MaskScene />
+             <MaskScene performanceMode={performanceMode} />
            </div>
            
            {/* Animated Background */}
@@ -1843,6 +1889,8 @@ const MaskCollection = () => {
                    isHovered={hoveredProduct === product.id}
                    onHover={setHoveredProduct}
                    onQuickAdd={handleQuickAdd}
+                   onToggleWishlist={handleToggleWishlist}
+                   isInWishlist={isInWishlist}
                  />
                ))}
             </motion.div>
@@ -1871,6 +1919,13 @@ const MaskCollection = () => {
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        defaultMode="signin"
+      />
     </>
   );
 };

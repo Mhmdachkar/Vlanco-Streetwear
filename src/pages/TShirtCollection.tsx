@@ -38,6 +38,11 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useProducts } from '@/hooks/useProducts';
 import { useCart } from '@/hooks/useCart';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/hooks/useAuth';
+import AuthModal from '@/components/AuthModal';
 
 // Import photos from assets
 import heroBgImage from '@/assets/hero-bg.jpg';
@@ -292,6 +297,9 @@ const TShirtCollection = () => {
   const navigate = useNavigate();
   const { getProductsByCategory } = useProducts();
   const { addToCart } = useCart();
+  const { toast } = useToast();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   
@@ -309,6 +317,7 @@ const TShirtCollection = () => {
   const [selectedSize, setSelectedSize] = useState<{[key: number]: string}>({});
   const [selectedColor, setSelectedColor] = useState<{[key: number]: number}>({});
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAuthModal, setShowAuthModal] = useState(false);
   
   // Enhanced mock products with professional images
   const mockTshirts = [
@@ -475,13 +484,33 @@ const TShirtCollection = () => {
     ]
   };
 
-  const toggleWishlist = (productId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
+  const handleToggleWishlist = async (product: any, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!user) { setShowAuthModal(true); return; }
+    try {
+      if (isInWishlist(String(product.id))) {
+        await removeFromWishlist(String(product.id));
+        toast({ title: 'Removed from Wishlist', description: `${product.name} removed from wishlist`, duration: 2500 });
+      } else {
+        await addToWishlist({
+          id: String(product.id),
+          name: product.name,
+          price: Number(product.price) || 0,
+          image: product.image,
+          category: product.category || 'T-Shirts',
+          description: product.description,
+          rating: product.rating,
+          reviews: product.reviews,
+          isLimited: product.isBestseller,
+          isNew: product.isNew,
+          colors: (product.colors || []).map((c: any) => c.name),
+          sizes: product.sizes || []
+        });
+        toast({ title: 'Added to Wishlist', description: `${product.name} added to wishlist`, duration: 2500 });
+      }
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to update wishlist', variant: 'destructive' });
+    }
   };
 
   const imageRefs = useRef<{ [key: number]: HTMLImageElement | null }>({});
@@ -515,19 +544,115 @@ const TShirtCollection = () => {
     }, 850);
   };
 
-  const handleQuickAdd = async (product: any, e: React.MouseEvent) => {
+      const handleQuickAdd = async (product: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    const size = selectedSize[product.id] || product.sizes?.[0] || '';
-    const colorIndex = selectedColor[product.id] || 0;
+    
+    console.log('🔍 handleQuickAdd called for product:', product.id);
+    console.log('🔍 Selected size:', selectedSize[product.id]);
+    console.log('🔍 Selected color:', selectedColor[product.id]);
+    
+    // Validate that size and color are selected
+    const size = selectedSize[product.id];
+    const colorIndex = selectedColor[product.id];
+    
+    if (!size) {
+      toast({
+        title: "Size Required",
+        description: "Please select a size before adding to cart",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (colorIndex === undefined || colorIndex < 0) {
+      toast({
+        title: "Color Required",
+        description: "Please select a color before adding to cart",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const selectedColorData = product.colors?.[colorIndex];
+    
+    console.log('✅ Validation passed, adding to cart...');
+    
     // Animation
     flyToCart(product.id);
-    // Add to cart logic
-    const variantId = `${product.id}-${colorIndex}-${size}`;
-    await addToCart(product.id.toString(), variantId, 1, {
-      price: product.price,
-      product: { base_price: product.price },
-      variant: { price: product.price }
-    });
+    
+    // Ensure a real product_variant exists (so cart FK joins return real data)
+    try {
+      const sku = `${product.id}-${colorIndex}-${size}`;
+      const insertRes = await supabase
+        .from('product_variants')
+        .insert({
+          product_id: String(product.id),
+          color: selectedColorData?.name || 'Default',
+          size: size,
+          price: Number(product.price) || 0,
+          sku,
+          stock_quantity: 999,
+          is_active: true,
+          created_at: new Date().toISOString()
+        })
+        .select('id')
+        .single();
+
+      let variantIdLocal = '';
+      if (insertRes.error) {
+        // If conflict or other error, try to get existing by sku
+        const { data: existing } = await supabase
+          .from('product_variants')
+          .select('id')
+          .eq('sku', sku)
+          .maybeSingle();
+        if (!existing?.id) throw insertRes.error;
+        variantIdLocal = String(existing.id);
+      } else {
+        variantIdLocal = String(insertRes.data.id);
+      }
+
+      await addToCart(product.id.toString(), variantIdLocal, 1, {
+        price: product.price,
+        product: { 
+          base_price: product.price,
+          name: product.name,
+          description: product.description || `${product.name} - Premium streetwear collection`,
+          compare_price: product.originalPrice,
+          image: product.image,
+          brand: product.brand || 'VLANCO',
+          collection: product.category || 'Streetwear',
+          material: product.material || 'Premium Cotton',
+          modelNumber: `TSHIRT-${product.id}`,
+          rating: product.rating,
+          reviews: product.reviews
+        },
+        variant: { 
+          id: variantIdLocal,
+          price: Number(product.price) || 0,
+          color: selectedColorData?.name || 'Default',
+          color_value: selectedColorData?.value || '#000000',
+          size: size,
+          sku
+        }
+      });
+      
+      console.log('✅ addToCart completed successfully');
+      
+      // Show success toast
+      toast({
+        title: "🚀 DEPLOYED TO VAULT!",
+        description: `${product.name} - ${size} - ${selectedColorData?.name || 'Default'}`,
+        duration: 3000
+      });
+    } catch (error) {
+      console.error('❌ Error in handleQuickAdd:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add item to cart",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleColorSelect = (productId: number, colorIndex: number) => {
@@ -1463,36 +1588,7 @@ const TShirtCollection = () => {
                           <span className="text-sm font-semibold text-white">{product.rating}</span>
                         </motion.div>
                         
-                        {/* Enhanced Animated Particles */}
-                        <AnimatePresence>
-                          {hoveredProduct === product.id && (
-                            <>
-                              {[...Array(12)].map((_, i) => (
-                                <motion.div
-                                  key={i}
-                                  className="absolute w-1.5 h-1.5 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-full opacity-80"
-                                  style={{
-                                    left: `${10 + Math.random() * 80}%`,
-                                    top: `${10 + Math.random() * 80}%`,
-                                  }}
-                                  initial={{ scale: 0, opacity: 0 }}
-                                  animate={{ 
-                                    scale: [0, 1.5, 0.8, 1],
-                                    opacity: [0, 1, 0.8, 0],
-                                    y: [0, -40, -80],
-                                    x: [0, Math.random() * 60 - 30, Math.random() * 100 - 50],
-                                  }}
-                                  exit={{ scale: 0, opacity: 0 }}
-                                  transition={{
-                                    duration: 2.5,
-                                    delay: i * 0.08,
-                                    ease: "easeOut"
-                                  }}
-                                />
-                              ))}
-                            </>
-                          )}
-                        </AnimatePresence>
+                        {/* Particle animation removed for performance */}
                       </div>
                       
                       {/* Enhanced Product Info with Better Layout */}
@@ -1602,15 +1698,53 @@ const TShirtCollection = () => {
                             )}
                           </div>
                           
-                          {/* Enhanced Quick Add-to-Cart Button */}
-                          <motion.button
-                            onClick={(e) => handleQuickAdd(product, e)}
-                            className="p-4 bg-gradient-to-br from-cyan-500 via-blue-500 to-cyan-400 text-white rounded-full shadow-xl border-2 border-cyan-400/60 hover:from-blue-600 hover:to-cyan-500 hover:shadow-2xl hover:shadow-cyan-400/40 transition-all duration-300"
-                            whileHover={{ scale: 1.15, boxShadow: '0 0 25px rgba(0, 212, 255, 0.6)' }}
-                            whileTap={{ scale: 0.9 }}
-                          >
-                            <ShoppingCart className="w-5 h-5" />
-                          </motion.button>
+                          <div className="flex items-center gap-3">
+                            {/* Selection Status Indicator */}
+                            {(selectedSize[product.id] || selectedColor[product.id] !== undefined) && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="flex items-center gap-1 text-xs text-cyan-300 font-bold"
+                              >
+                                <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                                <span>Ready</span>
+                              </motion.div>
+                            )}
+                            
+                            {/* Enhanced Quick Add-to-Cart Button */}
+                            <motion.button
+                              onClick={(e) => handleQuickAdd(product, e)}
+                              disabled={!selectedSize[product.id] || selectedColor[product.id] === undefined}
+                              className={`p-4 rounded-full shadow-xl border-2 transition-all duration-300 ${
+                                selectedSize[product.id] && selectedColor[product.id] !== undefined
+                                  ? 'bg-gradient-to-br from-cyan-500 via-blue-500 to-cyan-400 text-white border-cyan-400/60 hover:from-blue-600 hover:to-cyan-500 hover:shadow-2xl hover:shadow-cyan-400/40 cursor-pointer'
+                                  : 'bg-gray-500/50 text-gray-300 border-gray-400/30 cursor-not-allowed'
+                              }`}
+                              whileHover={selectedSize[product.id] && selectedColor[product.id] !== undefined ? 
+                                { scale: 1.15, boxShadow: '0 0 25px rgba(0, 212, 255, 0.6)' } : 
+                                { scale: 1 }
+                              }
+                              whileTap={selectedSize[product.id] && selectedColor[product.id] !== undefined ? 
+                                { scale: 0.9 } : 
+                                { scale: 1 }
+                              }
+                              title={selectedSize[product.id] && selectedColor[product.id] !== undefined ? 
+                                "Add to Cart" : 
+                                "Please select size and color"
+                              }
+                            >
+                              <ShoppingCart className="w-5 h-5" />
+                            </motion.button>
+                            <motion.button
+                              onClick={(e) => handleToggleWishlist(product, e)}
+                              className="p-4 rounded-full shadow-xl border-2 bg-white/15 text-white hover:bg-white/25 border-white/30 transition-all duration-300"
+                              whileHover={{ scale: 1.15 }}
+                              whileTap={{ scale: 0.9 }}
+                              title={isInWishlist(String(product.id)) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                            >
+                              <Heart className={`w-5 h-5 ${isInWishlist(String(product.id)) ? 'text-red-500 fill-red-500' : ''}`} />
+                            </motion.button>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -1899,6 +2033,7 @@ const TShirtCollection = () => {
           </div>
         </div>
       </div>
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} defaultMode="signin" />
     </>
   );
 };

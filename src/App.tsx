@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { CartProvider } from "@/hooks/useCart";
 import LandingPage from "./components/LandingPage";
 import SplashScreen from "./components/SplashScreen";
 import MaskCollection from './pages/MaskCollection';
@@ -16,6 +17,8 @@ const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const TShirtCollection = lazy(() => import("./pages/TShirtCollection"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Orders = lazy(() => import("./pages/Orders"));
 
 const queryClient = new QueryClient();
 
@@ -62,6 +65,8 @@ const AppContent = () => {
         <Route path="/tshirts" element={<TShirtCollection />} />
         <Route path="/masks" element={<MaskCollection />} />
         <Route path="/accessories" element={<AccessoriesCollection />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/orders" element={<Orders />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -72,12 +77,14 @@ const AppContent = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
-      </TooltipProvider>
+      <CartProvider>
+        <TooltipProvider>
+          <Toaster />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </TooltipProvider>
+      </CartProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

@@ -108,12 +108,23 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center space-x-3">
                 <div className="relative">
+                  {/* Product Image */}
                   <motion.div
-                    className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center"
+                    className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl overflow-hidden"
                     whileHover={{ rotate: 5, scale: 1.1 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Package className="w-8 h-8 text-white" />
+                    {(item.product as any)?.image ? (
+                      <img 
+                        src={(item.product as any).image} 
+                        alt={item.product.name || 'Product'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-8 h-8 text-white" />
+                      </div>
+                    )}
                   </motion.div>
                   <motion.div
                     className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold"
@@ -134,11 +145,36 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
                   >
                     {item.product?.name || 'Product Name'}
                   </motion.h3>
+                  <div className="flex items-center space-x-2 mb-2">
+                    {/* Color Swatch */}
+                    {(item.variant as any)?.color_value && (
+                      <div className="flex items-center space-x-1">
+                        <div 
+                          className="w-4 h-4 rounded-full border border-slate-600"
+                          style={{ backgroundColor: (item.variant as any).color_value }}
+                        />
+                        <span className="text-sm text-slate-400">
+                          {item.variant.color}
+                        </span>
+                      </div>
+                    )}
+                    {/* Size */}
+                    {item.variant?.size && (
+                      <span className="text-sm text-slate-400">
+                        Size {item.variant.size}
+                      </span>
+                    )}
+                  </div>
+                  {/* Price per unit */}
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-slate-400">
-                      {item.variant?.color && `${item.variant.color} • `}
-                      {item.variant?.size && `Size ${item.variant.size}`}
+                      ${getItemPrice().toFixed(2)} each
                     </span>
+                    {item.product?.compare_price && item.product.compare_price > getItemPrice() && (
+                      <span className="text-sm text-green-400 line-through">
+                        ${item.product.compare_price.toFixed(2)}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -257,6 +293,12 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
                           <Package className="w-4 h-4" />
                           <span>SKU: {item.variant?.sku || item.product?.sku || 'N/A'}</span>
                         </div>
+                        {(item.product as any)?.brand && (
+                          <div className="flex items-center space-x-2 text-slate-400 text-sm">
+                            <Shield className="w-4 h-4" />
+                            <span>Brand: {(item.product as any).brand}</span>
+                          </div>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
@@ -268,6 +310,12 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
                           <Truck className="w-4 h-4" />
                           <span>Free Shipping</span>
                         </div>
+                        {(item.product as any)?.material && (
+                          <div className="flex items-center space-x-2 text-slate-400 text-sm">
+                            <Package className="w-4 h-4" />
+                            <span>Material: {(item.product as any).material}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     
@@ -276,6 +324,24 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
                         <p className="text-slate-300 text-sm leading-relaxed">
                           {item.product.description}
                         </p>
+                      </div>
+                    )}
+                    
+                    {/* Additional Product Details */}
+                    {((item.product as any)?.collection || (item.product as any)?.modelNumber) && (
+                      <div className="mt-4 p-3 bg-slate-800/30 rounded-lg">
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          {(item.product as any)?.collection && (
+                            <div className="flex items-center space-x-2 text-slate-400">
+                              <span>Collection: {(item.product as any).collection}</span>
+                            </div>
+                          )}
+                          {(item.product as any)?.modelNumber && (
+                            <div className="flex items-center space-x-2 text-slate-400">
+                              <span>Model: {(item.product as any).modelNumber}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

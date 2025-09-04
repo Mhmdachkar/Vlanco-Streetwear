@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect, useCallback } from 'react';
-import { motion, useInView, useScroll, useTransform, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, useInView, useScroll, useTransform, AnimatePresence, useReducedMotion, useMotionValue, useSpring } from 'framer-motion';
 import { 
   Clock, 
   Users, 
@@ -35,6 +35,9 @@ import {
   AlertCircle,
   Info
 } from 'lucide-react';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/hooks/useAuth';
+import AuthModal from './AuthModal';
 
 // Countdown Timer Component
 const CountdownTimer = ({ targetDate, onComplete }) => {
@@ -134,10 +137,54 @@ const ExclusiveBadge = ({ type, isUnlocked = false }) => {
   );
 };
 
+// Small confetti burst (lightweight)
+const ConfettiBurst = ({ trigger }: { trigger: number }) => {
+  const pieces = 12;
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {Array.from({ length: pieces }).map((_, i) => (
+        <motion.span
+          key={`${trigger}-${i}`}
+          className="absolute w-1 h-1 rounded-sm"
+          style={{
+            left: '50%',
+            top: '50%',
+            backgroundColor: ['#22d3ee','#a855f7','#ec4899','#3b82f6','#fbbf24'][i % 5]
+          }}
+          initial={{ opacity: 0, x: 0, y: 0, scale: 0.5, rotate: 0 }}
+          animate={{
+            opacity: [1, 1, 0],
+            x: Math.cos((i / pieces) * Math.PI * 2) * 80,
+            y: Math.sin((i / pieces) * Math.PI * 2) * 80,
+            scale: [1, 1.2, 0.8],
+            rotate: 180
+          }}
+          transition={{ duration: 0.9, ease: 'ease-out' }}
+        />
+      ))}
+    </div>
+  );
+};
+
 // Enhanced Collaboration Card Component
 const CollaborationCard = ({ collaboration, index, isInView }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [burstKey, setBurstKey] = useState(0);
+
+  // Subtle 3D tilt
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rx = useTransform(my, [-50, 50], [6, -6]);
+  const ry = useTransform(mx, [-50, 50], [-6, 6]);
+  const srx = useSpring(rx, { stiffness: 120, damping: 12 });
+  const sry = useSpring(ry, { stiffness: 120, damping: 12 });
+
+  const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+    mx.set(e.clientX - rect.left - rect.width / 2);
+    my.set(e.clientY - rect.top - rect.height / 2);
+  };
 
   return (
     <motion.div
@@ -154,6 +201,8 @@ const CollaborationCard = ({ collaboration, index, isInView }) => {
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       whileHover={{ y: -10, scale: 1.02 }}
+      style={{ rotateX: srx as any, rotateY: sry as any, transformStyle: 'preserve-3d' }}
+      onMouseMove={handleMove}
     >
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-sm border border-white/10 shadow-2xl">
         {/* Background Image/Video */}
@@ -163,6 +212,13 @@ const CollaborationCard = ({ collaboration, index, isInView }) => {
             style={{ backgroundImage: `url(${collaboration.image})` }}
             animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
             transition={{ duration: 0.4 }}
+          />
+          {/* Shimmer sweep */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+            initial={{ x: '-120%' }}
+            animate={isHovered ? { x: ['-120%', '120%'] } : { x: '-120%' }}
+            transition={{ duration: 1.2, ease: 'ease-out' }}
           />
           
           {/* Gradient Overlay */}
@@ -178,9 +234,9 @@ const CollaborationCard = ({ collaboration, index, isInView }) => {
             className="absolute top-4 right-4 p-2 bg-black/50 backdrop-blur-sm rounded-full border border-white/20"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => setIsLiked(!isLiked)}
+            onClick={() => handleToggleWishlist(collaboration)}
           >
-            <Heart className={`w-4 h-4 ${isLiked ? 'text-red-500 fill-red-500' : 'text-white'}`} />
+            <Heart className={`w-4 h-4 ${isInWishlist(collaboration.id) ? 'text-red-500 fill-red-500' : 'text-white'}`} />
           </motion.button>
           
           {/* Play Button for Videos */}
@@ -274,6 +330,7 @@ const CollaborationCard = ({ collaboration, index, isInView }) => {
                 <span className="text-xs text-gray-400">{collaboration.available}</span>
               </div>
             </div>
+            {/* Live marquee */}
             
             {collaboration.status === 'live' && (
               <div className="flex items-center gap-1 px-2 py-1 bg-red-500/20 rounded-full">
@@ -282,6 +339,25 @@ const CollaborationCard = ({ collaboration, index, isInView }) => {
               </div>
             )}
           </div>
+
+          {/* Availability progress */}
+          {collaboration.available && (
+            <div className="mb-4">
+              <div className="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Availability</span>
+                <span>{collaboration.available}</span>
+              </div>
+              <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-purple-500 to-cyan-500"
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${Math.min(100, Number(collaboration.available.split('/')[0]) / Number(collaboration.available.split('/')[1]) * 100 || 0)}%` }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8 }}
+                />
+              </div>
+            </div>
+          )}
           
           {/* Action Buttons */}
           <div className="flex gap-2">
@@ -294,6 +370,7 @@ const CollaborationCard = ({ collaboration, index, isInView }) => {
               whileHover={collaboration.isUnlocked ? { scale: 1.02 } : {}}
               whileTap={collaboration.isUnlocked ? { scale: 0.98 } : {}}
               disabled={!collaboration.isUnlocked}
+              onClick={() => collaboration.isUnlocked && setBurstKey(prev => prev + 1)}
             >
               {collaboration.isUnlocked && (
                 <motion.div
@@ -305,6 +382,7 @@ const CollaborationCard = ({ collaboration, index, isInView }) => {
               <span className="relative z-10">
                 {collaboration.isUnlocked ? 'Get Access' : 'Locked'}
               </span>
+              <ConfettiBurst trigger={burstKey} />
             </motion.button>
             
             <motion.button
@@ -332,9 +410,12 @@ const LimitedDrops = ({ className = "" }) => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const shouldReduceMotion = useReducedMotion();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { user } = useAuth();
   
   const [activeTab, setActiveTab] = useState('upcoming');
   const [notifications, setNotifications] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Enhanced mock data for collaborations and drops with high-res images and realistic dates
   const collaborations = useMemo(() => [
@@ -490,6 +571,37 @@ const LimitedDrops = ({ className = "" }) => {
     }
   ], []);
 
+  // Wishlist handler
+  const handleToggleWishlist = async (collaboration: any) => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    try {
+      if (isInWishlist(collaboration.id)) {
+        await removeFromWishlist(collaboration.id);
+      } else {
+        await addToWishlist({
+          id: collaboration.id,
+          name: collaboration.title,
+          price: parseFloat(collaboration.price.replace('$', '')) || 0,
+          image: collaboration.image,
+          category: collaboration.category || 'Limited Drops',
+          description: collaboration.description,
+          rating: 5,
+          reviews: parseInt(collaboration.likes?.replace('K', '000').replace('.', '')) || 0,
+          isLimited: true,
+          isNew: true,
+          colors: ['Limited Edition'],
+          sizes: ['One Size']
+        });
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+    }
+  };
+
   const upcomingDrops = useMemo(() => [
     {
       id: 7,
@@ -587,6 +699,24 @@ const LimitedDrops = ({ className = "" }) => {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
+        {/* Subtle top marquee for live drops */}
+        <AnimatePresence>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="hidden md:block mb-6"
+          >
+            <div className="relative overflow-hidden rounded-full border border-white/10">
+              <motion.div
+                className="whitespace-nowrap py-2 px-4 text-xs text-white/70"
+                animate={{ x: ['0%', '-50%'] }}
+                transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
+              >
+                LIVE NOW • Exclusive Drops • VIP Access • Early Releases • Limited Editions • LIVE NOW • Exclusive Drops • VIP Access • Early Releases • Limited Editions •
+              </motion.div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
         {/* Header Section */}
         <motion.div 
           className="text-center mb-10 sm:mb-12 px-2"
@@ -914,6 +1044,13 @@ const LimitedDrops = ({ className = "" }) => {
           </div>
         </motion.div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        defaultMode="signin"
+      />
     </section>
   );
 };

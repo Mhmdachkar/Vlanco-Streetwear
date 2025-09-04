@@ -300,14 +300,14 @@ const Navigation = () => {
                         <p className="font-semibold text-sm text-cyan-400">{user.email}</p>
                       </div>
                       <motion.a 
-                        href="#" 
+                        href="/profile" 
                         className="block px-4 py-2 hover:bg-cyan-400/10 transition-colors hover:text-cyan-400"
                         whileHover={{ x: 5 }}
                       >
                         Profile
                       </motion.a>
                       <motion.a 
-                        href="#" 
+                        href="/orders" 
                         className="block px-4 py-2 hover:bg-cyan-400/10 transition-colors hover:text-cyan-400"
                         whileHover={{ x: 5 }}
                       >

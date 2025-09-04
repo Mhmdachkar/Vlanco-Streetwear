@@ -108,30 +108,7 @@ const CategorySections = () => {
     <section ref={ref} id="collections" className="relative py-14 sm:py-20 overflow-hidden">
       {/* Simplified Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-purple-900/5 to-background" />
-      
-      {/* Reduced Floating Particles - only 5 instead of 20 */}
-      <div className="absolute inset-0 pointer-events-none hidden sm:block">
-        {[...Array(5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-purple-500/20 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -50, 0], // Reduced movement
-              opacity: [0, 0.5, 0], // Reduced opacity
-              scale: [0, 0.8, 0], // Reduced scale
-            }}
-            transition={{
-              duration: Math.random() * 8 + 8, // Slower
-              repeat: Infinity,
-              delay: Math.random() * 3, // Reduced delay
-            }}
-          />
-        ))}
-      </div>
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Enhanced Header Section */}

@@ -12,10 +12,12 @@ import {
 } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useCart } from '@/hooks/useCart';
+import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { validateQuantity, logSecurityEvent } from '@/utils/security';
+import AuthModal from '@/components/AuthModal';
 
 // Local product images from assets folder
 // Guard against early references during build-time evaluation
@@ -912,6 +914,7 @@ const VlancoProductPage = () => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const location = useLocation();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   
   // Enhanced State Management
   const [selectedSize, setSelectedSize] = useState('');
@@ -928,6 +931,7 @@ const VlancoProductPage = () => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [cartAnimation, setCartAnimation] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const cartAnimationTimeoutRef = useRef(null);
   
   // Image optimization states
@@ -1246,6 +1250,39 @@ const VlancoProductPage = () => {
     }
   };
 
+  // Wishlist handler
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    try {
+      if (isInWishlist(product.id)) {
+        await removeFromWishlist(product.id);
+        setIsWishlisted(false);
+      } else {
+        await addToWishlist({
+          id: product.id,
+          name: product.name,
+          price: product.base_price || product.price || 0,
+          image: product.gallery?.[0] || product.images?.[0] || '/src/assets/product-1.jpg',
+          category: product.category || 'Product',
+          description: product.description,
+          rating: 4.5,
+          reviews: 0,
+          isLimited: false,
+          isNew: false,
+          colors: product.color_options?.map(c => c.name) || ['Black', 'White'],
+          sizes: product.size_options || ['S', 'M', 'L', 'XL']
+        });
+        setIsWishlisted(true);
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+    }
+  };
+
   // Image optimization and preloading functions
   const preloadImage = (imageItem, index) => {
     return new Promise((resolve, reject) => {
@@ -1479,23 +1516,27 @@ const VlancoProductPage = () => {
         created_at: new Date().toISOString()
       };
       
-      // Insert or update variant with conflict resolution
-      const { data: variant, error: variantError } = await supabase
-        .from('product_variants')
-        .upsert(variantData, { 
-          onConflict: 'sku',
-          ignoreDuplicates: false
-        })
-        .select()
-        .single();
-      
-      if (variantError) {
-        console.error('Variant creation error:', variantError);
-        throw new Error('Failed to create product variant');
-      }
-      
-      if (!variant || !variant.id) {
-        throw new Error('Invalid variant data received');
+      // Insert variant; if it exists, fetch by sku
+      let variantIdLocal = '';
+      try {
+        const insertRes = await supabase
+          .from('product_variants')
+          .insert(variantData)
+          .select('id, sku, stock_quantity')
+          .single();
+        if (insertRes.error) throw insertRes.error;
+        variantIdLocal = String(insertRes.data.id);
+      } catch (variantInsertErr) {
+        const { data: existing } = await supabase
+          .from('product_variants')
+          .select('id, sku, stock_quantity')
+          .eq('sku', variantData.sku)
+          .maybeSingle();
+        if (!existing?.id) {
+          console.error('Variant creation error:', variantInsertErr);
+          throw new Error('Failed to create product variant');
+        }
+        variantIdLocal = String(existing.id);
       }
       
       // Track product interaction
@@ -1520,18 +1561,18 @@ const VlancoProductPage = () => {
           protection: product.protection,
         },
         variant: {
-          id: String(variant.id),
+          id: String(variantIdLocal),
           color: product.color_options[selectedColor].name,
           size: selectedSize,
           price: product.base_price,
-          sku: variant.sku,
-          stock_quantity: variant.stock_quantity
+          sku: variantData.sku,
+          stock_quantity: variantData.stock_quantity
         },
         price: product.base_price,
         quantity
       };
       
-      await addToCart(String(product.id), String(variant.id), quantity, productDetails);
+      await addToCart(String(product.id), String(variantIdLocal), quantity, productDetails);
       
       // Update product stock in database
       const newStockQuantity = Math.max(0, product.stock_quantity - quantity);
@@ -1552,7 +1593,7 @@ const VlancoProductPage = () => {
       // Log security event
       logSecurityEvent('cart_item_added', {
         product_id: product.id,
-        variant_id: variant.id,
+        variant_id: variantIdLocal,
         quantity,
         user_id: user?.id
       });
@@ -1616,6 +1657,7 @@ const VlancoProductPage = () => {
 
   return (
     <>
+      <Navigation />
       {/* Loading Skeleton */}
       {pageLoading && (
         <motion.div
@@ -2729,14 +2771,6 @@ const VlancoProductPage = () => {
 
             {/* Enhanced Vault Features Section */}
             <VaultFeatures product={product} />
-
-            {/* duplicate color selection removed */}
-
-            {/* duplicate size selection removed */}
-
-            {/* duplicate quantity removed */}
-
-            {/* duplicate add to cart removed */}
 
             {/* Trust Badges */}
             <HoloCard className="p-6" glowColor="cyan">

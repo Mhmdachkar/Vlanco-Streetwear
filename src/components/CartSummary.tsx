@@ -19,7 +19,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items, onCheckout }) => {
   const [discount, setDiscount] = React.useState<{ code: string; amountOff: number } | null>(null);
   const getSubtotal = () => {
     return items.reduce((total, item) => {
-      const price = item.price_at_time || item.product?.base_price || 0;
+      const price = item.variant?.price ?? item.price_at_time ?? item.product?.base_price ?? 0;
       return total + (price * item.quantity);
     }, 0);
   };
@@ -27,7 +27,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items, onCheckout }) => {
   const getTotalSavings = () => {
     return items.reduce((total, item) => {
       const comparePrice = item.product?.compare_price || item.variant?.compare_price;
-      const currentPrice = item.price_at_time || item.product?.base_price || 0;
+      const currentPrice = item.variant?.price ?? item.price_at_time ?? item.product?.base_price ?? 0;
       if (comparePrice && comparePrice > currentPrice) {
         return total + ((comparePrice - currentPrice) * item.quantity);
       }
@@ -141,7 +141,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items, onCheckout }) => {
                   </div>
                 </div>
                 <div className="text-sm font-bold text-white">
-                  ${((item.price_at_time || item.product?.base_price || 0) * item.quantity).toFixed(2)}
+                  ${((item.variant?.price ?? item.price_at_time ?? item.product?.base_price ?? 0) * item.quantity).toFixed(2)}
                 </div>
               </motion.div>
             ))}

@@ -7,6 +7,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useCart } from '@/hooks/useCart';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import AuthModal from './AuthModal';
 import { useWishlist } from '@/hooks/useWishlist';
 
@@ -76,29 +77,30 @@ const FloatingParticles = React.memo(({ count = 10, color = "from-primary/20 to-
 // Optimized Loading Skeleton Component
 const LoadingSkeleton = React.memo(() => {
   return (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-    {[...Array(6)].map((_, i) => (
-      <motion.div
-        key={i}
-        className="bg-gradient-to-br from-background/80 to-muted/20 backdrop-blur-sm rounded-3xl border border-border/50 overflow-hidden"
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: i * 0.1 }}
-      >
-        <div className="animate-pulse">
-          <div className="bg-muted/50 rounded-t-3xl h-80" />
-          <div className="p-6 space-y-4">
-            <div className="space-y-2">
-              <div className="bg-muted/50 h-4 w-3/4 rounded" />
-              <div className="bg-muted/50 h-6 w-1/2 rounded" />
-              <div className="bg-muted/50 h-4 w-1/4 rounded" />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="bg-gradient-to-br from-background/80 to-muted/20 backdrop-blur-sm rounded-3xl border border-border/50 overflow-hidden"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: i * 0.1 }}
+        >
+          <div className="animate-pulse">
+            <div className="bg-muted/50 rounded-t-3xl h-80" />
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <div className="bg-muted/50 h-4 w-3/4 rounded" />
+                <div className="bg-muted/50 h-6 w-1/2 rounded" />
+                <div className="bg-muted/50 h-4 w-1/4 rounded" />
+              </div>
             </div>
           </div>
-        </div>
-      </motion.div>
-    ))}
-  </div>
-));
+        </motion.div>
+      ))}
+    </div>
+  );
+});
 
 // Optimized Product Card Component with React.memo
 const ProductCard = React.memo(({ 
@@ -397,10 +399,63 @@ const ProductGrid = () => {
       }
     } catch (_) {}
 
-    await addToCart(String(product.id), String(product.id), 1, {
+    // Create/find a default variant so Supabase join returns full variant
+    const defaultColor = product.colors?.[0]?.name || product.colors?.[0] || 'Default';
+    const defaultSize = product.sizes?.[0] || 'One Size';
+    const sku = product.sku || `${product.id}-${defaultColor}-${defaultSize}`;
+    let variantId: string | null = null;
+    try {
+      const { data: variant, error: variantError } = await supabase
+        .from('product_variants')
+        .upsert({
+          product_id: String(product.id),
+          color: defaultColor,
+          size: defaultSize,
+          price: Number(product.displayPrice ?? product.price ?? 0),
+          sku,
+          stock_quantity: 999,
+          is_active: true,
+          created_at: new Date().toISOString()
+        }, { onConflict: 'sku', ignoreDuplicates: false })
+        .select()
+        .single();
+      if (variantError || !variant?.id) {
+        throw variantError || new Error('Failed to upsert variant');
+      }
+      variantId = String(variant.id);
+    } catch (err) {
+      // As a fallback, try to find existing by SKU
+      const { data: existing } = await supabase
+        .from('product_variants')
+        .select('id')
+        .eq('sku', sku)
+        .maybeSingle();
+      variantId = existing?.id ? String(existing.id) : String(product.id);
+    }
+
+    await addToCart(String(product.id), variantId!, 1, {
       price: product.displayPrice ?? product.price ?? 0,
-      product: { base_price: product.displayPrice ?? product.price ?? 0 },
-      variant: { price: product.displayPrice ?? product.price ?? 0 }
+      product: { 
+        base_price: product.displayPrice ?? product.price ?? 0,
+        name: product.name,
+        description: product.description || `${product.name} - Premium streetwear collection`,
+        compare_price: product.compare_price,
+        image: product.displayImage || product.image,
+        brand: product.brand || 'VLANCO',
+        collection: product.category || 'Streetwear',
+        material: product.material || 'Premium Materials',
+        modelNumber: product.sku || `PROD-${product.id}`,
+        rating: product.rating,
+        reviews: product.reviews
+      },
+      variant: { 
+        id: variantId!,
+        price: product.displayPrice ?? product.price ?? 0,
+        color: defaultColor,
+        color_value: product.colors?.[0]?.value || '#000000',
+        size: defaultSize,
+        sku
+      }
     });
 
     const match = (items as any[]).find((i: any) => i.product_id === String(product.id));
