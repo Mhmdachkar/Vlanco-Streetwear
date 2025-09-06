@@ -1025,7 +1025,7 @@ const TShirtCollection = () => {
             </div>
           </div>
         </section>
-        {/* Main Content */}
+        {/* Main Content with Enhanced Unique Background */}
         <div 
           ref={containerRef}
           className="min-h-screen bg-gradient-to-br from-background via-muted/5 to-background relative overflow-hidden"
@@ -1034,15 +1034,65 @@ const TShirtCollection = () => {
           <FloatingParticles count={25} />
           <FloatingElements />
           
-          {/* Enhanced geometric background elements */}
+          {/* Unique Enhanced Background Elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {/* Large geometric shapes */}
+            {/* Animated Grid Pattern */}
             <motion.div
-              className="absolute top-20 left-10 w-32 h-32 border border-cyan-400/10 rounded-lg"
+              className="absolute inset-0 opacity-5"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px)
+                `,
+                backgroundSize: '60px 60px'
+              }}
+              animate={{
+                backgroundPosition: ['0px 0px', '60px 60px'],
+              }}
+              transition={{
+                duration: 20,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            />
+            
+            {/* Floating Energy Orbs */}
+            {[...Array(12)].map((_, i) => (
+              <motion.div
+                key={`orb-${i}`}
+                className="absolute w-3 h-3 rounded-full"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  background: `radial-gradient(circle, rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.4) 0%, transparent 70%)`,
+                }}
+                animate={{
+                  scale: [0.5, 1.5, 0.5],
+                  opacity: [0.2, 0.8, 0.2],
+                  x: [0, Math.random() * 100 - 50, 0],
+                  y: [0, Math.random() * 100 - 50, 0],
+                }}
+                transition={{
+                  duration: 8,
+                  repeat: Infinity,
+                  delay: i * 0.7,
+                  ease: "easeInOut",
+                }}
+              />
+            ))}
+            
+            {/* Large geometric shapes with enhanced animations */}
+            <motion.div
+              className="absolute top-20 left-10 w-32 h-32 border border-cyan-400/15 rounded-lg"
               animate={{
                 rotate: [0, 90, 180, 270, 360],
                 scale: [1, 1.1, 1],
                 opacity: [0.3, 0.6, 0.3],
+                borderColor: [
+                  'rgba(0, 212, 255, 0.15)',
+                  'rgba(139, 92, 246, 0.15)',
+                  'rgba(0, 212, 255, 0.15)'
+                ]
               }}
               transition={{
                 duration: 20,
@@ -1052,11 +1102,16 @@ const TShirtCollection = () => {
             />
             
             <motion.div
-              className="absolute top-40 right-20 w-24 h-24 border border-purple-400/10 rounded-full"
+              className="absolute top-40 right-20 w-24 h-24 border border-purple-400/15 rounded-full"
               animate={{
                 rotate: [360, 270, 180, 90, 0],
                 scale: [1, 1.2, 1],
                 opacity: [0.2, 0.5, 0.2],
+                borderColor: [
+                  'rgba(139, 92, 246, 0.15)',
+                  'rgba(0, 212, 255, 0.15)',
+                  'rgba(139, 92, 246, 0.15)'
+                ]
               }}
               transition={{
                 duration: 25,
@@ -1066,11 +1121,16 @@ const TShirtCollection = () => {
             />
             
             <motion.div
-              className="absolute bottom-40 left-1/4 w-20 h-20 border border-green-400/10 transform rotate-45"
+              className="absolute bottom-40 left-1/4 w-20 h-20 border border-green-400/15 transform rotate-45"
               animate={{
                 rotate: [45, 135, 225, 315, 405],
                 scale: [1, 1.15, 1],
                 opacity: [0.4, 0.7, 0.4],
+                borderColor: [
+                  'rgba(34, 197, 94, 0.15)',
+                  'rgba(0, 212, 255, 0.15)',
+                  'rgba(34, 197, 94, 0.15)'
+                ]
               }}
               transition={{
                 duration: 18,
@@ -1079,25 +1139,95 @@ const TShirtCollection = () => {
               }}
             />
             
-            {/* Floating dots */}
-            {[...Array(8)].map((_, i) => (
+            {/* Enhanced floating dots with unique patterns */}
+            {[...Array(15)].map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute w-2 h-2 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full"
                 style={{
-                  left: `${20 + i * 10}%`,
-                  top: `${30 + (i % 3) * 20}%`,
+                  left: `${20 + i * 5}%`,
+                  top: `${30 + (i % 4) * 15}%`,
                 }}
                 animate={{
-                  y: [0, -20, 0],
-                  opacity: [0.3, 0.8, 0.3],
-                  scale: [1, 1.5, 1],
+                  y: [0, -30, 0],
+                  opacity: [0.3, 0.9, 0.3],
+                  scale: [1, 1.8, 1],
+                  rotate: [0, 180, 360],
                 }}
                 transition={{
-                  duration: 3 + i * 0.5,
+                  duration: 4 + i * 0.3,
                   repeat: Infinity,
                   ease: "easeInOut",
-                  delay: i * 0.3,
+                  delay: i * 0.2
+                }}
+              />
+            ))}
+            
+            {/* Unique Wave Patterns */}
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={`wave-${i}`}
+                className="absolute inset-0 opacity-10"
+                style={{
+                  background: `linear-gradient(${90 + i * 30}deg, transparent 0%, rgba(0, 212, 255, 0.1) 50%, transparent 100%)`,
+                }}
+                animate={{
+                  x: [0, 100, 0],
+                  opacity: [0.05, 0.15, 0.05],
+                }}
+                transition={{
+                  duration: 15 + i * 5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 3
+                }}
+              />
+            ))}
+            
+            {/* Unique Hexagonal Patterns */}
+            {[...Array(6)].map((_, i) => (
+              <motion.div
+                key={`hex-${i}`}
+                className="absolute w-16 h-16 border border-cyan-400/10"
+                style={{
+                  left: `${15 + i * 15}%`,
+                  top: `${20 + (i % 2) * 40}%`,
+                  clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+                }}
+                animate={{
+                  rotate: [0, 120, 240, 360],
+                  scale: [1, 1.1, 1],
+                  opacity: [0.2, 0.5, 0.2],
+                }}
+                transition={{
+                  duration: 12 + i * 2,
+                  repeat: Infinity,
+                  ease: "linear",
+                  delay: i * 1.5
+                }}
+              />
+            ))}
+            
+            {/* Unique Floating Light Beams */}
+            {[...Array(4)].map((_, i) => (
+              <motion.div
+                key={`beam-${i}`}
+                className="absolute w-1 h-32 bg-gradient-to-b from-transparent via-cyan-400/30 to-transparent"
+                style={{
+                  left: `${25 + i * 20}%`,
+                  top: '0%',
+                  transform: `rotate(${i * 45}deg)`,
+                }}
+                animate={{
+                  y: [0, 100, 0],
+                  opacity: [0, 0.6, 0],
+                  scaleY: [0, 1, 0],
+                }}
+                transition={{
+                  duration: 6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 1.5
                 }}
               />
             ))}
