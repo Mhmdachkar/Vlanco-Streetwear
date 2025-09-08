@@ -1497,27 +1497,38 @@ const MaskCollection = () => {
     await addToCart(product.id.toString(), variantId, 1, {
       price: product.price,
       product: { 
-        base_price: product.price,
+        id: String(product.id),
         name: product.name,
-        description: product.description,
-        compare_price: product.originalPrice,
+        base_price: Number(product.price) || 0,
+        compare_price: Number(product.originalPrice) || null,
+        description: product.description || `${product.name} - Premium mask collection`,
+        image_url: product.image,
         image: product.image,
-        gallery: product.gallery,
-        brand: product.brand,
-        collection: product.collection,
-        material: product.material,
+        images: product.gallery || [product.image],
+        brand: product.brand || 'VLANCO',
+        category: 'Masks',
+        material: product.material || 'Premium Materials',
         protection: product.protection,
-        rating: product.rating,
-        reviews: product.reviews,
+        rating_average: product.rating,
+        rating_count: product.reviews,
+        size_options: product.sizes || ['Adult Size'],
+        color_options: product.colors?.map(c => c.name || c) || ['Default'],
+        tags: product.tags || ['streetwear', 'mask', 'protection'],
+        is_new_arrival: product.isNew || false,
+        is_bestseller: product.isBestseller || false,
+        stock_quantity: product.inStock ? 10 : 0,
         modelNumber: product.modelNumber
       },
       variant: { 
         id: variantId,
+        product_id: String(product.id),
         price: Number(product.price) || 0,
         color: defaultColor,
         color_value: product.colors?.[0]?.value || '#000000',
         size: defaultSize,
-        sku
+        sku,
+        stock_quantity: 10,
+        is_active: true
       }
     });
   };

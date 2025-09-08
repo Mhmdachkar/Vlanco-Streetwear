@@ -106,6 +106,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     if (error) throw error;
+    
+    // Ensure user profile exists in database
+    if (data.user) {
+      const { data: existingProfile } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', data.user.id)
+        .single();
+        
+      if (!existingProfile) {
+        console.log('Creating user profile for existing auth user...');
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert({
+            id: data.user.id,
+            email: data.user.email!,
+            first_name: data.user.user_metadata?.first_name || null,
+            last_name: data.user.user_metadata?.last_name || null,
+            phone: data.user.user_metadata?.phone || null,
+            avatar_url: data.user.user_metadata?.avatar_url || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+          
+        if (profileError) {
+          console.error('Error creating user profile:', profileError);
+        } else {
+          console.log('✅ User profile created successfully');
+        }
+      }
+    }
+    
     return data;
   };
 

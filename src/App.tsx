@@ -10,6 +10,7 @@ import LandingPage from "./components/LandingPage";
 import SplashScreen from "./components/SplashScreen";
 import MaskCollection from './pages/MaskCollection';
 import AccessoriesCollection from './pages/AccessoriesCollection';
+import DatabaseIntegrationDemo from './components/DatabaseIntegrationDemo';
 
 // Lazy load components for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -67,6 +68,7 @@ const AppContent = () => {
         <Route path="/accessories" element={<AccessoriesCollection />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/demo" element={<DatabaseIntegrationDemo />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>

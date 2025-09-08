@@ -163,24 +163,37 @@ const AccessoriesCollection = () => {
                         addToCart(product.id.toString(), variantId, 1, {
                           price: product.price,
                           product: { 
-                            base_price: product.price,
+                            id: String(product.id),
                             name: product.name,
+                            base_price: Number(product.price) || 0,
+                            compare_price: Number(product.originalPrice) || null,
                             description: product.description || `${product.name} - Premium accessories collection`,
-                            compare_price: product.originalPrice,
+                            image_url: product.image,
                             image: product.image,
+                            images: [product.image],
                             brand: product.brand || 'VLANCO',
-                            collection: product.category || 'Accessories',
+                            category: 'Accessories',
                             material: product.material || 'Premium Materials',
-                            modelNumber: `ACC-${product.id}`,
-                            rating: product.rating,
-                            reviews: product.reviews
+                            rating_average: product.rating,
+                            rating_count: product.reviews,
+                            size_options: product.sizes || ['One Size'],
+                            color_options: product.colors?.map(c => c.name || c) || ['Default'],
+                            tags: product.tags || ['streetwear', 'accessories'],
+                            is_new_arrival: product.isNew || false,
+                            is_bestseller: product.isBestseller || false,
+                            stock_quantity: product.inStock ? 10 : 0,
+                            modelNumber: `ACC-${product.id}`
                           },
                           variant: { 
-                            price: product.price,
+                            id: variantId,
+                            product_id: String(product.id),
+                            price: Number(product.price) || 0,
                             color: selectedColorData?.name || 'Default',
                             color_value: selectedColorData?.value || '#000000',
                             size: size,
-                            sku: `${product.id}-${colorIdx}-${size}`
+                            sku: `${product.id}-${colorIdx}-${size}`,
+                            stock_quantity: 10,
+                            is_active: true
                           }
                         });
                       }}

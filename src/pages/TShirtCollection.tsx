@@ -580,60 +580,48 @@ const TShirtCollection = () => {
     // Animation
     flyToCart(product.id);
     
-    // Ensure a real product_variant exists (so cart FK joins return real data)
+    // Simplified approach: Just call addToCart with complete product details
     try {
+      console.log('🛒 Preparing product details for cart...');
+      
+      // Create a unique variant ID for this combination
+      const variantId = `tshirt_${product.id}_${colorIndex}_${size}`;
       const sku = `${product.id}-${colorIndex}-${size}`;
-      const insertRes = await supabase
-        .from('product_variants')
-        .insert({
-          product_id: String(product.id),
-          color: selectedColorData?.name || 'Default',
-          size: size,
-          price: Number(product.price) || 0,
-          sku,
-          stock_quantity: 999,
-          is_active: true,
-          created_at: new Date().toISOString()
-        })
-        .select('id')
-        .single();
-
-      let variantIdLocal = '';
-      if (insertRes.error) {
-        // If conflict or other error, try to get existing by sku
-        const { data: existing } = await supabase
-          .from('product_variants')
-          .select('id')
-          .eq('sku', sku)
-          .maybeSingle();
-        if (!existing?.id) throw insertRes.error;
-        variantIdLocal = String(existing.id);
-      } else {
-        variantIdLocal = String(insertRes.data.id);
-      }
-
-      await addToCart(product.id.toString(), variantIdLocal, 1, {
+      
+      console.log('🛒 Calling addToCart with product details...');
+      await addToCart(product.id.toString(), variantId, 1, {
         price: product.price,
         product: { 
-          base_price: product.price,
+          id: String(product.id),
           name: product.name,
+          base_price: Number(product.price) || 0,
+          compare_price: Number(product.originalPrice) || null,
           description: product.description || `${product.name} - Premium streetwear collection`,
-          compare_price: product.originalPrice,
+          image_url: product.image,
           image: product.image,
+          images: product.images || [product.image],
           brand: product.brand || 'VLANCO',
-          collection: product.category || 'Streetwear',
+          category: 'T-Shirts',
           material: product.material || 'Premium Cotton',
-          modelNumber: `TSHIRT-${product.id}`,
-          rating: product.rating,
-          reviews: product.reviews
+          rating_average: product.rating,
+          rating_count: product.reviews,
+          size_options: product.sizes || ['XS', 'S', 'M', 'L', 'XL'],
+          color_options: product.colors?.map(c => c.name || c) || ['Default'],
+          tags: product.tags || ['streetwear', 'tshirt'],
+          is_new_arrival: product.isNew || false,
+          is_bestseller: product.isBestseller || false,
+          stock_quantity: product.inStock ? 10 : 0
         },
         variant: { 
-          id: variantIdLocal,
+          id: variantId,
+          product_id: String(product.id),
           price: Number(product.price) || 0,
           color: selectedColorData?.name || 'Default',
           color_value: selectedColorData?.value || '#000000',
           size: size,
-          sku
+          sku,
+          stock_quantity: 10,
+          is_active: true
         }
       });
       
@@ -647,9 +635,17 @@ const TShirtCollection = () => {
       });
     } catch (error) {
       console.error('❌ Error in handleQuickAdd:', error);
+      console.error('❌ Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        productId: product.id,
+        size,
+        colorIndex,
+        selectedColorData
+      });
       toast({
         title: "Error",
-        description: "Failed to add item to cart",
+        description: `Failed to add item to cart: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive"
       });
     }

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables } from '@/integrations/supabase/types';
 
@@ -543,46 +543,81 @@ const mockProducts: Product[] = [
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch products with their images
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          images:product_images(image_url, alt_text, is_primary, sort_order),
+          variants:product_variants(*)
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('Supabase products fetch error:', error);
+        setProducts(mockProducts);
+      } else if (!data || data.length === 0) {
+        console.warn('No products found in database, using mock data');
+        setProducts(mockProducts);
+      } else {
+        // Map Supabase data to Product interface
+        const mappedProducts = data.map((p: any) => ({
+          id: parseInt(p.id) || p.id,
+          name: p.name,
+          price: p.base_price || 0,
+          originalPrice: p.compare_price || undefined,
+          image: p.images?.find((img: any) => img.is_primary)?.image_url || 
+                 p.images?.[0]?.image_url || 
+                 '/src/assets/product-1.jpg',
+          images: p.images?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
+                    .map((img: any) => img.image_url) || 
+                  ['/src/assets/product-1.jpg'],
+          category: p.category?.name || 'Streetwear',
+          description: p.description,
+          features: Array.isArray(p.meta_fields?.features) ? p.meta_fields.features : undefined,
+          specifications: {
+            material: p.material,
+            fit: p.meta_fields?.fit,
+            care: p.care_instructions,
+            origin: p.meta_fields?.origin,
+            weight: p.weight ? `${p.weight}g` : undefined,
+            dimensions: p.dimensions ? JSON.stringify(p.dimensions) : undefined,
+          },
+          sizes: p.size_options || [],
+          colors: p.color_options?.map((c: string) => ({ 
+            name: c, 
+            value: c.toLowerCase().replace(/\s+/g, '-'),
+            image: p.images?.[0]?.image_url 
+          })) || [],
+          rating: p.rating_average,
+          reviews: p.rating_count,
+          inStock: (p.stock_quantity || 0) > 0,
+          isNew: p.is_new_arrival,
+          isBestseller: p.is_bestseller,
+          tags: p.tags || [],
+        }));
+        
+        setProducts(mappedProducts);
+        console.log(`✅ Loaded ${mappedProducts.length} products from Supabase`);
+      }
+    } catch (err) {
+      console.error('Exception fetching products:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch products');
+      setProducts(mockProducts);
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*');
-        if (error || !data || data.length === 0) {
-          setProducts(mockProducts);
-        } else {
-          // Map Supabase data to Product interface (basic mapping)
-          setProducts(data.map((p: any) => ({
-            id: p.id,
-            name: p.name,
-            price: p.base_price || p.price || 0,
-            originalPrice: p.compare_price || undefined,
-            image: p.image_url || '/src/assets/product-1.jpg',
-            images: p.images || [],
-            category: p.category_id || p.category || '',
-            description: p.description,
-            features: p.features,
-            specifications: p.specifications,
-            sizes: p.size_options || [],
-            colors: p.color_options ? p.color_options.map((c: string) => ({ name: c, value: c })) : [],
-            rating: p.rating_average,
-            reviews: p.rating_count,
-            inStock: p.in_stock,
-            isNew: p.is_new_arrival,
-            isBestseller: p.is_bestseller,
-            tags: p.tags,
-          })));
-        }
-      } catch (err) {
-        setProducts(mockProducts);
-      }
-      setLoading(false);
-    };
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const getProductsByCategory = (category: string) => {
     return products.filter(product => product.category === category);
@@ -608,9 +643,11 @@ export const useProducts = () => {
   return {
     products,
     loading,
+    error,
     getProductsByCategory,
     getProductById,
     getFeaturedProducts,
-    searchProducts
+    searchProducts,
+    refetch: fetchProducts
   };
 };

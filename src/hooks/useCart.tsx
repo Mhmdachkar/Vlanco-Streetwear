@@ -4,6 +4,7 @@ import { useAuth } from './useAuth';
 import type { Tables } from '@/integrations/supabase/types';
 import { toast } from '@/hooks/use-toast';
 import { createCheckoutSession } from '@/services/edgeFunctions';
+import { trackCartEvent } from '@/services/analyticsService';
 
 type CartItem = Tables<'cart_items'> & {
   product: Tables<'products'>;
@@ -131,12 +132,53 @@ function useProvideCart(): CartContextValue {
       });
 
       console.log('🛒 Final cart items with enhanced details:', itemsWithEnhancedDetails);
-      if ((itemsWithEnhancedDetails as any[]).length === 0) {
-        // Preserve current UI state if server has no items yet
-        console.warn('⚠️ Supabase returned no cart items; preserving current cart state');
-      } else {
-        setItems(itemsWithEnhancedDetails);
-      }
+      
+      // Ensure all cart items have basic product information
+      const itemsWithDefaults = itemsWithEnhancedDetails.map(item => {
+        const hasProductInfo = item.product && (item.product.name || item.product.base_price);
+        const hasVariantInfo = item.variant && (item.variant.price || item.variant.color);
+        
+        if (!hasProductInfo || !hasVariantInfo) {
+          console.warn('⚠️ Cart item missing product details, adding defaults:', item.id);
+          return {
+            ...item,
+            product: {
+              id: item.product_id,
+              name: item.product?.name || `Product ${item.product_id}`,
+              base_price: item.product?.base_price || 0,
+              image_url: item.product?.image_url || '/src/assets/product-1.jpg',
+              description: item.product?.description || 'Streetwear product',
+              category: item.product?.category || 'Streetwear',
+              ...item.product
+            },
+            variant: {
+              id: item.variant_id,
+              price: item.variant?.price || item.product?.base_price || 0,
+              color: item.variant?.color || 'Default',
+              size: item.variant?.size || 'M',
+              sku: item.variant?.sku || `${item.product_id}-default`,
+              ...item.variant
+            }
+          };
+        }
+        return item;
+      });
+      
+      setItems(itemsWithDefaults);
+      
+      // Debug: Log what we're actually setting
+      console.log('🔍 Final cart items being set:', itemsWithDefaults.map(item => ({
+        id: item.id,
+        product_id: item.product_id,
+        variant_id: item.variant_id,
+        quantity: item.quantity,
+        hasProduct: !!item.product,
+        hasVariant: !!item.variant,
+        productName: item.product?.name,
+        variantColor: item.variant?.color,
+        variantSize: item.variant?.size,
+        price: item.variant?.price || item.product?.base_price
+      })));
     } catch (error) {
       console.error('❌ Exception fetching cart items:', error);
       setError('Failed to fetch cart items');
@@ -180,6 +222,15 @@ function useProvideCart(): CartContextValue {
       }
       
       await fetchCartItems();
+      
+      // Track analytics
+      await trackCartEvent({
+        userId: user.id,
+        eventType: 'remove_from_cart',
+        productId: item.product_id,
+        variantId: item.variant_id,
+      });
+      
       toast({ 
         title: 'Removed from cart', 
         description: 'Item has been removed from your cart',
@@ -200,7 +251,15 @@ function useProvideCart(): CartContextValue {
 
   // Add item to cart
   const addToCart = useCallback(async (productId: string, variantId: string, quantity: number = 1, productDetails?: any) => {
-    console.log('🔍 addToCart called with:', { productId, variantId, quantity, productDetails, user: !!user });
+    console.log('🔍 addToCart called with:', { 
+      productId, 
+      variantId, 
+      quantity, 
+      hasProductDetails: !!productDetails,
+      productDetailsKeys: productDetails ? Object.keys(productDetails) : [],
+      user: !!user,
+      userId: user?.id 
+    });
     
     if (!user) {
       // Guest cart logic with enhanced product details
@@ -214,17 +273,41 @@ function useProvideCart(): CartContextValue {
         cart[existingItemIndex].quantity += quantity;
         console.log('📦 Updated existing item quantity');
       } else {
+        // Ensure complete product details for guest cart
+        const completeProduct = {
+          id: productId,
+          name: productDetails?.product?.name || `Product ${productId}`,
+          base_price: productDetails?.product?.base_price || productDetails?.price || 0,
+          image_url: productDetails?.product?.image_url || productDetails?.product?.image || '/src/assets/product-1.jpg',
+          description: productDetails?.product?.description || 'Streetwear product',
+          category: productDetails?.product?.category || 'Streetwear',
+          brand: productDetails?.product?.brand || 'VLANCO',
+          compare_price: productDetails?.product?.compare_price,
+          ...productDetails?.product
+        };
+        
+        const completeVariant = {
+          id: variantId,
+          price: productDetails?.variant?.price || productDetails?.price || 0,
+          color: productDetails?.variant?.color || 'Default',
+          size: productDetails?.variant?.size || 'M',
+          sku: productDetails?.variant?.sku || `${productId}-default`,
+          stock_quantity: productDetails?.variant?.stock_quantity || 10,
+          is_active: true,
+          ...productDetails?.variant
+        };
+        
         cart.push({ 
           id: `guest_${Date.now()}_${Math.random()}`, 
           product_id: productId, 
           variant_id: variantId, 
           quantity,
           price_at_time: productDetails?.price || 0,
-          product: productDetails?.product || {},
-          variant: productDetails?.variant || {},
+          product: completeProduct,
+          variant: completeVariant,
           added_at: new Date().toISOString()
         });
-        console.log('📦 Added new item to guest cart');
+        console.log('📦 Added new item to guest cart with complete details:', { completeProduct, completeVariant });
       }
       
       setLocalCart(cart);
@@ -247,6 +330,8 @@ function useProvideCart(): CartContextValue {
       let rollback: (() => void) | null = null;
       if (productDetails) {
         const tempId = `temp_${Date.now()}_${Math.random()}`;
+        
+        // Ensure complete product details for optimistic update
         const optimisticItem: any = {
           id: tempId,
           user_id: user.id,
@@ -254,9 +339,31 @@ function useProvideCart(): CartContextValue {
           variant_id: variantId,
           quantity,
           added_at: new Date().toISOString(),
-          product: productDetails.product || {},
-          variant: productDetails.variant || {}
+          product: {
+            id: productId,
+            name: productDetails?.product?.name || `Product ${productId}`,
+            base_price: productDetails?.product?.base_price || productDetails?.price || 0,
+            image_url: productDetails?.product?.image_url || productDetails?.product?.image || '/src/assets/product-1.jpg',
+            description: productDetails?.product?.description || 'Streetwear product',
+            category: productDetails?.product?.category || 'Streetwear',
+            brand: productDetails?.product?.brand || 'VLANCO',
+            compare_price: productDetails?.product?.compare_price,
+            ...productDetails.product
+          },
+          variant: {
+            id: variantId,
+            price: productDetails?.variant?.price || productDetails?.price || 0,
+            color: productDetails?.variant?.color || 'Default',
+            size: productDetails?.variant?.size || 'M',
+            sku: productDetails?.variant?.sku || `${productId}-default`,
+            stock_quantity: productDetails?.variant?.stock_quantity || 10,
+            is_active: true,
+            ...productDetails.variant
+          }
         };
+        
+        console.log('🔄 Adding optimistic item with complete details:', optimisticItem);
+        
         setItems(prev => {
           const next = [optimisticItem, ...prev];
           return next as CartItem[];
@@ -307,14 +414,46 @@ function useProvideCart(): CartContextValue {
         console.log('💾 Storing enhanced details');
         const enhancedDetails = getEnhancedDetails();
         const itemKey = `${productId}-${variantId}`;
-        (enhancedDetails as any)[itemKey] = {
-          product: productDetails.product || {},
-          variant: productDetails.variant || {}
+        
+        // Ensure we have complete product information
+        const completeProductDetails = {
+          product: {
+            id: productId,
+            name: productDetails.product?.name || `Product ${productId}`,
+            base_price: productDetails.product?.base_price || productDetails.price || 0,
+            image_url: productDetails.product?.image_url || productDetails.product?.image || '/src/assets/product-1.jpg',
+            description: productDetails.product?.description || 'Streetwear product',
+            category: productDetails.product?.category || 'Streetwear',
+            brand: productDetails.product?.brand || 'VLANCO',
+            ...productDetails.product
+          },
+          variant: {
+            id: variantId,
+            price: productDetails.variant?.price || productDetails.price || 0,
+            color: productDetails.variant?.color || 'Default',
+            size: productDetails.variant?.size || 'M',
+            sku: productDetails.variant?.sku || `${productId}-default`,
+            ...productDetails.variant
+          }
         };
+        
+        (enhancedDetails as any)[itemKey] = completeProductDetails;
         setEnhancedDetails(enhancedDetails);
+        console.log('💾 Stored complete product details:', completeProductDetails);
       }
 
       await fetchCartItems();
+      
+      // Track analytics
+      await trackCartEvent({
+        userId: user.id,
+        eventType: 'add_to_cart',
+        productId,
+        variantId,
+        quantity,
+        price: productDetails?.price,
+      });
+      
       console.log('🛒 Authenticated cart updated successfully');
       toast({ 
         title: '🚀 DEPLOYED TO VAULT!', 
@@ -437,6 +576,20 @@ function useProvideCart(): CartContextValue {
       
       if (guestCart.length > 0) {
         console.log('🔄 Migrating guest cart to authenticated cart');
+        
+        // Store enhanced details for guest cart items before migration
+        const enhancedDetails = getEnhancedDetails();
+        guestCart.forEach(item => {
+          const itemKey = `${item.product_id}-${item.variant_id}`;
+          if (item.product || item.variant) {
+            (enhancedDetails as any)[itemKey] = {
+              product: item.product || {},
+              variant: item.variant || {}
+            };
+          }
+        });
+        setEnhancedDetails(enhancedDetails);
+        
         // For each item in guest cart, upsert into Supabase cart
         Promise.all(guestCart.map(async (item) => {
           try {
@@ -451,6 +604,7 @@ function useProvideCart(): CartContextValue {
             console.error('Failed to migrate guest cart item:', error);
           }
         })).then(() => {
+          console.log('🔄 Guest cart migration complete, clearing guest cart');
           setLocalCart([]); // Clear guest cart after merge
           fetchCartItems();
         });

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from './use-toast';
+import { trackWishlistEvent } from '@/services/analyticsService';
 
 export interface WishlistItem {
   id: string;
@@ -136,6 +137,14 @@ export function useWishlist() {
       if (insertError) throw insertError;
       
       await fetchWishlistItems();
+      
+      // Track analytics
+      await trackWishlistEvent({
+        userId: user.id,
+        eventType: 'add_to_wishlist',
+        productId: item.id,
+      });
+      
       toast({ 
         title: 'Added to Wishlist', 
         description: 'Item has been added to your wishlist',
@@ -183,6 +192,14 @@ export function useWishlist() {
       if (deleteError) throw deleteError;
       
       await fetchWishlistItems();
+      
+      // Track analytics
+      await trackWishlistEvent({
+        userId: user.id,
+        eventType: 'remove_from_wishlist',
+        productId: itemId,
+      });
+      
       toast({ 
         title: 'Removed from Wishlist', 
         description: 'Item has been removed from your wishlist',

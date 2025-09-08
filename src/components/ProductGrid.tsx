@@ -135,7 +135,7 @@ const ProductCard = React.memo(({
       <motion.div
         className="bg-gradient-to-br from-background/80 to-muted/20 backdrop-blur-sm rounded-3xl border border-border/50 overflow-hidden cursor-pointer group-hover:shadow-2xl transition-all duration-500"
         whileHover={{ y: -8, scale: 1.01, transition: { duration: 0.25 } }}
-        onClick={() => onNavigate(product.slug)}
+        onClick={() => onNavigate(product.slug || product.id, product)}
         style={{
           transformStyle: 'preserve-3d',
         }}
@@ -368,6 +368,8 @@ const ProductGrid = () => {
 
   // Memoized handlers for better performance
   const handleAddToCart = useCallback(async (e: React.MouseEvent, product: any) => {
+    console.log('🛒 ProductGrid handleAddToCart called with product:', product);
+    
     if (!user) {
       setShowAuthModal(true);
       return;
@@ -433,30 +435,45 @@ const ProductGrid = () => {
       variantId = existing?.id ? String(existing.id) : String(product.id);
     }
 
-    await addToCart(String(product.id), variantId!, 1, {
+    const productDetails = {
       price: product.displayPrice ?? product.price ?? 0,
       product: { 
-        base_price: product.displayPrice ?? product.price ?? 0,
+        id: String(product.id),
         name: product.name,
+        base_price: product.displayPrice ?? product.price ?? 0,
+        compare_price: product.originalPrice || product.compare_price,
         description: product.description || `${product.name} - Premium streetwear collection`,
-        compare_price: product.compare_price,
+        image_url: product.displayImage || product.image,
         image: product.displayImage || product.image,
+        images: product.images || [product.displayImage || product.image],
         brand: product.brand || 'VLANCO',
-        collection: product.category || 'Streetwear',
+        category: product.category || 'Streetwear',
         material: product.material || 'Premium Materials',
-        modelNumber: product.sku || `PROD-${product.id}`,
-        rating: product.rating,
-        reviews: product.reviews
+        rating_average: product.rating,
+        rating_count: product.reviews,
+        size_options: product.sizes || ['One Size'],
+        color_options: product.colors?.map(c => c.name || c) || [defaultColor],
+        tags: product.tags || ['streetwear'],
+        is_new_arrival: product.isNew || false,
+        is_bestseller: product.isBestseller || false,
+        stock_quantity: product.inStock ? 10 : 0
       },
       variant: { 
         id: variantId!,
+        product_id: String(product.id),
         price: product.displayPrice ?? product.price ?? 0,
         color: defaultColor,
         color_value: product.colors?.[0]?.value || '#000000',
         size: defaultSize,
-        sku
+        sku,
+        stock_quantity: 10,
+        is_active: true
       }
-    });
+    };
+    
+    console.log('🛒 ProductGrid calling addToCart with details:', productDetails);
+    
+    await addToCart(String(product.id), variantId!, 1, productDetails);
 
     const match = (items as any[]).find((i: any) => i.product_id === String(product.id));
     toast({
@@ -519,8 +536,39 @@ const ProductGrid = () => {
     }
   }, [user, isInWishlist, removeFromWishlist, addToWishlist]);
 
-  const handleNavigate = useCallback((slug: string) => {
-    navigate(`/product/${slug}`);
+  const handleNavigate = useCallback((slug: string, product?: any) => {
+    if (product) {
+      // Navigate with complete product data
+      navigate(`/product/${product.id}`, {
+        state: {
+          product: {
+            id: product.id,
+            name: product.name,
+            price: product.displayPrice ?? product.price,
+            originalPrice: product.originalPrice || product.compare_price,
+            image: product.displayImage || product.image,
+            images: product.images || [product.displayImage || product.image],
+            gallery: product.images || [product.displayImage || product.image],
+            rating: product.rating,
+            reviews: product.reviews,
+            isNew: product.isNew,
+            isBestseller: product.isBestseller,
+            colors: product.colors,
+            sizes: product.sizes,
+            category: product.category,
+            description: product.description,
+            features: product.features,
+            specifications: product.specifications,
+            brand: product.brand || 'VLANCO',
+            material: product.material,
+            tags: product.tags,
+            inStock: product.inStock
+          }
+        }
+      });
+    } else {
+      navigate(`/product/${slug}`);
+    }
   }, [navigate]);
 
   const categories = useMemo(() => [
