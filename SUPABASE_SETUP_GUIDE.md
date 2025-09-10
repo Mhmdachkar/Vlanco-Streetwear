@@ -51,8 +51,8 @@ Replace the placeholder values in your `.env` file:
 
 ```env
 # Replace with your actual values
-VITE_SUPABASE_URL=https://okjxnqdppxwcfgtdggna.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ranhuUWRwcHh3Y2ZndGRnZ25hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDcxNzc3NDYsImV4cCI6MjAyMjc1Mzc0Nn0.YOUR_ACTUAL_ANON_KEY_HERE
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your_actual_anon_key_here
 ```
 
 ### **Step 4: Restart Development Server**
@@ -106,9 +106,9 @@ Once your `.env` file is correct, you should see:
 
 ```env
 # Your actual Supabase credentials
-VITE_SUPABASE_URL=https://okjxnqdppxwcfgtdggna.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ranhuUWRwcHh3Y2ZndGRnZ25hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDcxNzc3NDYsImV4cCI6MjAyMjc1Mzc0Nn0.your_actual_anon_key_here
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ranhuUWRwcHh3Y2ZndGRnZ25hIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTcwNzE3Nzc0NiwiZXhwIjoyMDIyNzUzNzQ2fQ.your_actual_service_role_key_here
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your_actual_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_actual_service_role_key_here
 ```
 
 ## 🚀 **Next Steps After Connection Works**

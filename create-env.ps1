@@ -3,7 +3,7 @@ Write-Host "🔧 Creating .env file..." -ForegroundColor Cyan
 
 $envTemplate = @"
 # Supabase Configuration
-VITE_SUPABASE_URL=https://okjxnqdppxwcfgtdggna.supabase.co
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 SERVICE_ROLE_SECRET=your_service_role_key_here
 
