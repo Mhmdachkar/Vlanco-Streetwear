@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/hooks/useCart";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 import LandingPage from "./components/LandingPage";
 import SplashScreen from "./components/SplashScreen";
 import MaskCollection from './pages/MaskCollection';
@@ -48,31 +49,32 @@ const AppContent = () => {
   }
 
   return (
-    
-    <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-          <p className="text-xl font-semibold text-muted-foreground">Loading...</p>
+    <AnalyticsTracker>
+      <Suspense fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            <p className="text-xl font-semibold text-muted-foreground">Loading...</p>
+          </div>
         </div>
-      </div>
-    }>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/mask/:id" element={<ProductDetail />} />
-        <Route path="/wishlist" element={<Wishlist />} />
-        <Route path="/collection/t-shirts" element={<TShirtCollection />} />
-        <Route path="/tshirts" element={<TShirtCollection />} />
-        <Route path="/masks" element={<MaskCollection />} />
-        <Route path="/accessories" element={<AccessoriesCollection />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/demo" element={<DatabaseIntegrationDemo />} />
-        
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Suspense>
+      }>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/product/:id" element={<ProductDetail />} />
+          <Route path="/mask/:id" element={<ProductDetail />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/collection/t-shirts" element={<TShirtCollection />} />
+          <Route path="/tshirts" element={<TShirtCollection />} />
+          <Route path="/masks" element={<MaskCollection />} />
+          <Route path="/accessories" element={<AccessoriesCollection />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/orders" element={<Orders />} />
+          <Route path="/demo" element={<DatabaseIntegrationDemo />} />
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </AnalyticsTracker>
   );
 };
 

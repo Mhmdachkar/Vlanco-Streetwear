@@ -78,6 +78,8 @@ export const handler = async (request: Request): Promise<Response> => {
   return jsonResponse({ url: session.url, id: session.id });
 };
 
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+
 serve(handler);
 
 

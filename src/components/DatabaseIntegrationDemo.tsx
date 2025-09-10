@@ -29,6 +29,7 @@ import { useAnalytics } from '@/hooks/useAnalytics';
 import LiveDatabaseTester from './LiveDatabaseTester';
 import BackendFunctionTester from './BackendFunctionTester';
 import DatabaseSetup from './DatabaseSetup';
+import DatabaseActivityTester from './DatabaseActivityTester';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const DatabaseIntegrationDemo: React.FC = () => {
@@ -48,6 +49,7 @@ const DatabaseIntegrationDemo: React.FC = () => {
 
   const [testingFeature, setTestingFeature] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<{ [key: string]: 'success' | 'error' | 'pending' }>({});
+  const [showActivityTester, setShowActivityTester] = useState(false);
 
   // Get first product for testing
   const testProduct = products[0];
@@ -425,7 +427,34 @@ const DatabaseIntegrationDemo: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Database Activity Tester */}
+        <Card className="bg-gray-900 border-gray-800 mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="w-5 h-5" />
+              Database Activity Tester
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-400 mb-4">
+              Comprehensive testing of all database operations including cart, wishlist, analytics, and user activities.
+            </p>
+            <Button 
+              onClick={() => setShowActivityTester(true)}
+              className="bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-purple-600 hover:to-cyan-500"
+            >
+              <Activity className="w-4 h-4 mr-2" />
+              Run Comprehensive Database Test
+            </Button>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Database Activity Tester Modal */}
+      {showActivityTester && (
+        <DatabaseActivityTester onClose={() => setShowActivityTester(false)} />
+      )}
     </div>
   );
 };

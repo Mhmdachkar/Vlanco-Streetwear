@@ -14,10 +14,12 @@ import Navigation from '@/components/Navigation';
 import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
+import { useAnalytics } from '@/hooks/useAnalytics';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { validateQuantity, logSecurityEvent } from '@/utils/security';
 import AuthModal from '@/components/AuthModal';
+import AnimatedCartButton from '@/components/AnimatedCartButton';
 
 // Local product images from assets folder
 // Guard against early references during build-time evaluation
@@ -915,6 +917,7 @@ const VlancoProductPage = () => {
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const location = useLocation();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { trackProduct, trackAddToCart, trackAddToWishlist } = useAnalytics();
   
   // Enhanced State Management
   const [selectedSize, setSelectedSize] = useState('');
@@ -1120,6 +1123,20 @@ const VlancoProductPage = () => {
   // Database integration
   const { user } = useAuth();
   const { addToCart, itemCount } = useCart();
+  
+  // Track product view when page loads
+  useEffect(() => {
+    if (product?.id) {
+      trackProduct(String(product.id), {
+        product_name: product.name,
+        product_category: product.category,
+        product_price: product.base_price,
+        product_brand: product.brand || 'VLANCO',
+        page_type: 'product_detail',
+        came_from: location.state?.from || 'direct'
+      });
+    }
+  }, [product?.id, trackProduct, location.state]);
   const [loading, setLoading] = useState(false);
   const [productVariants, setProductVariants] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -1541,6 +1558,9 @@ const VlancoProductPage = () => {
       
       // Track product interaction
       await trackProductInteraction('add_to_cart', quantity);
+      
+      // Track analytics for add to cart
+      await trackAddToCart(String(product.id), String(variantIdLocal), quantity, product.base_price);
       
       // Add to cart with enhanced error handling and product details
       const productDetails = {

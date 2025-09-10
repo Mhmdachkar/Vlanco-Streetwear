@@ -220,6 +220,7 @@ const Navigation = () => {
                 <HoverCardTrigger asChild>
                   <motion.button 
                     id="cart-icon"
+                    data-cart-icon="true"
                     onClick={() => setShowCartSidebar(true)}
                     className="relative p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                     whileHover={{ scale: 1.1, rotate: 5 }}

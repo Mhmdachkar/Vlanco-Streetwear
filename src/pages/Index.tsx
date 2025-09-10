@@ -7,6 +7,7 @@ import FeaturesSection from '@/components/FeaturesSection';
 import VlancoCommunity from '@/components/VlancoCommunity';
 import LimitedDrops from '@/components/LimitedDrops';
 import Footer from '@/components/Footer';
+import { usePageAnalytics } from '@/hooks/useAnalytics';
 import { ArrowUp, Sparkles, Star, Zap } from 'lucide-react';
 
 // --- Optimized Animated Background Component ---
@@ -127,6 +128,12 @@ const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const shouldReduceMotion = useReducedMotion();
+  
+  // Analytics tracking for homepage
+  usePageAnalytics('Homepage', {
+    page_type: 'landing',
+    sections: ['hero', 'categories', 'drops', 'features', 'community']
+  });
   
   // Use MotionValues for smooth, performant tracking
   const { scrollYProgress } = useScroll();

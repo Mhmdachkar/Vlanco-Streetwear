@@ -105,6 +105,7 @@ function useProvideCart(): CartContextValue {
       }
 
       console.log('📦 Raw cart items from Supabase:', data);
+      console.log('📦 Number of items fetched:', data?.length || 0);
 
       // Merge with enhanced details from localStorage
       const enhancedDetails = getEnhancedDetails();
@@ -132,6 +133,7 @@ function useProvideCart(): CartContextValue {
       });
 
       console.log('🛒 Final cart items with enhanced details:', itemsWithEnhancedDetails);
+      console.log('🛒 Setting items to state, count:', itemsWithEnhancedDetails.length);
       
       // Ensure all cart items have basic product information
       const itemsWithDefaults = itemsWithEnhancedDetails.map(item => {
@@ -371,20 +373,60 @@ function useProvideCart(): CartContextValue {
         rollback = () => setItems(prev => prev.filter(i => (i as any).id !== tempId) as any);
       }
 
+      // Test Supabase connectivity first
+      console.log('🔍 Testing Supabase connectivity...');
+      try {
+        const { data: testData, error: testError } = await supabase
+          .from('cart_items')
+          .select('id')
+          .limit(1);
+        console.log('🔍 Connectivity test result:', { testData, testError });
+      } catch (testErr) {
+        console.error('🔍 Connectivity test failed:', testErr);
+      }
+
       // Check if item already exists in cart
-      const { data: existingItem } = await supabase
-        .from('cart_items')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('product_id', productId)
-        .eq('variant_id', variantId)
-        .single();
+      console.log('🔍 Checking for existing item in cart...');
+      console.log('🔍 Query params:', { user_id: user.id, product_id: productId, variant_id: variantId });
+      
+      let existingItem = null;
+      let checkError = null;
+      
+      try {
+        const result = await Promise.race([
+          supabase
+            .from('cart_items')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('product_id', productId)
+            .eq('variant_id', variantId)
+            .single(),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Query timeout')), 10000)
+          )
+        ]);
+        
+        existingItem = (result as any).data;
+        checkError = (result as any).error;
+      } catch (error) {
+        console.error('🔍 Query failed or timed out:', error);
+        checkError = error;
+      }
+      
+      console.log('🔍 Existing item check result:', { existingItem, checkError });
+
+      // If query failed, treat as no existing item and try to insert
+      if (checkError && checkError.message !== 'No rows found') {
+        console.warn('⚠️ Database query failed, treating as new item:', checkError);
+        existingItem = null;
+      }
 
       if (existingItem) {
         // Update existing item quantity
         console.log('📦 Updating existing item quantity');
         const currentQuantity = typeof (existingItem as any).quantity === 'number' ? (existingItem as any).quantity : 0;
         const newQuantity = currentQuantity + quantity;
+        console.log('📦 Updating quantity from', currentQuantity, 'to', newQuantity);
         const { error: updateError } = await supabase
           .from('cart_items')
           .update({ 
@@ -392,21 +434,40 @@ function useProvideCart(): CartContextValue {
           })
           .eq('id', (existingItem as any).id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('❌ Update error:', updateError);
+          throw updateError;
+        }
+        console.log('✅ Item quantity updated successfully');
       } else {
         // Insert new item
-        console.log('📦 Inserting new item');
-        const { error: insertError } = await supabase
+        console.log('📦 Inserting new item into cart_items table');
+        console.log('📦 Insert data:', {
+          user_id: user.id,
+          product_id: productId,
+          variant_id: variantId,
+          quantity,
+          price_at_time: productDetails?.variant?.price || productDetails?.price || 0,
+          added_at: new Date().toISOString(),
+        });
+        
+        const { data: insertData, error: insertError } = await supabase
           .from('cart_items')
           .insert({
             user_id: user.id,
             product_id: productId,
             variant_id: variantId,
             quantity,
+            price_at_time: productDetails?.variant?.price || productDetails?.price || 0,
             added_at: new Date().toISOString(),
-          });
+          })
+          .select();
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('❌ Insert error:', insertError);
+          throw insertError;
+        }
+        console.log('✅ Item inserted successfully:', insertData);
       }
 
       // Store enhanced details for this item (before refetch to ensure merge works)
@@ -442,17 +503,22 @@ function useProvideCart(): CartContextValue {
         console.log('💾 Stored complete product details:', completeProductDetails);
       }
 
+      // Force refresh cart items
       await fetchCartItems();
       
       // Track analytics
-      await trackCartEvent({
-        userId: user.id,
-        eventType: 'add_to_cart',
-        productId,
-        variantId,
-        quantity,
-        price: productDetails?.price,
-      });
+      try {
+        await trackCartEvent({
+          userId: user.id,
+          eventType: 'add_to_cart',
+          productId,
+          variantId,
+          quantity,
+          price: productDetails?.price,
+        });
+      } catch (analyticsError) {
+        console.warn('Analytics tracking failed:', analyticsError);
+      }
       
       console.log('🛒 Authenticated cart updated successfully');
       toast({ 

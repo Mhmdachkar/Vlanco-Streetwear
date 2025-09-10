@@ -549,6 +549,14 @@ export const useProducts = () => {
     setLoading(true);
     setError(null);
     try {
+      // Check if Supabase is configured
+      if (!supabase || typeof supabase.from !== 'function') {
+        console.warn('Supabase not configured, using mock products');
+        setProducts(mockProducts);
+        setLoading(false);
+        return;
+      }
+
       // Fetch products with their images
       const { data, error } = await supabase
         .from('products')

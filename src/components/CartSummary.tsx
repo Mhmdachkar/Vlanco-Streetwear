@@ -194,25 +194,45 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items, onCheckout }) => {
             </span>
           </div>
           
-          {/* Promo code */}
-          <div className="flex items-center gap-2">
-            <input
+          {/* Enhanced Promo code */}
+          <motion.div 
+            className="flex items-center gap-2"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            <motion.input
               value={promo}
               onChange={(e) => setPromo(e.target.value)}
               placeholder="Promo code"
-              className="flex-1 px-3 py-2 bg-slate-800/60 border border-slate-700/60 rounded-lg text-slate-200 placeholder-slate-500"
+              className="flex-1 px-4 py-3 bg-slate-800/60 border border-slate-700/60 rounded-xl text-slate-200 placeholder-slate-500 focus:border-cyan-400/60 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300"
+              whileFocus={{ scale: 1.02 }}
             />
-            <button
+            <motion.button
               disabled={applying || !promo.trim()}
               onClick={() => {
+                setApplying(true);
                 const ev = new CustomEvent('apply-promo', { detail: { code: promo.trim() }, bubbles: true });
-                (e => e)(document.dispatchEvent(ev));
+                document.dispatchEvent(ev);
+                setTimeout(() => setApplying(false), 2000);
               }}
-              className="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white disabled:opacity-50"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-cyan-500/25"
+              whileHover={!applying && promo.trim() ? { scale: 1.05 } : {}}
+              whileTap={!applying && promo.trim() ? { scale: 0.95 } : {}}
             >
-              Apply
-            </button>
-          </div>
+              {applying ? (
+                <motion.div
+                  className="flex items-center space-x-2"
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                >
+                  <span>Applying...</span>
+                </motion.div>
+              ) : (
+                <span>Apply</span>
+              )}
+            </motion.button>
+          </motion.div>
 
           <div className="flex items-center justify-between">
             <span className="text-slate-300">Tax</span>
@@ -268,20 +288,57 @@ const CartSummary: React.FC<CartSummaryProps> = ({ items, onCheckout }) => {
           <div className="text-white font-medium">{getEstimatedDelivery()}</div>
         </motion.div>
 
-        {/* Checkout Button */}
+        {/* Enhanced Checkout Button */}
         <motion.button
           onClick={onCheckout}
-          className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/25"
+          className="group relative w-full bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 overflow-hidden"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ 
+            scale: 1.02,
+            boxShadow: "0 20px 40px rgba(6, 182, 212, 0.3)"
+          }}
           whileTap={{ scale: 0.98 }}
         >
-          <div className="flex items-center justify-center space-x-2">
-            <CreditCard className="w-5 h-5" />
+          {/* Animated Background */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
+            initial={{ x: "-100%" }}
+            whileHover={{ x: "100%" }}
+            transition={{ duration: 0.6 }}
+          />
+          
+          {/* Button Content */}
+          <div className="relative flex items-center justify-center space-x-3">
+            <motion.div
+              animate={{ rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <CreditCard className="w-5 h-5" />
+            </motion.div>
             <span>PROCEED TO CHECKOUT</span>
+            <motion.div
+              animate={{ x: [0, 5, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              →
+            </motion.div>
           </div>
+          
+          {/* Pulse Effect */}
+          <motion.div
+            className="absolute inset-0 rounded-xl bg-cyan-400/20"
+            animate={{ 
+              scale: [1, 1.1, 1],
+              opacity: [0, 0.5, 0]
+            }}
+            transition={{ 
+              duration: 2, 
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
         </motion.button>
 
         {/* Security Notice */}

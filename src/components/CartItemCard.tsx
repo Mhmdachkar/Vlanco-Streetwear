@@ -15,7 +15,7 @@ interface CartItemCardProps {
   onUpdateQuantity: (itemId: string, quantity: number) => void;
 }
 
-const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQuantity }) => {
+const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item, onRemove, onUpdateQuantity }, ref) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -30,6 +30,9 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
   const handleQuantityChange = (newQuantity: number) => {
     if (newQuantity > 0 && newQuantity <= 99) {
       onUpdateQuantity(item.id, newQuantity);
+    } else if (newQuantity <= 0) {
+      // If quantity would be 0 or negative, remove the item
+      handleRemove();
     }
   };
 
@@ -81,6 +84,7 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
     <AnimatePresence>
       {!isRemoving && (
         <motion.div
+          ref={ref}
           initial={{ opacity: 0, y: 20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -182,7 +186,11 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
               {/* Action Buttons */}
               <div className="flex items-center space-x-2">
                 <motion.button
-                  onClick={() => setShowDetails(!showDetails)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowDetails(!showDetails);
+                  }}
                   className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-colors"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
@@ -191,12 +199,30 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
                 </motion.button>
                 
                 <motion.button
-                  onClick={handleRemove}
-                  className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleRemove();
+                  }}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isRemoving 
+                      ? 'bg-red-500/10 text-red-500/50 cursor-not-allowed' 
+                      : 'bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300'
+                  }`}
+                  whileHover={!isRemoving ? { scale: 1.1 } : {}}
+                  whileTap={!isRemoving ? { scale: 0.95 } : {}}
+                  disabled={isRemoving}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {isRemoving ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </motion.div>
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
                 </motion.button>
               </div>
             </div>
@@ -228,10 +254,19 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
               {/* Quantity Controls */}
               <div className="flex items-center space-x-2">
                 <motion.button
-                  onClick={() => handleQuantityChange(item.quantity - 1)}
-                  className="w-8 h-8 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-colors flex items-center justify-center"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleQuantityChange(item.quantity - 1);
+                  }}
+                  disabled={item.quantity <= 1}
+                  className={`w-8 h-8 rounded-lg transition-colors flex items-center justify-center ${
+                    item.quantity <= 1 
+                      ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed' 
+                      : 'bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white'
+                  }`}
+                  whileHover={item.quantity > 1 ? { scale: 1.1 } : {}}
+                  whileTap={item.quantity > 1 ? { scale: 0.95 } : {}}
                 >
                   <Minus className="w-4 h-4" />
                 </motion.button>
@@ -247,10 +282,19 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
                 </motion.span>
                 
                 <motion.button
-                  onClick={() => handleQuantityChange(item.quantity + 1)}
-                  className="w-8 h-8 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-colors flex items-center justify-center"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleQuantityChange(item.quantity + 1);
+                  }}
+                  disabled={item.quantity >= 99}
+                  className={`w-8 h-8 rounded-lg transition-colors flex items-center justify-center ${
+                    item.quantity >= 99
+                      ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed'
+                      : 'bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white'
+                  }`}
+                  whileHover={item.quantity < 99 ? { scale: 1.1 } : {}}
+                  whileTap={item.quantity < 99 ? { scale: 0.95 } : {}}
                 >
                   <Plus className="w-4 h-4" />
                 </motion.button>
@@ -370,6 +414,8 @@ const CartItemCard: React.FC<CartItemCardProps> = ({ item, onRemove, onUpdateQua
       )}
     </AnimatePresence>
   );
-};
+});
+
+CartItemCard.displayName = 'CartItemCard';
 
 export default CartItemCard;

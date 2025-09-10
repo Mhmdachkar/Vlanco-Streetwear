@@ -42,7 +42,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
+import { usePageAnalytics, useAnalytics } from '@/hooks/useAnalytics';
 import AuthModal from '@/components/AuthModal';
+import AnimatedCartButton from '@/components/AnimatedCartButton';
 
 // Import photos from assets
 import heroBgImage from '@/assets/hero-bg.jpg';
@@ -300,6 +302,7 @@ const TShirtCollection = () => {
   const { toast } = useToast();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
+  const { trackAddToCart, trackAddToWishlist, trackProduct } = useAnalytics();
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   
@@ -434,6 +437,140 @@ const TShirtCollection = () => {
     }
   ];
 
+  // Console logging and page analytics - moved to useEffect to prevent excessive re-renders
+  useEffect(() => {
+    console.log('🎯 TShirtCollection - Component loaded');
+    console.log('🎯 TShirtCollection - User:', user?.id || 'Not logged in');
+    console.log('🎯 TShirtCollection - Mock products:', mockTshirts.length);
+  }, [user?.id, mockTshirts.length]);
+
+  // Track page view - only once when component mounts
+  usePageAnalytics('T-Shirts Collection', {
+    page_type: 'product_category',
+    category: 't-shirts',
+    total_products: mockTshirts.length
+  });
+
+  // Database testing functionality
+  const testSupabaseTables = useCallback(async () => {
+    console.log('🧪 Testing Supabase Tables...');
+    
+    try {
+      // Test analytics_events table
+      console.log('📊 Testing analytics_events table...');
+      console.log('📊 Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+      console.log('📊 User ID:', user?.id);
+      
+      const analyticsQuery = supabase
+        .from('analytics_events')
+        .select('*')
+        .limit(1);
+        
+      console.log('📊 Executing analytics query...');
+      
+      // Add timeout to prevent hanging
+      const queryWithTimeout = Promise.race([
+        analyticsQuery,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Query timeout after 5 seconds')), 5000)
+        )
+      ]);
+      
+      const { data: analyticsData, error: analyticsError } = await queryWithTimeout;
+      
+      if (analyticsError) {
+        console.error('❌ Analytics table error:', analyticsError);
+        console.error('❌ Error code:', analyticsError.code);
+        console.error('❌ Error message:', analyticsError.message);
+        console.error('❌ Error details:', analyticsError.details);
+        console.error('❌ Error hint:', analyticsError.hint);
+        
+        if (analyticsError.code === '42P01') {
+          console.warn('⚠️ analytics_events table does not exist - migration not applied');
+        } else if (analyticsError.code === '42501') {
+          console.warn('⚠️ Permission denied - check RLS policies');
+        }
+      } else {
+        console.log('✅ Analytics table accessible:', analyticsData?.length || 0, 'records');
+        console.log('✅ Sample data:', analyticsData);
+      }
+
+      // Test cart_items table
+      console.log('🛒 Testing cart_items table...');
+      
+      const cartQuery = supabase
+        .from('cart_items')
+        .select('*')
+        .limit(1);
+        
+      const cartQueryWithTimeout = Promise.race([
+        cartQuery,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Cart query timeout after 5 seconds')), 5000)
+        )
+      ]);
+      
+      const { data: cartData, error: cartError } = await cartQueryWithTimeout;
+      
+      if (cartError) {
+        console.error('❌ Cart table error:', cartError);
+        console.error('❌ Cart error code:', cartError.code);
+        if (cartError.code === '42P01') {
+          console.warn('⚠️ cart_items table does not exist - migration not applied');
+        }
+      } else {
+        console.log('✅ Cart table accessible:', cartData?.length || 0, 'records');
+      }
+
+      // Test wishlist_items table
+      console.log('❤️ Testing wishlist_items table...');
+      const { data: wishlistData, error: wishlistError } = await supabase
+        .from('wishlist_items')
+        .select('*')
+        .limit(1);
+      
+      if (wishlistError) {
+        console.error('❌ Wishlist table error:', wishlistError);
+        console.error('❌ Wishlist error code:', wishlistError.code);
+        if (wishlistError.code === '42P01') {
+          console.warn('⚠️ wishlist_items table does not exist - migration not applied');
+        }
+      } else {
+        console.log('✅ Wishlist table accessible:', wishlistData?.length || 0, 'records');
+      }
+
+      console.log('🧪 Supabase table testing complete!');
+      
+      // Show success toast
+      toast({
+        title: "✅ Database Test Complete",
+        description: "Check console for detailed results",
+        duration: 3000
+      });
+
+    } catch (error) {
+      console.error('🚨 Database test failed:', error);
+      console.error('🚨 Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : 'Unknown',
+        cause: error instanceof Error ? (error as any).cause : undefined
+      });
+      toast({
+        title: "❌ Database Test Failed", 
+        description: "Check console for error details",
+        variant: "destructive",
+        duration: 5000
+      });
+    }
+  }, [toast, user?.id]);
+
+  // Run database test on component mount - DISABLED to prevent hanging queries
+  // useEffect(() => {
+  //   console.log('🎯 TShirtCollection mounted, running database tests...');
+  //   testSupabaseTables();
+  // }, [testSupabaseTables]);
+
   // Enhanced filtered products
   const filteredProducts = mockTshirts.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -492,6 +629,14 @@ const TShirtCollection = () => {
         await removeFromWishlist(String(product.id));
         toast({ title: 'Removed from Wishlist', description: `${product.name} removed from wishlist`, duration: 2500 });
       } else {
+        // Track analytics for add to wishlist
+        try {
+          await trackAddToWishlist(String(product.id));
+          console.log('✅ Wishlist analytics tracking successful');
+        } catch (analyticsError) {
+          console.error('❌ Wishlist analytics tracking failed:', analyticsError);
+        }
+        
         await addToWishlist({
           id: String(product.id),
           name: product.name,
@@ -544,45 +689,50 @@ const TShirtCollection = () => {
     }, 850);
   };
 
-      const handleQuickAdd = async (product: any, e: React.MouseEvent) => {
-    e.stopPropagation();
+      const handleQuickAdd = async (product: any, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     
     console.log('🔍 handleQuickAdd called for product:', product.id);
-    console.log('🔍 Selected size:', selectedSize[product.id]);
-    console.log('🔍 Selected color:', selectedColor[product.id]);
     
-    // Validate that size and color are selected
-    const size = selectedSize[product.id];
-    const colorIndex = selectedColor[product.id];
+    // Use default selections or pre-selected ones
+    const size = selectedSize[product.id] || product.sizes?.[0] || 'M';
+    const colorIndex = selectedColor[product.id] !== undefined ? selectedColor[product.id] : 0;
+    const selectedColorData = product.colors?.[colorIndex] || product.colors?.[0];
     
-    if (!size) {
-      toast({
-        title: "Size Required",
-        description: "Please select a size before adding to cart",
-        variant: "destructive"
-      });
-      return;
-    }
+    console.log('🔍 Using size:', size);
+    console.log('🔍 Using color:', selectedColorData?.name || 'Default');
+    console.log('✅ Adding to cart with default/selected options...');
     
-    if (colorIndex === undefined || colorIndex < 0) {
-      toast({
-        title: "Color Required",
-        description: "Please select a color before adding to cart",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Analytics tracking (fire and forget - don't block cart addition)
+    console.log('📊 Starting analytics tracking for add to cart...');
+    console.log('📊 Product ID:', String(product.id));
+    console.log('📊 Variant ID:', `tshirt_${product.id}_${colorIndex}_${size}`);
+    console.log('📊 Quantity:', 1);
+    console.log('📊 Price:', product.price);
     
-    const selectedColorData = product.colors?.[colorIndex];
+    // Fire and forget analytics - don't await
+    Promise.race([
+      trackAddToCart(String(product.id), `tshirt_${product.id}_${colorIndex}_${size}`, 1, product.price),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Analytics timeout')), 3000)
+      )
+    ]).then(() => {
+      console.log('✅ Analytics tracking successful');
+    }).catch((analyticsError) => {
+      console.error('❌ Analytics tracking failed:', analyticsError);
+      console.log('⚠️ Analytics failed but cart addition continues...');
+    });
     
-    console.log('✅ Validation passed, adding to cart...');
+    console.log('📊 Analytics started in background, continuing with cart...');
     
     // Animation
     flyToCart(product.id);
     
     // Simplified approach: Just call addToCart with complete product details
+    console.log('🛒 Starting cart addition process...');
     try {
       console.log('🛒 Preparing product details for cart...');
+      console.log('🛒 addToCart function available:', typeof addToCart);
       
       // Create a unique variant ID for this combination
       const variantId = `tshirt_${product.id}_${colorIndex}_${size}`;
@@ -998,7 +1148,7 @@ const TShirtCollection = () => {
                         
                         <motion.div
                           className="mb-2 relative z-30"
-                          whileHover={{ scale: 1.18, rotate: [0, 10, -10, 0] }}
+                          whileHover={{ scale: 1.18, rotate: 5 }}
                           transition={{ type: 'spring', stiffness: 200, damping: 8 }}
                         >
                           {stat.icon}
@@ -1021,6 +1171,8 @@ const TShirtCollection = () => {
             </div>
           </div>
         </section>
+
+
         {/* Main Content with Enhanced Unique Background */}
         <div 
           ref={containerRef}
@@ -1530,9 +1682,12 @@ const TShirtCollection = () => {
                     }}
                     onHoverStart={() => setHoveredProduct(product.id)}
                     onHoverEnd={() => setHoveredProduct(null)}
-                    onClick={() => {
-                      const colorIdx = selectedColor[product.id];
-                      const size = selectedSize[product.id] || '';
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      const colorIdx = selectedColor[product.id] || 0;
+                      const size = selectedSize[product.id] || product.sizes?.[0] || '';
                       const params = new URLSearchParams();
                       
                       // Enhanced navigation with comprehensive product data
@@ -1544,31 +1699,63 @@ const TShirtCollection = () => {
                         if (colorName) params.set('color', colorName);
                       }
                       
-                      // Add additional context for better product detail experience
+                      // Add essential context
                       params.set('category', product.category);
-                      params.set('price', product.price.toString());
-                      if (product.originalPrice) params.set('originalPrice', product.originalPrice.toString());
-                      params.set('rating', product.rating.toString());
-                      params.set('reviews', product.reviews.toString());
+                      params.set('from', 'tshirt_collection');
+                      if (product.isNew) params.set('badge', 'new');
+                      if (product.isBestseller) params.set('badge', 'bestseller');
+                      if (user) params.set('user_context', 'authenticated');
                       
-                      // Store selected options in session storage for seamless experience
-                      sessionStorage.setItem(`product_${product.id}_options`, JSON.stringify({
-                        selectedColor: colorIdx,
-                        selectedSize: size,
-                        productData: {
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          originalPrice: product.originalPrice,
-                          category: product.category,
-                          rating: product.rating,
-                          reviews: product.reviews,
-                          isNew: product.isNew,
-                          isBestseller: product.isBestseller
+                      // Track product view analytics (fire and forget)
+                      trackProduct(String(product.id), {
+                        product_name: product.name,
+                        product_category: product.category,
+                        product_price: product.price,
+                        product_brand: 'VLANCO',
+                        page_type: 'product_list',
+                        came_from: 'tshirt_collection'
+                      }).catch(error => console.warn('Analytics tracking failed:', error));
+                      
+                      // Navigate with smooth transition
+                      navigate(`/product/${product.id}${params.toString() ? `?${params.toString()}` : ''}`, {
+                        state: {
+                          product: {
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            originalPrice: product.originalPrice,
+                            image: product.image,
+                            hoverImage: product.hoverImage,
+                            images: [product.image, product.hoverImage].filter(Boolean),
+                            rating: product.rating,
+                            reviews: product.reviews,
+                            isNew: product.isNew,
+                            isBestseller: product.isBestseller,
+                            colors: product.colors,
+                            sizes: product.sizes,
+                            category: product.category,
+                            description: `${product.name} - Premium streetwear collection from VLANCO`,
+                            material: 'Premium Cotton',
+                            brand: 'VLANCO',
+                            collection: 'T-Shirts Collection',
+                            modelNumber: `TSH-${product.id}`,
+                            features: [
+                              'Premium Quality Materials',
+                              'Comfortable Fit',
+                              'Durable Construction',
+                              'Modern Design'
+                            ],
+                            selectedColor: colorIdx,
+                            selectedSize: size,
+                            from: 'tshirt_collection'
+                          },
+                          transition: {
+                            type: 'product-card',
+                            direction: 'forward',
+                            sourcePosition: { x: e.clientX, y: e.clientY }
+                          }
                         }
-                      }));
-                      
-                      navigate(`/product/${product.id}${params.toString() ? `?${params.toString()}` : ''}`);
+                      });
                     }}
                   >
                     {/* Enhanced Card Container */}
@@ -1738,137 +1925,107 @@ const TShirtCollection = () => {
                           {product.name}
                         </h3>
                         
-                        {/* Enhanced Animated Color Swatches */}
-                        <div className="mb-4">
-                          <div className="text-sm text-white/90 mb-3 font-bold">Colors:</div>
-                          <div className="flex items-center gap-3">
-                            {product.colors.slice(0, 4).map((color, colorIndex) => (
-                              <motion.button
-                                key={colorIndex}
-                                className={`w-9 h-9 rounded-full border-3 transition-all duration-300 ${
-                                  selectedColor[product.id] === colorIndex
-                                    ? 'border-cyan-400 scale-110 shadow-lg shadow-cyan-400/50'
-                                    : 'border-white/40 hover:border-cyan-400/60'
-                                }`}
-                                style={{ backgroundColor: color.value }}
-                                whileHover={{ scale: 1.3, boxShadow: '0 0 15px rgba(0, 212, 255, 0.6)' }}
-                                whileTap={{ scale: 0.9 }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleColorSelect(product.id, colorIndex);
-                                }}
-                                title={color.name}
-                              >
-                                {selectedColor[product.id] === colorIndex && (
-                                  <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="w-full h-full flex items-center justify-center"
-                                  >
-                                    <Check className="w-4 h-4 text-white" />
-                                  </motion.div>
-                                )}
-                              </motion.button>
-                            ))}
-                            {product.colors.length > 4 && (
-                              <span className="text-sm text-white/80 font-bold px-3 py-1.5 bg-white/15 rounded-full border border-white/20">
-                                +{product.colors.length - 4} more
-                              </span>
-                            )}
+                        {/* Available Options Info - No Selectors */}
+                        <div className="mb-4 flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm text-white/70">Colors:</div>
+                            <div className="flex items-center gap-1">
+                              {product.colors.slice(0, 3).map((color, colorIndex) => (
+                                <div
+                                  key={colorIndex}
+                                  className="w-4 h-4 rounded-full border border-white/30"
+                                  style={{ backgroundColor: color.value }}
+                                  title={color.name}
+                                />
+                              ))}
+                              {product.colors.length > 3 && (
+                                <span className="text-xs text-white/60 ml-1">+{product.colors.length - 3}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm text-white/70">Sizes:</div>
+                            <div className="text-sm text-white/90 font-medium">
+                              {product.sizes.slice(0, 3).join(', ')}
+                              {product.sizes.length > 3 && ` +${product.sizes.length - 3} more`}
+                            </div>
                           </div>
                         </div>
                         
-                        {/* Enhanced Size Quick Select */}
-                        <div className="mb-4">
-                          <div className="text-sm text-white/90 mb-3 font-bold">Sizes:</div>
-                          <div className="flex flex-wrap gap-2">
-                            {product.sizes.slice(0, 4).map((size) => (
-                              <motion.button
-                                key={size}
-                                className={`px-4 py-2 text-sm font-bold rounded-lg transition-all duration-300 ${
-                                  selectedSize[product.id] === size
-                                    ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-black shadow-lg shadow-cyan-400/40'
-                                    : 'bg-white/15 text-white hover:bg-cyan-400/30 hover:text-cyan-300 border border-white/30'
-                                }`}
-                                whileHover={{ scale: 1.08 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleSizeSelect(product.id, size);
-                                }}
+                        {/* Enhanced Price and Action Buttons */}
+                        <div className="flex items-center justify-between mt-4">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-baseline gap-3">
+                              <motion.span 
+                                className="text-2xl font-black text-white drop-shadow-lg"
+                                whileHover={{ scale: 1.05 }}
                               >
-                                {size}
-                              </motion.button>
-                            ))}
-                            {product.sizes.length > 4 && (
-                              <span className="text-sm text-white/80 px-4 py-2 bg-white/15 rounded-lg border border-white/30 font-bold">
-                                +{product.sizes.length - 4} more
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Enhanced Price and Add to Cart */}
-                        <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-baseline gap-4">
-                            <motion.span 
-                              className="text-3xl font-black text-white drop-shadow-lg"
-                              whileHover={{ scale: 1.05 }}
-                            >
-                              ${product.price}
-                            </motion.span>
+                                ${product.price}
+                              </motion.span>
+                              {product.originalPrice && (
+                                <span className="text-lg text-white/60 line-through font-medium">
+                                  ${product.originalPrice}
+                                </span>
+                              )}
+                            </div>
                             {product.originalPrice && (
-                              <span className="text-lg text-white/60 line-through font-bold">
-                                ${product.originalPrice}
-                              </span>
+                              <motion.span 
+                                className="text-sm text-green-400 font-bold"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                              >
+                                Save ${(product.originalPrice - product.price).toFixed(2)}
+                              </motion.span>
                             )}
                           </div>
                           
                           <div className="flex items-center gap-3">
-                            {/* Selection Status Indicator */}
-                            {(selectedSize[product.id] || selectedColor[product.id] !== undefined) && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="flex items-center gap-1 text-xs text-cyan-300 font-bold"
-                              >
-                                <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                                <span>Ready</span>
-                              </motion.div>
-                            )}
-                            
-                            {/* Enhanced Quick Add-to-Cart Button */}
+                            {/* Enhanced Add to Cart Button - Cart Icon Only */}
                             <motion.button
-                              onClick={(e) => handleQuickAdd(product, e)}
-                              disabled={!selectedSize[product.id] || selectedColor[product.id] === undefined}
-                              className={`p-4 rounded-full shadow-xl border-2 transition-all duration-300 ${
-                                selectedSize[product.id] && selectedColor[product.id] !== undefined
-                                  ? 'bg-gradient-to-br from-cyan-500 via-blue-500 to-cyan-400 text-white border-cyan-400/60 hover:from-blue-600 hover:to-cyan-500 hover:shadow-2xl hover:shadow-cyan-400/40 cursor-pointer'
-                                  : 'bg-gray-500/50 text-gray-300 border-gray-400/30 cursor-not-allowed'
-                              }`}
-                              whileHover={selectedSize[product.id] && selectedColor[product.id] !== undefined ? 
-                                { scale: 1.15, boxShadow: '0 0 25px rgba(0, 212, 255, 0.6)' } : 
-                                { scale: 1 }
-                              }
-                              whileTap={selectedSize[product.id] && selectedColor[product.id] !== undefined ? 
-                                { scale: 0.9 } : 
-                                { scale: 1 }
-                              }
-                              title={selectedSize[product.id] && selectedColor[product.id] !== undefined ? 
-                                "Add to Cart" : 
-                                "Please select size and color"
-                              }
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleQuickAdd(product);
+                              }}
+                              className="group relative p-4 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-cyan-400 text-white shadow-xl border-2 border-cyan-400/60 hover:from-blue-600 hover:to-cyan-500 transition-all duration-300 hover:shadow-cyan-400/50 hover:shadow-2xl"
+                              whileHover={{ 
+                                scale: 1.1,
+                                rotate: [0, -5, 5, 0],
+                                transition: { duration: 0.3 }
+                              }}
+                              whileTap={{ scale: 0.95 }}
+                              title="Add to Cart"
                             >
-                              <ShoppingCart className="w-5 h-5" />
+                              <ShoppingCart className="w-6 h-6" />
+                              
+                              {/* Pulse animation on hover */}
+                              <motion.div
+                                className="absolute inset-0 rounded-full bg-cyan-400/30"
+                                initial={{ scale: 0, opacity: 0 }}
+                                whileHover={{ 
+                                  scale: 1.4, 
+                                  opacity: [0, 0.5, 0],
+                                  transition: { duration: 0.6, repeat: Infinity }
+                                }}
+                              />
                             </motion.button>
+
+                            {/* Wishlist Button */}
                             <motion.button
-                              onClick={(e) => handleToggleWishlist(product, e)}
-                              className="p-4 rounded-full shadow-xl border-2 bg-white/15 text-white hover:bg-white/25 border-white/30 transition-all duration-300"
-                              whileHover={{ scale: 1.15 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleWishlist(product, e);
+                              }}
+                              className="p-3 rounded-full shadow-lg border-2 bg-white/15 text-white hover:bg-white/25 border-white/30 transition-all duration-300 hover:shadow-white/20"
+                              whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
                               title={isInWishlist(String(product.id)) ? 'Remove from Wishlist' : 'Add to Wishlist'}
                             >
-                              <Heart className={`w-5 h-5 ${isInWishlist(String(product.id)) ? 'text-red-500 fill-red-500' : ''}`} />
+                              <Heart className={`w-5 h-5 transition-colors duration-200 ${
+                                isInWishlist(String(product.id)) 
+                                  ? 'text-red-500 fill-red-500' 
+                                  : 'group-hover:text-red-300'
+                              }`} />
                             </motion.button>
                           </div>
                         </div>

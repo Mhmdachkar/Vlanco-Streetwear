@@ -12,10 +12,60 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as strin
 const hasValidSupabaseConfig = SUPABASE_URL && 
   SUPABASE_PUBLISHABLE_KEY && 
   SUPABASE_URL !== 'your_supabase_project_url_here' &&
+  SUPABASE_URL !== 'your_supabase_url_here' &&
   SUPABASE_PUBLISHABLE_KEY !== 'your_supabase_anon_key_here' &&
-  SUPABASE_URL.startsWith('http');
+  SUPABASE_PUBLISHABLE_KEY !== 'your_actual_anon_key_here' &&
+  SUPABASE_URL.startsWith('http') &&
+  SUPABASE_PUBLISHABLE_KEY.startsWith('eyJ');
 
 // Create mock client for development when Supabase is not configured
+const createMockQueryBuilder = () => {
+  const mockBuilder = {
+    select: () => mockBuilder,
+    insert: () => mockBuilder,
+    upsert: () => mockBuilder,
+    update: () => mockBuilder,
+    delete: () => mockBuilder,
+    eq: () => mockBuilder,
+    neq: () => mockBuilder,
+    gt: () => mockBuilder,
+    gte: () => mockBuilder,
+    lt: () => mockBuilder,
+    lte: () => mockBuilder,
+    like: () => mockBuilder,
+    ilike: () => mockBuilder,
+    is: () => mockBuilder,
+    in: () => mockBuilder,
+    contains: () => mockBuilder,
+    containedBy: () => mockBuilder,
+    rangeGt: () => mockBuilder,
+    rangeGte: () => mockBuilder,
+    rangeLt: () => mockBuilder,
+    rangeLte: () => mockBuilder,
+    rangeAdjacent: () => mockBuilder,
+    overlaps: () => mockBuilder,
+    textSearch: () => mockBuilder,
+    match: () => mockBuilder,
+    not: () => mockBuilder,
+    or: () => mockBuilder,
+    filter: () => mockBuilder,
+    order: () => mockBuilder,
+    limit: () => mockBuilder,
+    range: () => mockBuilder,
+    abortSignal: () => mockBuilder,
+    single: () => Promise.resolve({ data: null, error: null }),
+    maybeSingle: () => Promise.resolve({ data: null, error: null }),
+    csv: () => Promise.resolve({ data: '', error: null }),
+    geojson: () => Promise.resolve({ data: null, error: null }),
+    explain: () => Promise.resolve({ data: null, error: null }),
+    rollback: () => Promise.resolve({ data: null, error: null }),
+    returns: () => mockBuilder,
+    then: (resolve: any) => resolve({ data: [], error: null }),
+    catch: (reject: any) => Promise.resolve({ data: [], error: null }),
+  };
+  return mockBuilder;
+};
+
 const mockSupabaseClient = {
   auth: {
     signUp: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
@@ -24,21 +74,44 @@ const mockSupabaseClient = {
     getUser: () => Promise.resolve({ data: { user: null }, error: null }),
     getSession: () => Promise.resolve({ data: { session: null }, error: null }),
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    resetPasswordForEmail: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    updateUser: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    setSession: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    refreshSession: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    signInWithOAuth: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    signInWithOtp: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    verifyOtp: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+    resend: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
   },
-  from: () => ({
-    select: () => Promise.resolve({ data: [], error: null }),
-    insert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-    upsert: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-    update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-    delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-    eq: () => ({
-      select: () => Promise.resolve({ data: [], error: null }),
-      update: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-      delete: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
-      single: () => Promise.resolve({ data: null, error: null }),
-      order: () => Promise.resolve({ data: [], error: null }),
+  from: () => createMockQueryBuilder(),
+  storage: {
+    from: () => ({
+      upload: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      download: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      list: () => Promise.resolve({ data: [], error: null }),
+      remove: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      createSignedUrl: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      createSignedUrls: () => Promise.resolve({ data: [], error: { message: 'Supabase not configured' } }),
+      getPublicUrl: () => ({ data: { publicUrl: '' } }),
+      move: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+      copy: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
     })
-  }),
+  },
+  functions: {
+    invoke: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
+  },
+  realtime: {
+    channel: () => ({
+      on: () => ({ subscribe: () => Promise.resolve() }),
+      subscribe: () => Promise.resolve(),
+      unsubscribe: () => Promise.resolve(),
+      send: () => Promise.resolve(),
+    }),
+    removeChannel: () => Promise.resolve(),
+    removeAllChannels: () => Promise.resolve(),
+    getChannels: () => [],
+  },
+  rpc: () => Promise.resolve({ data: null, error: { message: 'Supabase not configured' } }),
 } as any;
 
 // Export the appropriate client based on configuration

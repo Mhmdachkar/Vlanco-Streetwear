@@ -58,6 +58,8 @@ export const handler = async (request: Request): Promise<Response> => {
   return jsonResponse({ received: true });
 };
 
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+
 serve(handler);
 
 

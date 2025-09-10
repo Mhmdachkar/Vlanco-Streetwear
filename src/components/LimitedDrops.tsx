@@ -888,7 +888,13 @@ const LimitedDrops = ({ className = "" }) => {
                        <div className="mb-6">
                          <CountdownTimer 
                            targetDate={drop.releaseDate}
-                           onComplete={() => console.log('Drop released!')}
+                           onComplete={() => {
+                             // Only log once per drop to prevent spam
+                             if (!window[`drop_${drop.id}_released`]) {
+                               console.log('🎉 Drop released:', drop.title);
+                               window[`drop_${drop.id}_released`] = true;
+                             }
+                           }}
                          />
                        </div>
                        

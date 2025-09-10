@@ -16,12 +16,42 @@ export async function trackEvent(params: {
   userAgent?: string;
   ipAddress?: string;
 }): Promise<void> {
+  // Check if Supabase is configured
+  if (!supabase || typeof supabase.from !== 'function') {
+    console.debug('[analytics] Supabase not configured, skipping analytics tracking');
+    return;
+  }
+
+  // Prefer server-side edge function to bypass RLS issues (if available)
+  if (typeof supabase.functions?.invoke === 'function') {
+    try {
+      const { error: fnError } = await supabase.functions.invoke('analytics-track', {
+        body: {
+          user_id: params.userId ?? null,
+          event_type: params.eventType,
+          event_data: params.eventData ?? null,
+          page_url: params.pageUrl || window.location.href,
+          referrer: params.referrer || document.referrer,
+          session_id: params.sessionId,
+          user_agent: params.userAgent || navigator.userAgent,
+          ip_address: params.ipAddress,
+          created_at: new Date().toISOString(),
+        },
+      });
+      if (!fnError) return;
+      // Edge function failed, fall back to direct insert (this is normal if functions aren't deployed)
+    } catch (e) {
+      // Edge function threw error, fall back to direct insert (this is normal if functions aren't deployed)
+    }
+  }
+
+  // Fallback: direct insert (this is the normal path for most setups)
   const { error } = await supabase
     .from('analytics_events')
     .insert({
-      user_id: params.userId,
+      user_id: params.userId ?? null,
       event_type: params.eventType,
-      event_data: params.eventData,
+      event_data: params.eventData ?? null,
       page_url: params.pageUrl || window.location.href,
       referrer: params.referrer || document.referrer,
       session_id: params.sessionId,
@@ -55,6 +85,12 @@ export async function trackProductView(params: {
 
 // Add product to recently viewed
 export async function addToRecentlyViewed(userId: string, productId: string): Promise<void> {
+  // Check if Supabase is configured
+  if (!supabase || typeof supabase.from !== 'function') {
+    console.debug('[analytics] Supabase not configured, skipping recently viewed tracking');
+    return;
+  }
+
   // Check if already exists
   const { data: existing } = await supabase
     .from('recently_viewed')
@@ -103,6 +139,12 @@ export async function addToRecentlyViewed(userId: string, productId: string): Pr
 
 // Get recently viewed products
 export async function getRecentlyViewed(userId: string, limit: number = 20): Promise<RecentlyViewedRow[]> {
+  // Check if Supabase is configured
+  if (!supabase || typeof supabase.from !== 'function') {
+    console.debug('[analytics] Supabase not configured, returning empty recently viewed');
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('recently_viewed')
     .select(`
@@ -163,6 +205,12 @@ export async function getSearchHistory(userId: string, limit: number = 10): Prom
 
 // Get popular search queries
 export async function getPopularSearches(limit: number = 10): Promise<{ query: string; count: number }[]> {
+  // Check if Supabase is configured
+  if (!supabase || typeof supabase.from !== 'function') {
+    console.debug('[analytics] Supabase not configured, returning empty popular searches');
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('search_history')
     .select('query')

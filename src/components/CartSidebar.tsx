@@ -126,7 +126,7 @@ const useUndoSystem = () => {
 };
 
 // Utility functions
-const getItemKey = (item: CartItem) => `${item.product_id}-${item.variant_id}`;
+const getItemKey = (item: CartItem) => `${item.id || `${item.product_id}-${item.variant_id}-${Math.random()}`}`;
 const getItemPrice = (item: CartItem) => item.price_at_time || item.product?.base_price || 0;
 const getItemTotal = (item: CartItem) => getItemPrice(item) * item.quantity;
 const formatPrice = (price: number) => price.toFixed(2);
@@ -574,18 +574,54 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                 <EmptyCart onClose={onClose} />
               ) : (
                 <div className="h-full flex flex-col">
-                  {/* Cart Items */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {/* Cart Items - Enhanced Scrollable Area */}
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 hover:scrollbar-thumb-slate-500">
                     <AnimatePresence mode="popLayout">
                       {items.map((item, index) => (
-                        <CartItemCard
+                        <motion.div
                           key={getItemKey(item)}
-                          item={item}
-                          onRemove={() => handleRemoveItem(item.id)}
-                          onUpdateQuantity={(newQuantity) => handleQuantityUpdate(item.id, newQuantity)}
-                        />
+                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                          transition={{ 
+                            duration: 0.3, 
+                            ease: "easeOut",
+                            delay: index * 0.1 
+                          }}
+                          layout
+                        >
+                          <CartItemCard
+                            item={item}
+                            onRemove={() => handleRemoveItem(item.id)}
+                            onUpdateQuantity={(newQuantity) => handleQuantityUpdate(item.id, newQuantity)}
+                          />
+                        </motion.div>
                       ))}
                     </AnimatePresence>
+                    
+                    {/* Scroll Indicator */}
+                    {items.length > 3 && (
+                      <motion.div
+                        className="flex justify-center py-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <motion.div
+                          className="flex items-center space-x-2 text-slate-400 text-sm"
+                          animate={{ y: [0, 5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <span>Scroll for more items</span>
+                          <motion.div
+                            animate={{ y: [0, 3, 0] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          >
+                            ↓
+                          </motion.div>
+                        </motion.div>
+                      </motion.div>
+                    )}
                   </div>
 
                   {/* Cart Summary */}
