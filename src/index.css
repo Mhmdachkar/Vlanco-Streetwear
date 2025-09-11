@@ -7,7 +7,28 @@
 /* VLANCO Design System - Dark streetwear aesthetic for teenagers */
 
 @layer base {
-  /* Smooth Scrolling */
+  /* Lenis Smooth Scrolling Styles */
+  html.lenis {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-scrolling iframe {
+    pointer-events: none;
+  }
+  
+  /* Fallback smooth scrolling */
   html {
     scroll-behavior: smooth;
   }

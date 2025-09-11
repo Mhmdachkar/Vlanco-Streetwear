@@ -39,6 +39,19 @@ import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import AuthModal from './AuthModal';
 
+// Lightweight device capability heuristic
+const computePreferPerformance = () => {
+  try {
+    const dm = (navigator as any).deviceMemory;
+    const hc = (navigator as any).hardwareConcurrency;
+    const lowMem = typeof dm === 'number' && dm <= 4;
+    const lowCpu = typeof hc === 'number' && hc <= 4;
+    return lowMem || lowCpu;
+  } catch {
+    return false;
+  }
+};
+
 // Countdown Timer Component
 const CountdownTimer = ({ targetDate, onComplete }) => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -159,7 +172,7 @@ const ConfettiBurst = ({ trigger }: { trigger: number }) => {
             scale: [1, 1.2, 0.8],
             rotate: 180
           }}
-          transition={{ duration: 0.9, ease: 'ease-out' }}
+          transition={{ duration: 0.9, ease: "easeOut" }}
         />
       ))}
     </div>
@@ -405,15 +418,374 @@ const CollaborationCard = ({ collaboration, index, isInView }) => {
   );
 };
 
+// Rarity Color Mapping
+const getRarityColors = (rarity: string) => {
+  const rarityMap = {
+    'MYTHIC': { 
+      bg: 'from-purple-900/20 via-pink-900/20 to-purple-900/20',
+      border: 'border-purple-500/50',
+      text: 'text-purple-300',
+      glow: 'shadow-purple-500/25',
+      accent: 'from-purple-500 to-pink-500'
+    },
+    'LEGENDARY': {
+      bg: 'from-orange-900/20 via-red-900/20 to-orange-900/20',
+      border: 'border-orange-500/50', 
+      text: 'text-orange-300',
+      glow: 'shadow-orange-500/25',
+      accent: 'from-orange-500 to-red-500'
+    },
+    'EPIC': {
+      bg: 'from-blue-900/20 via-cyan-900/20 to-blue-900/20',
+      border: 'border-cyan-500/50',
+      text: 'text-cyan-300', 
+      glow: 'shadow-cyan-500/25',
+      accent: 'from-cyan-500 to-blue-500'
+    },
+    'RARE': {
+      bg: 'from-green-900/20 via-emerald-900/20 to-green-900/20',
+      border: 'border-emerald-500/50',
+      text: 'text-emerald-300',
+      glow: 'shadow-emerald-500/25',
+      accent: 'from-emerald-500 to-green-500'
+    }
+  };
+  return rarityMap[rarity] || rarityMap['RARE'];
+};
+
+// Power Level Bar Component
+const PowerLevelBar = ({ level, isAnimated = false }) => (
+  <div className="relative">
+    <div className="flex justify-between text-xs mb-1">
+      <span className="text-gray-400">Power Level</span>
+      <span className="font-bold text-white">{level}/100</span>
+    </div>
+    <div className="h-2 bg-gray-800 rounded-full overflow-hidden relative">
+      <motion.div
+        className="h-full bg-gradient-to-r from-purple-500 via-cyan-500 to-pink-500 rounded-full relative"
+        initial={{ width: 0 }}
+        animate={{ width: isAnimated ? `${level}%` : 0 }}
+        transition={{ duration: 1.5, ease: "easeOut" }}
+      >
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-white/30"
+          animate={{ x: ["-100%", "200%"] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        />
+      </motion.div>
+    </div>
+  </div>
+);
+
+// Holographic Effect Component
+const HolographicOverlay = ({ isHovered }) => (
+  <motion.div
+    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+    animate={isHovered ? {
+      background: [
+        'linear-gradient(45deg, rgba(255,0,255,0.1), rgba(0,255,255,0.1))',
+        'linear-gradient(135deg, rgba(0,255,255,0.1), rgba(255,255,0,0.1))',
+        'linear-gradient(225deg, rgba(255,255,0,0.1), rgba(255,0,255,0.1))',
+        'linear-gradient(315deg, rgba(255,0,255,0.1), rgba(0,255,255,0.1))'
+      ]
+    } : {}}
+    transition={{ duration: 2, repeat: Infinity }}
+  />
+);
+
+// Enhanced Limited Edition Card Component
+const LimitedEditionCard = React.memo(({ item, index, isInView }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const [showFeatures, setShowFeatures] = useState(false);
+  const [burstKey, setBurstKey] = useState(0);
+  const rarityColors = getRarityColors(item.rarity);
+  const preferPerformance = computePreferPerformance();
+
+  // 3D tilt effect
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rx = useTransform(my, [-100, 100], [8, -8]);
+  const ry = useTransform(mx, [-100, 100], [-8, 8]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mx.set(e.clientX - rect.left - rect.width / 2);
+    my.set(e.clientY - rect.top - rect.height / 2);
+  };
+
+  const availabilityPercentage = (item.availableCount / item.totalCount) * 100;
+  const isNearSoldOut = availabilityPercentage < 20;
+
+  return (
+    <motion.div
+      className="group relative"
+      initial={{ opacity: 0, y: 60, rotateX: -15 }}
+      animate={isInView ? { opacity: 1, y: 0, rotateX: 0 } : {}}
+      transition={{
+        duration: 0.8,
+        delay: index * 0.15,
+        type: "spring",
+        stiffness: 100,
+        damping: 15
+      }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      whileHover={{ y: -15, scale: 1.02 }}
+      style={{ rotateX: rx as any, rotateY: ry as any, transformStyle: 'preserve-3d' }}
+      onMouseMove={handleMouseMove}
+    >
+      <div className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${rarityColors.bg} backdrop-blur-sm border-2 ${rarityColors.border} shadow-2xl ${rarityColors.glow} transition-all duration-500`}>
+        
+        {/* Holographic Overlay */}
+        <HolographicOverlay isHovered={isHovered} />
+        
+        {/* Serial Number Badge */}
+        <div className="absolute top-4 left-4 z-20">
+          <motion.div
+            className={`px-3 py-1 bg-gradient-to-r ${rarityColors.accent} rounded-full text-white text-xs font-black`}
+            animate={isHovered ? { scale: [1, 1.1, 1] } : {}}
+            transition={{ duration: 0.5 }}
+          >
+            #{item.serialNumber}
+          </motion.div>
+        </div>
+
+        {/* Rarity Badge */}
+        <div className="absolute top-4 right-4 z-20">
+          <motion.div
+            className={`px-3 py-1 bg-black/60 backdrop-blur-sm border ${rarityColors.border} rounded-full ${rarityColors.text} text-xs font-bold`}
+            animate={isHovered ? { rotate: [0, 5, -5, 0] } : {}}
+            transition={{ duration: 1, repeat: Infinity }}
+          >
+            {item.rarity}
+          </motion.div>
+        </div>
+
+        {/* Availability Warning */}
+        {isNearSoldOut && (
+          <div className="absolute top-16 right-4 z-20">
+            <motion.div
+              className="px-2 py-1 bg-red-500/80 backdrop-blur-sm rounded-full text-white text-xs font-bold"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            >
+              ALMOST GONE!
+            </motion.div>
+          </div>
+        )}
+
+        {/* Main Image */}
+        <div className="relative h-80 overflow-hidden">
+          <motion.div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${item.image})` }}
+            animate={isHovered ? { scale: 1.15 } : { scale: 1 }}
+            transition={{ duration: 0.6 }}
+          />
+          
+          {/* Animated Scan Lines */}
+          <motion.div
+            className="absolute inset-0 opacity-20"
+            style={{
+              background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,255,0.1) 2px, rgba(0,255,255,0.1) 4px)'
+            }}
+            animate={isHovered ? { y: ["-100%", "100%"] } : {}}
+            transition={{ duration: 2, repeat: preferPerformance ? 0 : Infinity, ease: "linear" }}
+          />
+          
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+          
+          {/* Power Level Indicator */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <PowerLevelBar level={item.powerLevel} isAnimated={isHovered} />
+          </div>
+        </div>
+
+        {/* Content Section */}
+        <div className="p-6 relative z-10">
+          
+          {/* Title and Price */}
+          <div className="flex justify-between items-start mb-3">
+            <div className="flex-1">
+              <motion.h3 
+                className="text-xl font-black text-white mb-1"
+                animate={isHovered ? { scale: 1.05 } : {}}
+              >
+                {item.title}
+              </motion.h3>
+              <p className={`text-sm ${rarityColors.text} font-medium`}>
+                {item.category}
+              </p>
+            </div>
+            <div className="text-right">
+              <div className="text-2xl font-black text-white">
+                {item.price}
+              </div>
+              {item.originalPrice && (
+                <div className="text-sm text-gray-400 line-through">
+                  {item.originalPrice}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Description */}
+          <p className="text-gray-300 text-sm mb-4 leading-relaxed">
+            {item.description}
+          </p>
+
+          {/* Material */}
+          <div className="mb-4">
+            <span className="text-xs text-gray-400 uppercase tracking-wide">Material:</span>
+            <p className="text-white text-sm font-medium">{item.material}</p>
+          </div>
+
+          {/* Availability Progress */}
+          <div className="mb-4">
+            <div className="flex justify-between text-xs text-gray-400 mb-2">
+              <span>Availability</span>
+              <span>{item.availableCount}/{item.totalCount} remaining</span>
+            </div>
+            <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+              <motion.div
+                className={`h-full bg-gradient-to-r ${rarityColors.accent} relative`}
+                initial={{ width: 0 }}
+                animate={{ width: `${availabilityPercentage}%` }}
+                transition={{ duration: preferPerformance ? 0.6 : 1, delay: 0.3 }}
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-white/30"
+                  animate={preferPerformance ? undefined : { x: ["-100%", "200%"] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                />
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Features Toggle */}
+          <motion.button
+            className="w-full mb-4 py-2 px-4 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 text-white text-sm font-medium transition-all"
+            onClick={() => setShowFeatures(!showFeatures)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {showFeatures ? 'Hide Features' : 'Show Features'} 
+            <motion.span
+              animate={{ rotate: showFeatures ? 180 : 0 }}
+              className="ml-2 inline-block"
+            >
+              ▼
+            </motion.span>
+          </motion.button>
+
+          {/* Features List */}
+          <AnimatePresence>
+            {showFeatures && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mb-4 overflow-hidden"
+              >
+                <div className="grid grid-cols-2 gap-2">
+                  {item.features.map((feature, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex items-center gap-2 text-xs text-gray-300"
+                    >
+                      <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${rarityColors.accent}`} />
+                      {feature}
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <motion.button
+              className={`flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all relative overflow-hidden ${
+                item.isUnlocked
+                  ? `bg-gradient-to-r ${rarityColors.accent} text-white hover:shadow-lg ${rarityColors.glow}`
+                  : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+              }`}
+              whileHover={item.isUnlocked ? { scale: 1.02 } : {}}
+              whileTap={item.isUnlocked ? { scale: 0.98 } : {}}
+              disabled={!item.isUnlocked}
+              onClick={() => item.isUnlocked && setBurstKey(prev => prev + 1)}
+            >
+              {item.isUnlocked && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20"
+                  initial={{ x: "-120%" }}
+                  whileHover={{ x: "120%" }}
+                  transition={{ duration: 0.6 }}
+                />
+              )}
+              <span className="relative z-10">
+                {item.isUnlocked ? 'ACQUIRE NOW' : 'LOCKED'}
+              </span>
+              <ConfettiBurst trigger={burstKey} />
+            </motion.button>
+            
+            <motion.button
+              className="p-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Heart className="w-5 h-5 text-white" />
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Floating Elements */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {[...Array(preferPerformance ? 1 : 3)].map((_, i) => (
+            <motion.div
+              key={i}
+              className={`absolute w-1 h-1 bg-gradient-to-r ${rarityColors.accent} rounded-full`}
+              style={{
+                left: `${20 + i * 30}%`,
+                top: `${30 + i * 20}%`,
+              }}
+              animate={isHovered ? {
+                scale: [1, 2, 1],
+                opacity: [0.3, 1, 0.3],
+                rotate: [0, 180, 360]
+              } : {}}
+              transition={{
+                duration: 2,
+                repeat: preferPerformance ? 0 : Infinity,
+                delay: i * 0.3
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
 // Main Limited Drops Component
 const LimitedDrops = ({ className = "" }) => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const shouldReduceMotion = useReducedMotion();
+  const [preferPerformance, setPreferPerformance] = useState<boolean>(() => {
+    // Detect low-power/low-end devices quickly
+    const isLowMemory = (navigator as any).deviceMemory && (navigator as any).deviceMemory <= 4;
+    const isLowConcurrency = (navigator as any).hardwareConcurrency && (navigator as any).hardwareConcurrency <= 4;
+    return isLowMemory || isLowConcurrency;
+  });
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
   
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [activeTab, setActiveTab] = useState('limited-edition');
   const [notifications, setNotifications] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
 
@@ -602,59 +974,113 @@ const LimitedDrops = ({ className = "" }) => {
     }
   };
 
-  const upcomingDrops = useMemo(() => [
+  const limitedEditionItems = useMemo(() => [
     {
       id: 7,
-      title: "VLANCO SPRING DROP",
-      description: "Fresh spring collection with sustainable materials and bold new designs. Featuring eco-friendly fabrics and innovative cuts.",
-      releaseDate: "2025-03-20T14:00:00Z", // Spring Equinox 2 PM UTC
-      accessType: "member",
-      isUnlocked: true,
-      image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&h=600&fit=crop&crop=center&q=80", // Spring Fashion
-      category: "Seasonal",
-      items: "25+",
-      price: "From $49"
+      title: "PHANTOM GHOST TEE",
+      description: "Ultra-rare black tee with invisible UV-reactive print. Only visible under blacklight. Hand-distressed with metallic threads.",
+      serialNumber: "001/100",
+      price: "$299",
+      originalPrice: "$399",
+      rarity: "MYTHIC",
+      image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&h=600&fit=crop&crop=center&q=80",
+      category: "Ghost Collection",
+      material: "100% Organic Cotton + UV Ink",
+      features: ["UV-Reactive", "Hand-Distressed", "Metallic Threading", "Certificate of Authenticity"],
+      availableCount: 23,
+      totalCount: 100,
+      powerLevel: 95,
+      isUnlocked: true
     },
     {
       id: 8,
-      title: "VLANCO x CELEBRITY COLLAB",
-      description: "Top secret collaboration with a major celebrity - details coming soon. This will be our biggest drop of the year.",
-      releaseDate: "2025-04-01T18:30:00Z", // April Fools Day 6:30 PM UTC
-      accessType: "vip",
-      isUnlocked: false,
-      image: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=800&h=600&fit=crop&crop=center&q=80", // Celebrity/Red Carpet
-      category: "Celebrity",
-      items: "10",
-      price: "TBA"
+      title: "CYBER MATRIX HOODIE",
+      description: "Holographic hoodie with embedded LED strips. Changes patterns based on heartbeat via built-in sensors.",
+      serialNumber: "001/50",
+      price: "$899",
+      originalPrice: "$1299",
+      rarity: "LEGENDARY",
+      image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&h=600&fit=crop&crop=center&q=80",
+      category: "Tech Fusion",
+      material: "Smart Fabric + LED Technology",
+      features: ["Heartbeat Sensor", "LED Animation", "Wireless Charging", "App Control"],
+      availableCount: 12,
+      totalCount: 50,
+      powerLevel: 98,
+      isUnlocked: false
     },
     {
       id: 9,
-      title: "VLANCO SUSTAINABLE DROP",
-      description: "100% sustainable collection made from recycled materials. Each piece comes with a carbon footprint certificate.",
-      releaseDate: "2025-04-22T12:00:00Z", // Earth Day 12 PM UTC
-      accessType: "early",
-      isUnlocked: true,
-      image: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&h=600&fit=crop&crop=center&q=80", // Sustainable/Eco Fashion
-      category: "Eco-Friendly",
-      items: "15",
-      price: "From $69"
+      title: "DRAGON SCALE JACKET",
+      description: "Iridescent bomber jacket with scales that shift colors in light. Each scale hand-applied by master craftsmen.",
+      serialNumber: "001/75",
+      price: "$699",
+      originalPrice: "$999",
+      rarity: "EPIC",
+      image: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&h=600&fit=crop&crop=center&q=80",
+      category: "Mythical Series",
+      material: "Iridescent Polymer Scales",
+      features: ["Color-Shifting", "Hand-Applied Scales", "Water Resistant", "Master Crafted"],
+      availableCount: 31,
+      totalCount: 75,
+      powerLevel: 89,
+      isUnlocked: true
     },
     {
       id: 10,
-      title: "VLANCO TECH DROP",
-      description: "Smart clothing with integrated technology. Features include temperature control and LED accents.",
-      releaseDate: "2025-05-01T16:00:00Z", // May Day 4 PM UTC
-      accessType: "limited",
-      isUnlocked: false,
-      image: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=600&fit=crop&crop=center&q=80", // Tech/Smart Clothing
-      category: "Technology",
-      items: "8",
-      price: "From $199"
+      title: "VOID WALKER PANTS",
+      description: "Anti-gravity inspired cargo pants with levitating pockets. Magnetic closures and gravity-defying design elements.",
+      serialNumber: "001/60",
+      price: "$449",
+      originalPrice: "$649",
+      rarity: "RARE",
+      image: "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?w=800&h=600&fit=crop&crop=center&q=80",
+      category: "Space Collection",
+      material: "Anti-Static Fabric + Magnets",
+      features: ["Magnetic Closures", "Levitating Design", "Anti-Static", "Zero-G Inspired"],
+      availableCount: 18,
+      totalCount: 60,
+      powerLevel: 76,
+      isUnlocked: true
+    },
+    {
+      id: 11,
+      title: "PHOENIX FIRE SNEAKERS",
+      description: "Self-heating sneakers with flame-pattern soles that glow red when walking. Temperature-controlled comfort system.",
+      serialNumber: "001/40",
+      price: "$799",
+      originalPrice: "$1199",
+      rarity: "LEGENDARY",
+      image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&h=600&fit=crop&crop=center&q=80",
+      category: "Elemental Line",
+      material: "Thermogenic Fabric + LED Soles",
+      features: ["Self-Heating", "LED Soles", "Temperature Control", "Flame Animation"],
+      availableCount: 7,
+      totalCount: 40,
+      powerLevel: 92,
+      isUnlocked: false
+    },
+    {
+      id: 12,
+      title: "QUANTUM MASK",
+      description: "Reality-bending face mask with holographic projection. Creates digital art displays around your face in AR.",
+      serialNumber: "001/25",
+      price: "$1299",
+      originalPrice: "$1999",
+      rarity: "MYTHIC",
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop&crop=center&q=80",
+      category: "AR Collection",
+      material: "Holographic Projectors + Smart Glass",
+      features: ["AR Projection", "Face Tracking", "Digital Art Display", "Voice Activation"],
+      availableCount: 3,
+      totalCount: 25,
+      powerLevel: 99,
+      isUnlocked: false
     }
   ], []);
 
   const tabs = [
-    { id: 'upcoming', label: 'Upcoming Drops', icon: Calendar, count: upcomingDrops.length },
+    { id: 'limited-edition', label: 'Limited Edition', icon: Crown, count: limitedEditionItems.length },
     { id: 'collaborations', label: 'Collaborations', icon: Users, count: collaborations.length },
     { id: 'collectors', label: "Collector's Corner", icon: Award, count: 12 }
   ];
@@ -683,7 +1109,7 @@ const LimitedDrops = ({ className = "" }) => {
                 'linear-gradient(45deg, #3B82F6, #EC4899)'
               ][i]
             }}
-            animate={shouldReduceMotion ? undefined : {
+            animate={shouldReduceMotion || preferPerformance ? undefined : {
               x: [0, 60, -40, 0],
               y: [0, -40, 60, 0],
               scale: [1, 1.3, 0.7, 1],
@@ -691,7 +1117,7 @@ const LimitedDrops = ({ className = "" }) => {
             }}
             transition={{
               duration: 20 + i * 4,
-              repeat: Infinity,
+              repeat: preferPerformance ? 0 : Infinity,
               ease: "linear"
             }}
           />
@@ -709,8 +1135,8 @@ const LimitedDrops = ({ className = "" }) => {
             <div className="relative overflow-hidden rounded-full border border-white/10">
               <motion.div
                 className="whitespace-nowrap py-2 px-4 text-xs text-white/70"
-                animate={{ x: ['0%', '-50%'] }}
-                transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
+                animate={shouldReduceMotion || preferPerformance ? undefined : { x: ['0%', '-50%'] }}
+                transition={{ duration: 12, repeat: preferPerformance ? 0 : Infinity, ease: 'linear' }}
               >
                 LIVE NOW • Exclusive Drops • VIP Access • Early Releases • Limited Editions • LIVE NOW • Exclusive Drops • VIP Access • Early Releases • Limited Editions •
               </motion.div>
@@ -827,108 +1253,24 @@ const LimitedDrops = ({ className = "" }) => {
 
         {/* Content Based on Active Tab */}
         <AnimatePresence mode="wait">
-          {activeTab === 'upcoming' && (
+          {activeTab === 'limited-edition' && (
             <motion.div
-              key="upcoming"
+              key="limited-edition"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
             >
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                 {upcomingDrops.map((drop, index) => (
-                   <motion.div
-                     key={drop.id}
-                     className="group relative overflow-hidden bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 shadow-2xl"
-                     initial={{ opacity: 0, y: 30, scale: 0.9 }}
-                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                     transition={{ duration: 0.8, delay: index * 0.1, type: "spring" }}
-                     whileHover={{ scale: 1.02, y: -8 }}
-                   >
-                     {/* Background Image */}
-                     <div className="relative h-48 overflow-hidden">
-                       <motion.div
-                         className="absolute inset-0 bg-cover bg-center"
-                         style={{ backgroundImage: `url(${drop.image})` }}
-                         animate={shouldReduceMotion ? undefined : { scale: [1, 1.1, 1] }}
-                         transition={{ duration: 8, repeat: Infinity }}
-                       />
-                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                       
-                       {/* Category Badge */}
-                       <div className="absolute top-4 left-4">
-                         <span className="px-3 py-1 bg-purple-500/20 text-purple-400 text-xs font-bold rounded-full border border-purple-500/30">
-                           {drop.category}
-                         </span>
-                       </div>
-                       
-                       {/* Access Badge */}
-                       <div className="absolute top-4 right-4">
-                         <ExclusiveBadge type={drop.accessType} isUnlocked={drop.isUnlocked} />
-                       </div>
-                     </div>
-                     
-                     <div className="p-6">
-                       <div className="flex items-start justify-between mb-4">
-                         <div className="flex-1">
-                           <h3 className="text-xl font-bold text-white mb-2">
-                             {drop.title}
-                           </h3>
-                           <p className="text-gray-300 text-sm leading-relaxed mb-3">
-                             {drop.description}
-                           </p>
-                           <div className="flex items-center gap-4 text-xs text-gray-400">
-                             <span>{drop.items} items</span>
-                             <span>•</span>
-                             <span className="text-purple-400 font-bold">{drop.price}</span>
-                           </div>
-                         </div>
-                       </div>
-                       
-                       <div className="mb-6">
-                         <CountdownTimer 
-                           targetDate={drop.releaseDate}
-                           onComplete={() => {
-                             // Only log once per drop to prevent spam
-                             if (!window[`drop_${drop.id}_released`]) {
-                               console.log('🎉 Drop released:', drop.title);
-                               window[`drop_${drop.id}_released`] = true;
-                             }
-                           }}
-                         />
-                       </div>
-                       
-                       <motion.button
-                         className={`w-full py-3 px-4 rounded-lg font-bold text-sm transition-all relative overflow-hidden ${
-                           drop.isUnlocked
-                             ? 'bg-gradient-to-r from-purple-600 to-cyan-600 text-white hover:shadow-lg hover:shadow-purple-500/25'
-                             : 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                         }`}
-                         whileHover={drop.isUnlocked ? { scale: 1.02 } : {}}
-                         whileTap={drop.isUnlocked ? { scale: 0.98 } : {}}
-                         disabled={!drop.isUnlocked}
-                       >
-                         {drop.isUnlocked && (
-                           <motion.div
-                             className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                             initial={{ x: "-120%" }}
-                             animate={shouldReduceMotion ? undefined : { x: ["-120%", "120%"] }}
-                             transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-                           />
-                         )}
-                         <span className="relative z-10">
-                           {drop.isUnlocked ? 'Get Early Access' : 'Join Waitlist'}
-                         </span>
-                       </motion.button>
-                     </div>
-                     
-                     {/* Hover Glow Effect */}
-                     <motion.div
-                       className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
-                     />
-                   </motion.div>
-                 ))}
-               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {limitedEditionItems.map((item, index) => (
+                  <LimitedEditionCard
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    isInView={isInView}
+                  />
+                ))}
+              </div>
             </motion.div>
           )}
 

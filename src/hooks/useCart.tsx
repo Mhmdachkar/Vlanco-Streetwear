@@ -93,7 +93,11 @@ function useProvideCart(): CartContextValue {
       console.log('🔄 Fetching cart items from Supabase for user:', user.id);
       const { data, error: fetchError } = await supabase
         .from('cart_items')
-        .select(`*`)
+        .select(`
+          *,
+          product:products(*),
+          variant:product_variants(*)
+        `)
         .eq('user_id', user.id)
         .order('added_at', { ascending: false });
 
@@ -135,35 +139,48 @@ function useProvideCart(): CartContextValue {
       console.log('🛒 Final cart items with enhanced details:', itemsWithEnhancedDetails);
       console.log('🛒 Setting items to state, count:', itemsWithEnhancedDetails.length);
       
-      // Ensure all cart items have basic product information
+      // Ensure all cart items have complete product information
       const itemsWithDefaults = itemsWithEnhancedDetails.map(item => {
-        const hasProductInfo = item.product && (item.product.name || item.product.base_price);
-        const hasVariantInfo = item.variant && (item.variant.price || item.variant.color);
+        // Check if we have database product/variant data
+        const dbProduct = item.product;
+        const dbVariant = item.variant;
         
-        if (!hasProductInfo || !hasVariantInfo) {
-          console.warn('⚠️ Cart item missing product details, adding defaults:', item.id);
-          return {
-            ...item,
-            product: {
-              id: item.product_id,
-              name: item.product?.name || `Product ${item.product_id}`,
-              base_price: item.product?.base_price || 0,
-              image_url: item.product?.image_url || '/src/assets/product-1.jpg',
-              description: item.product?.description || 'Streetwear product',
-              category: item.product?.category || 'Streetwear',
-              ...item.product
-            },
-            variant: {
-              id: item.variant_id,
-              price: item.variant?.price || item.product?.base_price || 0,
-              color: item.variant?.color || 'Default',
-              size: item.variant?.size || 'M',
-              sku: item.variant?.sku || `${item.product_id}-default`,
-              ...item.variant
-            }
-          };
-        }
-        return item;
+        // Use database data first, then enhanced details, then defaults
+        const completeItem = {
+          ...item,
+          product: {
+            id: item.product_id,
+            name: dbProduct?.name || item.product?.name || `Product ${item.product_id}`,
+            base_price: dbProduct?.base_price || item.product?.base_price || item.price_at_time || 0,
+            image_url: dbProduct?.image_url || item.product?.image_url || '/src/assets/product-1.jpg',
+            description: dbProduct?.description || item.product?.description || 'Streetwear product',
+            category: dbProduct?.category || item.product?.category || 'Streetwear',
+            brand: dbProduct?.brand || item.product?.brand || 'VLANCO',
+            ...dbProduct,
+            ...item.product
+          },
+          variant: {
+            id: item.variant_id,
+            price: dbVariant?.price || item.variant?.price || item.price_at_time || 0,
+            color: dbVariant?.color || item.variant?.color || 'Default',
+            size: dbVariant?.size || item.variant?.size || 'M',
+            sku: dbVariant?.sku || item.variant?.sku || `${item.product_id}-default`,
+            stock_quantity: dbVariant?.stock_quantity || item.variant?.stock_quantity || 10,
+            is_active: dbVariant?.is_active !== undefined ? dbVariant.is_active : true,
+            ...dbVariant,
+            ...item.variant
+          }
+        };
+        
+        console.log('🔗 Processed cart item:', {
+          id: item.id,
+          product_name: completeItem.product.name,
+          variant_info: `${completeItem.variant.color} / ${completeItem.variant.size}`,
+          price: completeItem.variant.price,
+          quantity: item.quantity
+        });
+        
+        return completeItem;
       });
       
       setItems(itemsWithDefaults);
@@ -503,8 +520,19 @@ function useProvideCart(): CartContextValue {
         console.log('💾 Stored complete product details:', completeProductDetails);
       }
 
-      // Force refresh cart items
+      // Force refresh cart items and wait for completion
+      console.log('🔄 Refreshing cart items after database operation...');
       await fetchCartItems();
+      
+      // Double-check that item was actually saved
+      const { data: verifyData } = await supabase
+        .from('cart_items')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('product_id', productId)
+        .eq('variant_id', variantId);
+      
+      console.log('🔍 Verification check - items in DB:', verifyData?.length || 0);
       
       // Track analytics
       try {
@@ -632,52 +660,101 @@ function useProvideCart(): CartContextValue {
     );
   }, [items]);
 
+  // Ensure user profile exists in database before using cart
+  const ensureUserProfileExists = async (currentUser: any) => {
+    try {
+      console.log('🔍 Checking if user profile exists in database...');
+      
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', currentUser.id)
+        .single();
+
+      if (fetchError && fetchError.code !== 'PGRST116') {
+        console.error('❌ Error checking user profile:', fetchError);
+        return;
+      }
+
+      if (!existingProfile) {
+        console.log('📝 Creating missing user profile for cart functionality...');
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert({
+            id: currentUser.id,
+            email: currentUser.email!,
+            full_name: currentUser.user_metadata?.full_name || 
+                      (currentUser.user_metadata?.first_name && currentUser.user_metadata?.last_name 
+                        ? `${currentUser.user_metadata.first_name} ${currentUser.user_metadata.last_name}` 
+                        : null) || null,
+            phone: currentUser.user_metadata?.phone || null,
+            avatar_url: currentUser.user_metadata?.avatar_url || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (profileError) {
+          console.error('❌ Error creating user profile:', profileError);
+        } else {
+          console.log('✅ User profile created successfully for cart functionality');
+        }
+      } else {
+        console.log('✅ User profile exists in database');
+      }
+    } catch (error) {
+      console.error('❌ Failed to ensure user profile exists:', error);
+    }
+  };
+
   // Merge guest cart into Supabase cart on sign-in
   useEffect(() => {
     console.log('🔄 Cart initialization effect triggered, user:', !!user);
     
     if (user) {
-      const guestCart = getLocalCart();
-      console.log('🛒 Guest cart items:', guestCart);
-      
-      if (guestCart.length > 0) {
-        console.log('🔄 Migrating guest cart to authenticated cart');
+      // First ensure user profile exists in database
+      ensureUserProfileExists(user).then(() => {
+        const guestCart = getLocalCart();
+        console.log('🛒 Guest cart items:', guestCart);
         
-        // Store enhanced details for guest cart items before migration
-        const enhancedDetails = getEnhancedDetails();
-        guestCart.forEach(item => {
-          const itemKey = `${item.product_id}-${item.variant_id}`;
-          if (item.product || item.variant) {
-            (enhancedDetails as any)[itemKey] = {
-              product: item.product || {},
-              variant: item.variant || {}
-            };
-          }
-        });
-        setEnhancedDetails(enhancedDetails);
-        
-        // For each item in guest cart, upsert into Supabase cart
-        Promise.all(guestCart.map(async (item) => {
-          try {
-            await supabase.from('cart_items').upsert({
-              user_id: user.id,
-              product_id: item.product_id,
-              variant_id: item.variant_id,
-              quantity: item.quantity,
-              added_at: new Date().toISOString(),
-            });
-          } catch (error) {
-            console.error('Failed to migrate guest cart item:', error);
-          }
-        })).then(() => {
-          console.log('🔄 Guest cart migration complete, clearing guest cart');
-          setLocalCart([]); // Clear guest cart after merge
+        if (guestCart.length > 0) {
+          console.log('🔄 Migrating guest cart to authenticated cart');
+          
+          // Store enhanced details for guest cart items before migration
+          const enhancedDetails = getEnhancedDetails();
+          guestCart.forEach(item => {
+            const itemKey = `${item.product_id}-${item.variant_id}`;
+            if (item.product || item.variant) {
+              (enhancedDetails as any)[itemKey] = {
+                product: item.product || {},
+                variant: item.variant || {}
+              };
+            }
+          });
+          setEnhancedDetails(enhancedDetails);
+          
+          // For each item in guest cart, upsert into Supabase cart
+          Promise.all(guestCart.map(async (item) => {
+            try {
+              await supabase.from('cart_items').upsert({
+                user_id: user.id,
+                product_id: item.product_id,
+                variant_id: item.variant_id,
+                quantity: item.quantity,
+                added_at: new Date().toISOString(),
+              });
+            } catch (error) {
+              console.error('Failed to migrate guest cart item:', error);
+            }
+          })).then(() => {
+            console.log('🔄 Guest cart migration complete, clearing guest cart');
+            setLocalCart([]); // Clear guest cart after merge
+            fetchCartItems();
+          });
+        } else {
+          console.log('🔄 No guest cart to migrate, fetching authenticated cart');
           fetchCartItems();
-        });
-      } else {
-        console.log('🔄 No guest cart to migrate, fetching authenticated cart');
-        fetchCartItems();
-      }
+        }
+      });
     } else {
       console.log('🔄 Setting guest cart items');
       setItems(getLocalCart());

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { X, ShoppingBag, Plus, Minus, Loader2, AlertCircle, Trash2, Heart, Zap, Timer, Sparkles, Shield, Lock, CreditCard, Gift, ArrowRight } from 'lucide-react';
+import { X, ShoppingBag, Plus, Minus, Loader2, AlertCircle, Trash2, Heart, Zap, Timer, Sparkles, Shield, Lock, CreditCard, Gift, ArrowRight, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
 import { useCart } from '@/hooks/useCart';
 import { applyDiscount } from '@/services/edgeFunctions';
@@ -365,7 +365,7 @@ const UndoNotification = ({ item, progress, onUndo, onCancel }: {
 // Main CartSidebar Component
 const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
-  const { items, loading, error, removeFromCart, updateQuantity, addToWishlist, createCheckout } = useCart();
+  const { items, loading, error, removeFromCart, updateQuantity, addToWishlist, createCheckout, refetch } = useCart();
   const { toast } = useToast();
   
   const {
@@ -389,6 +389,25 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   // Cart animations
   const cartScale = useSpring(1, { stiffness: 300, damping: 20 });
   const cartRotation = useSpring(0, { stiffness: 300, damping: 20 });
+
+  // Prevent body scroll when cart is open
+  useEffect(() => {
+    if (isOpen) {
+      // Disable body scroll
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = '0px'; // Prevent layout shift
+    } else {
+      // Re-enable body scroll
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (triggerPulse > 0) {
@@ -453,6 +472,25 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const handleCheckout = useCallback(() => {
     createCheckout(promoCode || undefined);
   }, [createCheckout, promoCode]);
+
+  // Handle refresh cart
+  const handleRefreshCart = useCallback(async () => {
+    try {
+      console.log('🔄 Manually refreshing cart...');
+      await refetch();
+      toast({
+        title: "Cart refreshed",
+        description: "Cart items have been synchronized with the database",
+      });
+    } catch (error) {
+      console.error('Error refreshing cart:', error);
+      toast({
+        title: "Refresh failed",
+        description: "Could not refresh cart items",
+        variant: "destructive",
+      });
+    }
+  }, [refetch, toast]);
 
   // Calculate totals
   const subtotal = useMemo(() => {
@@ -556,14 +594,26 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
               
-              <motion.button
-                onClick={onClose}
-                className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-colors"
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <X className="w-5 h-5" />
-              </motion.button>
+              <div className="flex items-center space-x-2">
+                <motion.button
+                  onClick={handleRefreshCart}
+                  className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-cyan-400 transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9, rotate: 180 }}
+                  title="Refresh cart"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </motion.button>
+                
+                <motion.button
+                  onClick={onClose}
+                  className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-colors"
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="w-5 h-5" />
+                </motion.button>
+              </div>
             </motion.div>
 
             {/* Content */}
@@ -574,8 +624,20 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                 <EmptyCart onClose={onClose} />
               ) : (
                 <div className="h-full flex flex-col">
-                  {/* Cart Items - Enhanced Scrollable Area */}
-                  <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 hover:scrollbar-thumb-slate-500">
+                  {/* Cart Items - Enhanced Scrollable Area with Better Isolation */}
+                  <div 
+                    className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 hover:scrollbar-thumb-slate-500 overscroll-contain"
+                    style={{
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: '#475569 #1e293b'
+                    }}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    onTouchMove={(e) => e.stopPropagation()}
+                    onWheel={(e) => {
+                      // Prevent wheel events from bubbling to parent
+                      e.stopPropagation();
+                    }}
+                  >
                     <AnimatePresence mode="popLayout">
                       {items.map((item, index) => (
                         <motion.div

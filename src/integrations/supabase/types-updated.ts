@@ -634,40 +634,40 @@ export type Database = {
           }
         ]
       }
-       product_images: {
-         Row: {
-           id: string
-           product_id: string
-           variant_id: string | null
-           image_url: string
-           alt_text: string | null
-           is_primary: boolean | null
-           sort_order: number | null
-           image_type: string | null
-           created_at: string | null
-         }
-         Insert: {
-           id: string
-           product_id: string
-           variant_id?: string | null
-           image_url: string
-           alt_text?: string | null
-           is_primary?: boolean | null
-           sort_order?: number | null
-           image_type?: string | null
-           created_at?: string | null
-         }
-         Update: {
-           id?: string
-           product_id?: string
-           variant_id?: string | null
-           image_url?: string
-           alt_text?: string | null
-           is_primary?: boolean | null
-           sort_order?: number | null
-           image_type?: string | null
-           created_at?: string | null
-         }
+      product_images: {
+        Row: {
+          id: string
+          product_id: string
+          variant_id: string | null
+          image_url: string
+          alt_text: string | null
+          is_primary: boolean | null
+          sort_order: number | null
+          image_type: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          variant_id?: string | null
+          image_url: string
+          alt_text?: string | null
+          is_primary?: boolean | null
+          sort_order?: number | null
+          image_type?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          variant_id?: string | null
+          image_url?: string
+          alt_text?: string | null
+          is_primary?: boolean | null
+          sort_order?: number | null
+          image_type?: string | null
+          created_at?: string | null
+        }
         Relationships: [
           {
             foreignKeyName: "product_images_product_id_fkey"

@@ -29,21 +29,32 @@ const Navigation = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Enhanced smooth scroll function
+  // Enhanced smooth scroll function with Lenis integration
   const smoothScrollTo = (elementId: string) => {
     const element = document.getElementById(elementId);
     if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-        inline: 'nearest'
-      });
+      // Try to use Lenis if available
+      const lenis = (window as any).lenis;
+      if (lenis) {
+        lenis.scrollTo(element, {
+          offset: -80, // Account for fixed header
+          duration: 1.5,
+          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+        });
+      } else {
+        // Fallback to native smooth scroll
+        element.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+          inline: 'nearest'
+        });
+      }
     }
   };
 
   const navLinks = [
     { name: 'Home', href: '/', scrollTo: 'hero' },
-    { name: 'T-Shirts', href: '/tshirts', scrollTo: 'collections' },
+    { name: 'T-Shirts', href: '/tshirt-collection', scrollTo: 'collections' },
     { name: 'Masks', href: '/masks', scrollTo: 'collections' },
     { name: 'Accessories', href: '/accessories', scrollTo: 'collections' },
     { name: 'About Us', href: '/about', scrollTo: 'about' },
@@ -338,6 +349,13 @@ const Navigation = () => {
                           whileHover={{ x: 5 }}
                         >
                           📊 Analytics
+                        </motion.a>
+                        <motion.a 
+                          href="/test-auth" 
+                          className="block px-4 py-2 hover:bg-cyan-400/10 transition-colors text-sm hover:text-cyan-400"
+                          whileHover={{ x: 5 }}
+                        >
+                          🧪 Auth Test
                         </motion.a>
                       </div>
                       

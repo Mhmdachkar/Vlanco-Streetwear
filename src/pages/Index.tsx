@@ -157,10 +157,18 @@ const Index = () => {
 
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
     
-    // Update MotionValues directly
-    const handleMouseMove = (e) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+    // Throttle mouse move updates to animation frame to reduce work
+    let rafId: number | null = null;
+    let lastEvent: MouseEvent | null = null;
+    const updateMouse = () => {
+      if (!lastEvent) return;
+      mouseX.set(lastEvent.clientX);
+      mouseY.set(lastEvent.clientY);
+      rafId = null;
+    };
+    const handleMouseMove = (e: MouseEvent) => {
+      lastEvent = e;
+      if (rafId == null) rafId = requestAnimationFrame(updateMouse);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -168,6 +176,7 @@ const Index = () => {
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mousemove', handleMouseMove);
+      if (rafId) cancelAnimationFrame(rafId);
       if (mq.removeEventListener) {
         mq.removeEventListener('change', onChange);
       } else {
@@ -178,7 +187,12 @@ const Index = () => {
   }, [mouseX, mouseY]);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const lenis = (window as any).lenis;
+    if (lenis) {
+      lenis.scrollTo(0, { duration: 1.2 });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -212,7 +226,15 @@ const Index = () => {
               onClick={() => {
                 const sections = document.querySelectorAll('main > div');
                 if (sections[index]) {
-                  sections[index].scrollIntoView({ behavior: 'smooth' });
+                  const lenis = (window as any).lenis;
+                  if (lenis) {
+                    lenis.scrollTo(sections[index], { 
+                      offset: -80, 
+                      duration: 1.5 
+                    });
+                  } else {
+                    sections[index].scrollIntoView({ behavior: 'smooth' });
+                  }
                 }
               }}
             />

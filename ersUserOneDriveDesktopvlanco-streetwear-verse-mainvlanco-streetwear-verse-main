@@ -1,7 +1,0 @@
-.nvmrc
-DEPLOYMENT.md
-env.example
-netlify.toml
-public/_redirects
-public/site.webmanifest
-public/sitemap.xml

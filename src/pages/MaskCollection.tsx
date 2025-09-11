@@ -43,6 +43,7 @@ import { supabase } from '@/integrations/supabase/client';
 import AuthModal from '@/components/AuthModal';
 import AnimatedCartButton from '@/components/AnimatedCartButton';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import AnimatedSpaceBackground from '@/components/AnimatedSpaceBackground';
 
 // Import photos from assets
 import heroBgImage from '@/assets/hero-bg.jpg';
@@ -1617,6 +1618,8 @@ const MaskCollection = () => {
         
                  {/* Hero Section with Animated Words */}
          <section className="relative min-h-[80vh] bg-gradient-to-br from-black via-gray-900 to-black overflow-hidden">
+           {/* Full-bleed animated space background (kept black) */}
+           <AnimatedSpaceBackground className="absolute inset-0 w-full h-full opacity-60" starCount={320} maxSpeed={0.22} shootingStarIntervalMs={4200} />
            {/* 3D Background Scene */}
            <div className="absolute inset-0 opacity-30">
              <MaskScene performanceMode={performanceMode} />
@@ -1916,6 +1919,58 @@ const MaskCollection = () => {
           </div>
           
           <div className="max-w-7xl mx-auto px-6 relative z-10">
+            {/* Professional animated background accents (pixels + orbs) */}
+            <div className="pointer-events-none absolute inset-0 -z-10">
+              {/* Animated pixel field */}
+              <div className="absolute inset-0">
+                {[...Array(36)].map((_, i) => (
+                  <motion.div
+                    key={`px-${i}`}
+                    className="absolute w-1.5 h-1.5 rounded-[2px] bg-cyan-400/30"
+                    style={{
+                      left: `${(i * 97) % 100}%`,
+                      top: `${(i * 53) % 100}%`,
+                    }}
+                    animate={{
+                      opacity: [0.15, 0.5, 0.15],
+                      scale: [1, 1.6, 1],
+                      y: [0, -4, 0],
+                    }}
+                    transition={{ duration: 4 + (i % 5) * 0.4, repeat: Infinity, ease: 'easeInOut', delay: (i % 10) * 0.15 }}
+                  />
+                ))}
+              </div>
+
+              {/* Soft floating orbs */}
+              {[...Array(6)].map((_, i) => (
+                <motion.div
+                  key={`orb-${i}`}
+                  className="absolute rounded-full blur-xl"
+                  style={{
+                    width: `${80 + (i % 3) * 40}px`,
+                    height: `${80 + (i % 3) * 40}px`,
+                    left: `${(i * 17 + 10) % 90}%`,
+                    top: `${(i * 23 + 20) % 70}%`,
+                    background: i % 2 === 0
+                      ? 'radial-gradient(closest-side, rgba(34,211,238,0.25), transparent)'
+                      : 'radial-gradient(closest-side, rgba(168,85,247,0.25), transparent)'
+                  }}
+                  animate={{
+                    x: [0, i % 2 === 0 ? 10 : -10, 0],
+                    y: [0, i % 2 === 0 ? -12 : 12, 0],
+                    opacity: [0.25, 0.45, 0.25]
+                  }}
+                  transition={{ duration: 10 + i, repeat: Infinity, ease: 'easeInOut', delay: i * 0.3 }}
+                />
+              ))}
+
+              {/* Subtle diagonal sweep */}
+              <motion.div
+                className="absolute -inset-x-10 -top-10 h-24 bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                animate={{ x: ['-20%', '120%'] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+              />
+            </div>
             {/* Enhanced Section Navigation */}
             <motion.div
               className="mb-16"
