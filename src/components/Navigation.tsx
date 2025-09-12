@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
 import AuthModal from './AuthModal';
 import CartSidebar from './CartSidebar';
+import { HeaderLogo } from './VlancoLogo';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import MiniCartPopover from '@/components/ui/MiniCartPopover';
 import WishlistPopover from '@/components/ui/WishlistPopover';
@@ -74,28 +75,31 @@ const Navigation = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16 sm:h-18">
-            {/* Enhanced Logo */}
-            <motion.div 
-              className="text-xl sm:text-2xl font-black cursor-pointer"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => smoothScrollTo('hero')}
-            >
-              <motion.span
-                className="text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text"
-                animate={{
-                  backgroundPosition: ['0%', '100%', '0%']
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                style={{ backgroundSize: '200% 200%' }}
+            {/* Brand Logo & Text */}
+            <div className="flex items-center gap-3">
+              <HeaderLogo onClick={() => smoothScrollTo('hero')} />
+              <motion.div 
+                className="text-xl sm:text-2xl font-black cursor-pointer hidden sm:block"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => smoothScrollTo('hero')}
               >
-                VLANCO
-              </motion.span>
-            </motion.div>
+                <motion.span
+                  className="text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text"
+                  animate={{
+                    backgroundPosition: ['0%', '100%', '0%']
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  style={{ backgroundSize: '200% 200%' }}
+                >
+                  VLANCO
+                </motion.span>
+              </motion.div>
+            </div>
 
             {/* Enhanced Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">

@@ -1,4 +1,5 @@
 import { Instagram, Twitter, Youtube, MapPin, Mail, Phone } from 'lucide-react';
+import { FooterLogo, InlineLogo } from './VlancoLogo';
 
 const Footer = () => {
   const footerLinks = {
@@ -49,8 +50,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 mb-10 sm:mb-12">
           {/* Brand Column */}
           <div className="lg:col-span-2">
-            <div className="text-2xl sm:text-3xl font-black gradient-text mb-4">
-              VLANCO
+            <div className="flex items-center gap-4 mb-6">
+              <FooterLogo />
+              <div className="text-2xl sm:text-3xl font-black gradient-text">
+                VLANCO
+              </div>
             </div>
             <p className="text-muted-foreground mb-6 max-w-md">
               Defining the future of streetwear through innovative design, premium quality, and authentic street culture. For the rebels, creators, and trendsetters.

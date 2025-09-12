@@ -20,6 +20,38 @@
     overscroll-behavior: contain;
   }
 
+  /* Enhanced smooth scrolling for all elements */
+  * {
+    scroll-behavior: smooth;
+  }
+
+  /* Optimize scrolling performance */
+  .scrollable-area {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    will-change: scroll-position;
+  }
+
+  /* Custom scrollbar styles for better UX */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: #1e293b;
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 3px;
+    transition: background-color 0.2s ease;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+
   .lenis.lenis-stopped {
     overflow: hidden;
   }

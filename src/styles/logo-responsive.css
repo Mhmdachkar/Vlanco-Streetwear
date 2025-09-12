@@ -1,0 +1,289 @@
+/* VLANCO Logo Responsive Styles */
+/* Ensuring perfect responsiveness across all devices and breakpoints */
+
+/* Base logo styles for optimal performance */
+.vlanco-logo-base {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transform-origin: center;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Header logo responsive adjustments */
+@media (max-width: 640px) {
+  .vlanco-header-logo {
+    width: 2rem !important;
+    height: 2rem !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .vlanco-header-logo {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .vlanco-header-logo {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+}
+
+/* Footer logo responsive adjustments */
+@media (max-width: 640px) {
+  .vlanco-footer-logo {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .vlanco-footer-logo {
+    width: 4rem !important;
+    height: 4rem !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .vlanco-footer-logo {
+    width: 5rem !important;
+    height: 5rem !important;
+  }
+}
+
+/* Watermark logo responsive adjustments */
+@media (max-width: 640px) {
+  .vlanco-watermark-logo {
+    width: 5rem !important;
+    height: 5rem !important;
+    opacity: 0.05 !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .vlanco-watermark-logo {
+    width: 7rem !important;
+    height: 7rem !important;
+    opacity: 0.08 !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .vlanco-watermark-logo {
+    width: 8rem !important;
+    height: 8rem !important;
+    opacity: 0.10 !important;
+  }
+}
+
+/* Inline logo responsive adjustments */
+.vlanco-inline-logo-xs {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+}
+
+@media (min-width: 768px) {
+  .vlanco-inline-logo-xs {
+    width: 2rem !important;
+    height: 2rem !important;
+  }
+}
+
+.vlanco-inline-logo-sm {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+@media (min-width: 768px) {
+  .vlanco-inline-logo-sm {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+  }
+}
+
+.vlanco-inline-logo-md {
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+}
+
+@media (min-width: 768px) {
+  .vlanco-inline-logo-md {
+    width: 3rem !important;
+    height: 3rem !important;
+  }
+}
+
+/* Hero logo responsive adjustments */
+@media (max-width: 640px) {
+  .vlanco-hero-logo {
+    width: 4rem !important;
+    height: 4rem !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .vlanco-hero-logo {
+    width: 5rem !important;
+    height: 5rem !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .vlanco-hero-logo {
+    width: 6rem !important;
+    height: 6rem !important;
+  }
+}
+
+/* Animation performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+  .vlanco-logo-base {
+    animation: none !important;
+    transition: none !important;
+  }
+  
+  .vlanco-logo-base * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .vlanco-logo-base img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimize-contrast;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .vlanco-logo-base {
+    transition-duration: 0.2s !important;
+  }
+  
+  .vlanco-logo-base:active {
+    transform: scale(0.95) !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .vlanco-watermark-logo {
+    display: none !important;
+  }
+  
+  .vlanco-logo-base {
+    filter: grayscale(1) !important;
+    opacity: 0.8 !important;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .vlanco-logo-base {
+    filter: brightness(1.1) contrast(1.1);
+  }
+}
+
+/* Light mode adjustments */
+@media (prefers-color-scheme: light) {
+  .vlanco-watermark-logo {
+    opacity: 0.15 !important;
+    filter: brightness(0.8);
+  }
+}
+
+/* Ultra-wide screen adjustments */
+@media (min-width: 1440px) {
+  .vlanco-header-logo {
+    width: 3.5rem !important;
+    height: 3.5rem !important;
+  }
+  
+  .vlanco-footer-logo {
+    width: 6rem !important;
+    height: 6rem !important;
+  }
+  
+  .vlanco-watermark-logo {
+    width: 10rem !important;
+    height: 10rem !important;
+  }
+}
+
+/* Mobile landscape optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+  .vlanco-header-logo {
+    width: 2rem !important;
+    height: 2rem !important;
+  }
+  
+  .vlanco-watermark-logo {
+    width: 4rem !important;
+    height: 4rem !important;
+    opacity: 0.05 !important;
+  }
+}
+
+/* Loading state styles */
+.vlanco-logo-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: vlanco-logo-shimmer 1.5s infinite;
+}
+
+@keyframes vlanco-logo-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Error state styles */
+.vlanco-logo-error {
+  opacity: 0.5;
+  filter: grayscale(1);
+}
+
+/* Focus styles for accessibility */
+.vlanco-logo-base:focus {
+  outline: 2px solid #06b6d4;
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Hover effects for interactive logos */
+.vlanco-logo-interactive:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1) saturate(1.1);
+}
+
+.vlanco-logo-interactive:active {
+  transform: scale(0.95);
+}
+
+/* Container responsive adjustments */
+.vlanco-logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .vlanco-logo-container {
+    margin: 0.25rem;
+  }
+}
+
+@media (min-width: 641px) {
+  .vlanco-logo-container {
+    margin: 0.5rem;
+  }
+}

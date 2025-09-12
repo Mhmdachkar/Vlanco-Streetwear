@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, Suspense, useMemo } from 'react';
 import { motion, useInView, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { WatermarkLogo, InlineLogo } from '@/components/VlancoLogo';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
 import { OrbitControls, Text3D, Float, Environment, useGLTF, Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -1558,6 +1559,9 @@ const MaskCollection = () => {
 
   return (
     <>
+      {/* Brand Watermark Logo */}
+      <WatermarkLogo className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0" />
+      
       <div className="font-inter bg-black text-white min-h-screen">
         <Navigation />
         

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, useInView, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { WatermarkLogo, InlineLogo } from '@/components/VlancoLogo';
 import { 
   Search, 
   Filter, 
@@ -845,6 +846,9 @@ const TShirtCollection = () => {
 
   return (
     <>
+      {/* Brand Watermark Logo */}
+      <WatermarkLogo className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0" />
+      
       <div className="font-inter">
         <Navigation />
         {/* Enhanced Hero Section */}

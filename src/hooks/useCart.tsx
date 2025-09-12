@@ -809,12 +809,12 @@ function useProvideCart(): CartContextValue {
       }
     }
   };
-}
-
-export function useCart(): CartContextValue {
+}export function useCart(): CartContextValue {
   const ctx = useContext(CartContext);
   // Fallback to local provider hook if no context (backward compatibility)
   return ctx ?? useProvideCart();
 }
+
+
 
 

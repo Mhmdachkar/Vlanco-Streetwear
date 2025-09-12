@@ -12,7 +12,7 @@ type CartItem = Tables<'cart_items'> & {
 interface CartItemCardProps {
   item: CartItem;
   onRemove: (itemId: string) => void;
-  onUpdateQuantity: (itemId: string, quantity: number) => void;
+  onUpdateQuantity: (quantity: number) => void;
 }
 
 const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item, onRemove, onUpdateQuantity }, ref) => {
@@ -28,9 +28,12 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
   };
 
   const handleQuantityChange = (newQuantity: number) => {
+    console.log('🔄 CartItemCard: handleQuantityChange called', { itemId: item.id, newQuantity });
     if (newQuantity > 0 && newQuantity <= 99) {
-      onUpdateQuantity(item.id, newQuantity);
+      console.log('🔄 CartItemCard: Calling onUpdateQuantity prop');
+      onUpdateQuantity(newQuantity);
     } else if (newQuantity <= 0) {
+      console.log('🔄 CartItemCard: Quantity <= 0, removing item');
       // If quantity would be 0 or negative, remove the item
       handleRemove();
     }
@@ -257,6 +260,7 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    console.log('🔄 CartItemCard: Minus button clicked, current quantity:', item.quantity);
                     handleQuantityChange(item.quantity - 1);
                   }}
                   disabled={item.quantity <= 1}
@@ -285,6 +289,7 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
+                    console.log('🔄 CartItemCard: Plus button clicked, current quantity:', item.quantity);
                     handleQuantityChange(item.quantity + 1);
                   }}
                   disabled={item.quantity >= 99}

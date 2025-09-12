@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, useMotionValue, useTransform, useInView } from 'framer-motion';
 import { ShoppingBag, Play, ArrowRight, Sparkles, Star, Heart, Zap } from 'lucide-react';
+import { WatermarkLogo, HeroLogo } from './VlancoLogo';
 
 // Optimized Smoky Word Animation Component with better performance
 const AnimatedText = ({ text, className, delay = 0, duration = 1.2, isInView }: {
@@ -273,6 +274,9 @@ const HeroSection = () => {
       ref={containerRef}
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900"
     >
+      {/* Brand Watermark Logo */}
+      <WatermarkLogo className="top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0" />
+      
       {/* Optimized Background Elements - Reduced for Performance */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Simplified Animated Grid */}

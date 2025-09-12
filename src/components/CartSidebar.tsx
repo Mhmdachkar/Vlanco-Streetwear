@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { X, ShoppingBag, Plus, Minus, Loader2, AlertCircle, Trash2, Heart, Zap, Timer, Sparkles, Shield, Lock, CreditCard, Gift, ArrowRight, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence, useSpring, useTransform } from 'framer-motion';
+import { InlineLogo } from './VlancoLogo';
 import { useCart } from '@/hooks/useCart';
 import { applyDiscount } from '@/services/edgeFunctions';
 import { useAuth } from '@/hooks/useAuth';
@@ -427,15 +428,19 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
 
   // Handle quantity updates
   const handleQuantityUpdate = useCallback(async (itemId: string, newQuantity: number) => {
+    console.log('🔄 CartSidebar: handleQuantityUpdate called', { itemId, newQuantity });
     const itemKey = itemId;
     setItemLoadingState(itemKey, true);
     clearItemError(itemKey);
     
     try {
+      console.log('🔄 CartSidebar: Calling updateQuantity from useCart hook');
       await updateQuantity(itemId, newQuantity);
+      console.log('✅ CartSidebar: Quantity updated successfully');
       setItemSuccessState(itemKey, true);
       pulseCart();
     } catch (error) {
+      console.error('❌ CartSidebar: Error updating quantity:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to update quantity';
       setItemError(itemKey, errorMessage);
       shakeCart();
@@ -586,11 +591,14 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                   )}
                 </motion.div>
                 
-                <div>
-                  <h2 className="text-xl font-bold text-white">Your Vault</h2>
-                  <p className="text-slate-400 text-sm">
-                    {totalItems} item{totalItems !== 1 ? 's' : ''} • ${subtotal.toFixed(2)}
-                  </p>
+                <div className="flex items-center space-x-3">
+                  <InlineLogo size="sm" className="flex-shrink-0" />
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Your Vault</h2>
+                    <p className="text-slate-400 text-sm">
+                      {totalItems} item{totalItems !== 1 ? 's' : ''} • ${subtotal.toFixed(2)}
+                    </p>
+                  </div>
                 </div>
               </div>
               
@@ -626,10 +634,12 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                 <div className="h-full flex flex-col">
                   {/* Cart Items - Enhanced Scrollable Area with Better Isolation */}
                   <div 
-                    className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800 hover:scrollbar-thumb-slate-500 overscroll-contain"
+                    className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollable-area overscroll-contain max-h-[calc(100vh-220px)] pr-2"
                     style={{
                       scrollbarWidth: 'thin',
-                      scrollbarColor: '#475569 #1e293b'
+                      scrollbarColor: '#475569 #1e293b',
+                      scrollBehavior: 'smooth',
+                      WebkitOverflowScrolling: 'touch'
                     }}
                     onTouchStart={(e) => e.stopPropagation()}
                     onTouchMove={(e) => e.stopPropagation()}
