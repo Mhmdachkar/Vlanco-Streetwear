@@ -104,7 +104,11 @@ export function useWishlist() {
 
   // Add item to wishlist
   const addToWishlist = useCallback(async (item: Omit<WishlistItem, 'addedAt'>) => {
+    console.log('🔍 useWishlist - addToWishlist called with item:', item);
+    console.log('🔍 useWishlist - User:', user?.id || 'No user');
+    
     if (!user) {
+      console.log('🔍 useWishlist - Guest user, using localStorage');
       // Guest wishlist logic
       let wishlist = getLocalWishlist();
       const existingItem = wishlist.find(wishlistItem => wishlistItem.id === item.id);
@@ -124,34 +128,58 @@ export function useWishlist() {
 
     // Supabase wishlist logic
     try {
+      console.log('🔍 useWishlist - Authenticated user, using Supabase');
       setError(null);
       
-      const { error: insertError } = await supabase
-        .from('wishlist_items')
-        .insert({
-          user_id: user.id,
-          product_id: item.id,
-          added_at: new Date().toISOString(),
-        });
-
-      if (insertError) throw insertError;
+      const insertData = {
+        user_id: user.id,
+        product_id: item.id,
+        added_at: new Date().toISOString(),
+      };
       
+      console.log('🔍 useWishlist - Inserting to Supabase:', insertData);
+      
+      const { data: insertData_result, error: insertError } = await supabase
+        .from('wishlist_items')
+        .insert(insertData)
+        .select();
+
+      console.log('🔍 useWishlist - Supabase insert result:', insertData_result);
+      
+      if (insertError) {
+        console.error('🔍 useWishlist - Supabase insert error:', insertError);
+        console.error('🔍 useWishlist - Error details:', {
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint,
+          code: insertError.code
+        });
+        throw insertError;
+      }
+      
+      console.log('🔍 useWishlist - Supabase insert successful');
+      
+      console.log('🔍 useWishlist - Fetching wishlist items...');
       await fetchWishlistItems();
       
       // Track analytics
+      console.log('🔍 useWishlist - Tracking analytics...');
       await trackWishlistEvent({
         userId: user.id,
         eventType: 'add_to_wishlist',
         productId: item.id,
       });
       
+      console.log('🔍 useWishlist - Showing success toast...');
       toast({ 
         title: 'Added to Wishlist', 
         description: 'Item has been added to your wishlist',
         duration: 3000
       });
+      
+      console.log('✅ useWishlist - addToWishlist completed successfully');
     } catch (error) {
-      console.error('Error adding to wishlist:', error);
+      console.error('❌ useWishlist - Error adding to wishlist:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to add item to wishlist';
       setError(errorMessage);
       toast({ 
@@ -292,6 +320,29 @@ export function useWishlist() {
       setItems(getLocalWishlist());
     }
   }, [user, fetchWishlistItems]);
+
+  // Listen for localStorage changes to update wishlist count
+  useEffect(() => {
+    const handleStorageChange = () => {
+      console.log('🔍 useWishlist - localStorage changed, refreshing wishlist');
+      if (!user) {
+        // For guest users, update from localStorage
+        const localWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+        setItems(localWishlist);
+      }
+    };
+
+    // Listen for storage events (from other tabs/windows)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom storage events (from same tab)
+    window.addEventListener('wishlistUpdated', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('wishlistUpdated', handleStorageChange);
+    };
+  }, [user]);
 
   // Computed values
   const itemCount = items.length;

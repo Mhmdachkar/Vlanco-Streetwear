@@ -322,6 +322,7 @@ const TShirtCollection = () => {
   const [selectedColor, setSelectedColor] = useState<{[key: number]: number}>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [wishlistAnimating, setWishlistAnimating] = useState<number | null>(null);
   
   // Enhanced mock products with professional images
   const mockTshirts = [
@@ -443,6 +444,11 @@ const TShirtCollection = () => {
     console.log('🎯 TShirtCollection - Component loaded');
     console.log('🎯 TShirtCollection - User:', user?.id || 'Not logged in');
     console.log('🎯 TShirtCollection - Mock products:', mockTshirts.length);
+    
+    // Debug: Check localStorage contents
+    console.log('🔍 TShirtCollection - localStorage vlanco_wishlist:', JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]'));
+    console.log('🔍 TShirtCollection - localStorage vlanco_guest_wishlist:', JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]'));
+    console.log('🔍 TShirtCollection - localStorage vlanco_hardcoded_wishlist:', JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]'));
   }, [user?.id, mockTshirts.length]);
 
   // Track page view - only once when component mounts
@@ -503,40 +509,235 @@ const TShirtCollection = () => {
     ]
   };
 
+  // Debug function to test wishlist functionality
+  const testWishlistFunctionality = () => {
+    console.log('🧪 Testing wishlist functionality...');
+    const testProduct = mockTshirts[0];
+    console.log('🧪 Test product:', testProduct);
+    
+    // Test localStorage operations
+    const testItem = {
+      id: 'test-' + Date.now(),
+      name: 'Test Product',
+      price: 99,
+      image: testProduct.image,
+      category: 'Test',
+      addedAt: new Date().toISOString()
+    };
+    
+    // Save to all localStorage keys
+    localStorage.setItem('vlanco_wishlist', JSON.stringify([testItem]));
+    localStorage.setItem('vlanco_guest_wishlist', JSON.stringify([testItem]));
+    localStorage.setItem('vlanco_hardcoded_wishlist', JSON.stringify([testItem]));
+    
+    console.log('🧪 Test item saved to all localStorage keys');
+    console.log('🧪 localStorage vlanco_wishlist:', JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]'));
+    console.log('🧪 localStorage vlanco_guest_wishlist:', JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]'));
+    console.log('🧪 localStorage vlanco_hardcoded_wishlist:', JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]'));
+    
+    toast({
+      title: '🧪 Test Complete',
+      description: 'Check console for test results',
+      duration: 3000
+    });
+  };
+
+  // Test function to add a real product to wishlist (bypassing Supabase)
+  const testRealProductWishlist = () => {
+    console.log('🧪 Testing real product wishlist functionality...');
+    const testProduct = mockTshirts[0];
+    
+    const wishlistItem = {
+      id: String(testProduct.id),
+      name: testProduct.name,
+      price: testProduct.price,
+      compare_price: testProduct.originalPrice || null,
+      image: testProduct.image,
+      images: [testProduct.image, testProduct.hoverImage].filter(Boolean),
+      category: testProduct.category || 'T-Shirts',
+      description: testProduct.description || `${testProduct.name} - Premium streetwear from VLANCO`,
+      rating: 4.8,
+      reviews: Math.floor(Math.random() * 100) + 20,
+      isLimited: testProduct.isLimited || false,
+      isNew: testProduct.isNew || false,
+      isBestseller: testProduct.isBestseller || false,
+      colors: testProduct.colors || ['Black', 'White'],
+      sizes: testProduct.sizes || ['S', 'M', 'L', 'XL'],
+      material: 'Premium Cotton',
+      brand: 'VLANCO',
+      collection: 'Premium Collection',
+      tags: ['streetwear', 'premium', 'cotton'],
+      features: ['Comfortable', 'Durable', 'Style'],
+      availability: 'In Stock',
+      shipping: 'Standard Shipping',
+      addedAt: new Date().toISOString()
+    };
+    
+    // Save to localStorage directly (bypassing Supabase)
+    const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+    const updatedWishlist = [wishlistItem, ...existingWishlist.filter((item: any) => item.id !== String(testProduct.id))];
+    localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
+    
+    console.log('🧪 Real product added to localStorage:', updatedWishlist);
+    
+    toast({
+      title: '🧪 Real Product Test',
+      description: `${testProduct.name} added to wishlist (localStorage only)`,
+      duration: 3000
+    });
+  };
+
   const handleToggleWishlist = async (product: any, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (!user) { setShowAuthModal(true); return; }
+    
+    console.log('🎯 TShirtCollection - handleToggleWishlist called');
+    console.log('🎯 TShirtCollection - Product:', product.name, 'ID:', product.id);
+    console.log('🎯 TShirtCollection - User:', user?.id || 'Not logged in');
+    
+    if (!user) { 
+      console.log('🎯 TShirtCollection - No user, showing auth modal');
+      setShowAuthModal(true); 
+      return; 
+    }
+    
     try {
-      if (isInWishlist(String(product.id))) {
-        await removeFromWishlist(String(product.id));
-        toast({ title: 'Removed from Wishlist', description: `${product.name} removed from wishlist`, duration: 2500 });
+      const productId = String(product.id);
+      const isCurrentlyInWishlist = isInWishlist(productId);
+      
+      console.log('🎯 TShirtCollection - Is in wishlist:', isCurrentlyInWishlist);
+      
+      if (isCurrentlyInWishlist) {
+        console.log('🎯 TShirtCollection - Removing from wishlist');
+        await removeFromWishlist(productId);
+        
+        // Also remove from localStorage keys for consistency
+        const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+        const updatedWishlist = existingWishlist.filter((item: any) => item.id !== productId);
+        localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
+        
+        const guestWishlist = JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]');
+        const updatedGuestWishlist = guestWishlist.filter((item: any) => item.id !== productId);
+        localStorage.setItem('vlanco_guest_wishlist', JSON.stringify(updatedGuestWishlist));
+        
+        const hardcodedWishlist = JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]');
+        const updatedHardcodedWishlist = hardcodedWishlist.filter((item: any) => item.id !== productId);
+        localStorage.setItem('vlanco_hardcoded_wishlist', JSON.stringify(updatedHardcodedWishlist));
+        
+        console.log('✅ TShirtCollection - Removed from all localStorage keys');
+        
+        toast({ 
+          title: 'Removed from Wishlist', 
+          description: `${product.name} removed from wishlist`, 
+          duration: 2500 
+        });
       } else {
+        console.log('🎯 TShirtCollection - Adding to wishlist');
+        
         // Track analytics for add to wishlist
         try {
-          await trackAddToWishlist(String(product.id));
+          await trackAddToWishlist(productId);
           console.log('✅ Wishlist analytics tracking successful');
         } catch (analyticsError) {
           console.error('❌ Wishlist analytics tracking failed:', analyticsError);
         }
         
-        await addToWishlist({
-          id: String(product.id),
+        // Create comprehensive wishlist item with complete product information
+        const wishlistItem = {
+          id: productId,
           name: product.name,
           price: Number(product.price) || 0,
+          compare_price: Number(product.originalPrice) || null,
           image: product.image,
+          images: product.images || [product.image],
           category: product.category || 'T-Shirts',
-          description: product.description,
-          rating: product.rating,
-          reviews: product.reviews,
-          isLimited: product.isBestseller,
-          isNew: product.isNew,
-          colors: (product.colors || []).map((c: any) => c.name),
-          sizes: product.sizes || []
+          description: product.description || `${product.name} - Premium streetwear collection from VLANCO`,
+          rating: product.rating || 4.5,
+          reviews: product.reviews || 0,
+          isLimited: product.isBestseller || false,
+          isNew: product.isNew || false,
+          isBestseller: product.isBestseller || false,
+          colors: (product.colors || []).map((c: any) => c.name || c),
+          sizes: product.sizes || ['S', 'M', 'L', 'XL'],
+          material: product.material || 'Premium Cotton',
+          brand: product.brand || 'VLANCO',
+          collection: product.collection || 'T-Shirt Collection',
+          tags: product.tags || ['streetwear', 'tshirt', 'cotton'],
+          features: product.features || [
+            'Premium Quality Materials',
+            'Comfortable Fit',
+            'Durable Construction',
+            'Modern Design'
+          ],
+          availability: product.availability || 'In Stock',
+          shipping: product.shipping || 'Standard Shipping',
+          addedAt: new Date().toISOString()
+        };
+        
+        console.log('🎯 TShirtCollection - Wishlist item created:', wishlistItem);
+        
+        // Add to wishlist using the hook (Supabase + localStorage) - non-blocking
+        console.log('🎯 TShirtCollection - Calling addToWishlist hook...');
+        addToWishlist(wishlistItem).then(() => {
+          console.log('✅ TShirtCollection - Added to wishlist via hook');
+        }).catch((hookError) => {
+          console.error('❌ TShirtCollection - addToWishlist hook error:', hookError);
+          // Continue with localStorage operations even if hook fails
         });
-        toast({ title: 'Added to Wishlist', description: `${product.name} added to wishlist`, duration: 2500 });
+        
+        // Also save to the main localStorage key that the wishlist page reads from
+        console.log('🎯 TShirtCollection - Starting localStorage operations...');
+        const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+        console.log('🎯 TShirtCollection - Existing vlanco_wishlist:', existingWishlist);
+        const updatedWishlist = [wishlistItem, ...existingWishlist.filter((item: any) => item.id !== productId)];
+        localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
+        console.log('✅ TShirtCollection - Saved to vlanco_wishlist localStorage');
+        
+        // Save to guest wishlist key (used by useWishlist hook for guests)
+        const guestWishlist = JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]');
+        console.log('🎯 TShirtCollection - Existing vlanco_guest_wishlist:', guestWishlist);
+        const updatedGuestWishlist = [wishlistItem, ...guestWishlist.filter((item: any) => item.id !== productId)];
+        localStorage.setItem('vlanco_guest_wishlist', JSON.stringify(updatedGuestWishlist));
+        console.log('✅ TShirtCollection - Saved to vlanco_guest_wishlist localStorage');
+        
+        // Save to hardcoded wishlist as backup
+        const hardcodedWishlist = JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]');
+        console.log('🎯 TShirtCollection - Existing vlanco_hardcoded_wishlist:', hardcodedWishlist);
+        const updatedHardcodedWishlist = [wishlistItem, ...hardcodedWishlist.filter((item: any) => item.id !== productId)];
+        localStorage.setItem('vlanco_hardcoded_wishlist', JSON.stringify(updatedHardcodedWishlist));
+        console.log('✅ TShirtCollection - Saved to backup localStorage');
+        
+        // Dispatch custom event to notify components about wishlist update
+        window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { updatedWishlist } }));
+        console.log('✅ TShirtCollection - Dispatched wishlistUpdated event');
+        
+        // Trigger animation
+        console.log('🎯 TShirtCollection - Setting wishlist animation...');
+        setWishlistAnimating(product.id);
+        
+        // Enhanced success feedback
+        console.log('🎯 TShirtCollection - Showing success toast...');
+        toast({
+          title: "💖 SAVED TO VAULT!",
+          description: `${product.name} has been added to your wishlist`,
+          duration: 3000
+        });
+        
+        console.log('✅ TShirtCollection - Wishlist operation completed successfully');
+        
+        // Clear animation after delay
+        setTimeout(() => {
+          console.log('🎯 TShirtCollection - Clearing wishlist animation...');
+          setWishlistAnimating(null);
+        }, 1000);
       }
     } catch (err) {
-      toast({ title: 'Error', description: 'Failed to update wishlist', variant: 'destructive' });
+      console.error('❌ TShirtCollection - Wishlist error:', err);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to update wishlist', 
+        variant: 'destructive',
+        duration: 5000
+      });
     }
   };
 
@@ -1539,6 +1740,51 @@ const TShirtCollection = () => {
                 />
               </motion.div>
             </div>
+            
+            {/* Debug Test Buttons */}
+            <motion.div
+              className="mb-8 text-center flex gap-4 justify-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+            >
+              <motion.button
+                onClick={testWishlistFunctionality}
+                className="px-6 py-3 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                🧪 Test Basic Functionality
+              </motion.button>
+              
+              <motion.button
+                onClick={testRealProductWishlist}
+                className="px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                🧪 Test Real Product
+              </motion.button>
+              
+              <motion.button
+                onClick={() => {
+                  const wishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+                  console.log('🔍 Current wishlist in localStorage:', wishlist);
+                  console.log('🔍 Wishlist count:', wishlist.length);
+                  toast({
+                    title: '🔍 Wishlist Debug',
+                    description: `Found ${wishlist.length} items in localStorage`,
+                    duration: 3000
+                  });
+                }}
+                className="px-6 py-3 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                🔍 Check Wishlist
+              </motion.button>
+            </motion.div>
+            
             {/* Enhanced Product Grid with 3D Effects */}
             <motion.div
               className={`grid gap-6 sm:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`}
@@ -1895,22 +2141,73 @@ const TShirtCollection = () => {
                               />
                             </motion.button>
 
-                            {/* Wishlist Button */}
+                            {/* Enhanced Wishlist Button with Professional Feedback */}
                             <motion.button
                               onClick={(e) => {
                                 e.stopPropagation();
+                                console.log('🎯 TShirtCollection - Heart button clicked for product:', product.name);
                                 handleToggleWishlist(product, e);
                               }}
-                              className="p-3 rounded-full shadow-lg border-2 bg-white/15 text-white hover:bg-white/25 border-white/30 transition-all duration-300 hover:shadow-white/20"
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
+                              className={`p-3 rounded-full shadow-lg border-2 transition-all duration-300 ${
+                                isInWishlist(String(product.id))
+                                  ? 'bg-red-500/20 text-red-500 border-red-500/60 hover:bg-red-500/30 shadow-red-500/20'
+                                  : 'bg-white/15 text-white hover:bg-white/25 border-white/30 hover:shadow-white/20'
+                              }`}
+                              whileHover={{ 
+                                scale: 1.15,
+                                boxShadow: isInWishlist(String(product.id)) 
+                                  ? '0 0 25px rgba(239, 68, 68, 0.6)' 
+                                  : '0 0 25px rgba(255, 255, 255, 0.3)'
+                              }}
+                              whileTap={{ 
+                                scale: 0.9,
+                                transition: { duration: 0.1 }
+                              }}
+                              animate={wishlistAnimating === product.id ? {
+                                scale: [1, 1.4, 1],
+                                boxShadow: [
+                                  '0 0 0px rgba(239, 68, 68, 0)',
+                                  '0 0 40px rgba(239, 68, 68, 1)',
+                                  '0 0 0px rgba(239, 68, 68, 0)'
+                                ]
+                              } : {}}
+                              transition={{
+                                scale: { duration: 0.3, ease: "easeOut" },
+                                boxShadow: { duration: 0.3, ease: "easeOut" }
+                              }}
                               title={isInWishlist(String(product.id)) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                              aria-label={isInWishlist(String(product.id)) ? 'Remove from Wishlist' : 'Add to Wishlist'}
                             >
-                              <Heart className={`w-5 h-5 transition-colors duration-200 ${
-                                isInWishlist(String(product.id)) 
-                                  ? 'text-red-500 fill-red-500' 
-                                  : 'group-hover:text-red-300'
-                              }`} />
+                              <motion.div
+                                animate={wishlistAnimating === product.id ? {
+                                  scale: [1, 1.2, 1],
+                                  rotate: [0, 10, -10, 0]
+                                } : {}}
+                                transition={{
+                                  duration: 0.4,
+                                  ease: "easeOut"
+                                }}
+                              >
+                                <Heart className={`w-5 h-5 transition-all duration-300 ${
+                                  isInWishlist(String(product.id)) 
+                                    ? 'text-red-500 fill-red-500' 
+                                    : 'text-white group-hover:text-red-300'
+                                }`} />
+                              </motion.div>
+                              
+                              {/* Blow-up Effect Overlay */}
+                              <motion.div
+                                className="absolute inset-0 rounded-full bg-red-500/40"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={wishlistAnimating === product.id ? {
+                                  scale: [0, 2, 0],
+                                  opacity: [0, 1, 0]
+                                } : {}}
+                                transition={{
+                                  duration: 0.6,
+                                  ease: "easeOut"
+                                }}
+                              />
                             </motion.button>
                           </div>
                         </div>

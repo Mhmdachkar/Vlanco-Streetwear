@@ -597,7 +597,7 @@ const AnimatedScrollWords = ({ words, className = "" }) => {
 };
 
 // Enhanced PowerMaskCard Component with Improved Readability and Visual Impact
-const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggleWishlist, isInWishlist }) => {
+const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggleWishlist, isInWishlist, wishlistAnimating }) => {
   const cardRef = useRef(null);
   const navigate = useNavigate();
   const { scrollYProgress } = useScroll({
@@ -672,6 +672,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
   return (
     <motion.div
       ref={cardRef}
+      data-product-id={product.id}
       className="group relative h-[650px] rounded-3xl overflow-hidden bg-gradient-to-br from-background via-muted/20 to-background border border-border/50 shadow-2xl cursor-pointer"
       style={{ y, scale }}
       initial={{ opacity: 0, y: 50, scale: 0.95 }}
@@ -776,18 +777,74 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
 
           {/* Quick Actions */}
           <div className="absolute bottom-4 right-4 flex gap-2">
+            {/* Enhanced Wishlist Button with Blow-up Animation */}
             <motion.button
-              className="p-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm border border-white/20"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
               onClick={(e) => { 
                 e.stopPropagation(); 
-                onToggleWishlist(product);
+                onToggleWishlist(product, e);
               }}
+              className={`p-2.5 rounded-full shadow-lg border-2 transition-all duration-300 ${
+                isInWishlist(product.id)
+                  ? 'bg-red-500/20 text-red-500 border-red-500/60 hover:bg-red-500/30'
+                  : 'bg-white/15 text-white hover:bg-white/25 border-white/30'
+              }`}
+              whileHover={{ 
+                scale: 1.1,
+                boxShadow: isInWishlist(product.id) 
+                  ? '0 0 20px rgba(239, 68, 68, 0.6)' 
+                  : '0 0 20px rgba(255, 255, 255, 0.3)'
+              }}
+              whileTap={{ 
+                scale: 0.9,
+                transition: { duration: 0.1 }
+              }}
+              animate={wishlistAnimating === product.id ? {
+                scale: [1, 1.3, 1],
+                boxShadow: [
+                  '0 0 0px rgba(239, 68, 68, 0)',
+                  '0 0 30px rgba(239, 68, 68, 1)',
+                  '0 0 0px rgba(239, 68, 68, 0)'
+                ]
+              } : {}}
+              transition={{
+                scale: { duration: 0.3, ease: "easeOut" },
+                boxShadow: { duration: 0.3, ease: "easeOut" }
+              }}
+              title={isInWishlist(product.id) ? 'Remove from Wishlist' : 'Add to Wishlist'}
               aria-label="Add to Wishlist"
             >
-              <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-current text-red-400' : ''}`} />
+              <motion.div
+                animate={wishlistAnimating === product.id ? {
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 10, -10, 0]
+                } : {}}
+                transition={{
+                  duration: 0.4,
+                  ease: "easeOut"
+                }}
+              >
+                <Heart className={`w-4 h-4 transition-all duration-300 ${
+                  isInWishlist(product.id) 
+                    ? 'text-red-500 fill-red-500' 
+                    : 'text-white'
+                }`} />
+              </motion.div>
+              
+              {/* Blow-up Effect Overlay */}
+              <motion.div
+                className="absolute inset-0 rounded-full bg-red-500/40"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={wishlistAnimating === product.id ? {
+                  scale: [0, 2, 0],
+                  opacity: [0, 1, 0]
+                } : {}}
+                transition={{
+                  duration: 0.6,
+                  ease: "easeOut"
+                }}
+              />
             </motion.button>
+            
             <motion.button
               className="p-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white backdrop-blur-sm border border-white/20"
               whileHover={{ scale: 1.05 }}
@@ -974,6 +1031,77 @@ const MaskCollection = () => {
   const [selectedColor, setSelectedColor] = useState<Record<number, number>>({});
   const [selectedSize, setSelectedSize] = useState<Record<number, string>>({});
   const imageRefs = useRef<Record<number, HTMLImageElement | null>>({});
+  
+  // Fly to cart animation function (fixed selector)
+  const flyToCart = (productId: number) => {
+    console.log('🎯 flyToCart called for product:', productId);
+    
+    const productElement = document.querySelector(`[data-product-id="${productId}"]`);
+    console.log('🎯 Product element found:', !!productElement);
+    if (!productElement) {
+      console.warn('❌ Product element not found for ID:', productId);
+      return;
+    }
+
+    // Try multiple selectors to find the cart button
+    const cartButton = document.querySelector('#cart-icon') || 
+                      document.querySelector('[data-cart-icon]') || 
+                      document.querySelector('.cart-icon') || 
+                      document.querySelector('[data-cart-button]');
+    
+    console.log('🎯 Cart button found:', !!cartButton);
+    if (!cartButton) {
+      console.warn('❌ Cart button not found');
+      return;
+    }
+
+    const productRect = productElement.getBoundingClientRect();
+    const cartRect = cartButton.getBoundingClientRect();
+    
+    console.log('🎯 Product rect:', productRect);
+    console.log('🎯 Cart rect:', cartRect);
+
+    const productImg = productElement.querySelector('img') as HTMLImageElement;
+    if (!productImg) {
+      console.warn('❌ Product image not found');
+      return;
+    }
+
+    const floatingImg = document.createElement('img');
+    floatingImg.src = productImg.src;
+    floatingImg.style.cssText = `
+      position: fixed;
+      left: ${productRect.left + productRect.width / 2}px;
+      top: ${productRect.top + productRect.height / 2}px;
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      z-index: 10000;
+      pointer-events: none;
+      transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      transform: translate(-50%, -50%);
+    `;
+
+    document.body.appendChild(floatingImg);
+    console.log('🎯 Floating image created and added to DOM');
+
+    requestAnimationFrame(() => {
+      floatingImg.style.left = `${cartRect.left + cartRect.width / 2}px`;
+      floatingImg.style.top = `${cartRect.top + cartRect.height / 2}px`;
+      floatingImg.style.transform = 'translate(-50%, -50%) scale(0.3) rotate(360deg)';
+      floatingImg.style.opacity = '0';
+      console.log('🎯 Animation started');
+    });
+
+    setTimeout(() => {
+      if (document.body.contains(floatingImg)) {
+        document.body.removeChild(floatingImg);
+        console.log('🎯 Floating image removed from DOM');
+      }
+    }, 850);
+  };
   
   useEffect(() => {
     // Simulate loading time for 3D animations
@@ -1436,41 +1564,75 @@ const MaskCollection = () => {
         // Trigger blow-up animation
         setWishlistAnimating(product.id);
         
-        // Create wishlist item with complete product information
+        // Create comprehensive wishlist item with all product information
         const wishlistItem = {
           id: product.id.toString(),
           name: product.name,
           price: product.price,
           compare_price: product.originalPrice,
           image: product.image,
-          images: product.gallery?.map((item: any) => item.src) || [],
+          images: product.gallery?.map((item: any) => item.src) || [product.image],
           category: product.category || 'Masks',
           description: product.description,
           rating: product.rating,
           reviews: product.reviews,
-          isLimited: product.isBestseller,
-          isNew: product.isNew,
-          colors: product.colors?.map((c: any) => c.name) || [],
-          sizes: product.sizes || [],
+          isLimited: product.isLimited || false,
+          isNew: product.isNew || false,
+          isBestseller: product.isBestseller || false,
+          colors: product.colors?.map((c: any) => c.name || c) || ['Default'],
+          sizes: product.sizes || ['One Size'],
+          material: product.material || 'Premium Materials',
+          protection: product.protection,
+          washable: product.washable,
+          availability: product.availability,
+          shipping: product.shipping,
+          brand: product.brand || 'VLANCO',
+          collection: product.collection || 'Mask Collection',
+          modelNumber: product.modelNumber || `MASK-${product.id}`,
+          placeOfOrigin: product.placeOfOrigin,
+          applicableScenes: product.applicableScenes,
+          gender: product.gender,
+          ageGroup: product.ageGroup,
+          moq: product.moq,
+          sampleTime: product.sampleTime,
+          packaging: product.packaging,
+          singlePackageSize: product.singlePackageSize,
+          singleGrossWeight: product.singleGrossWeight,
+          features: product.features || [],
+          tags: product.tags || ['streetwear', 'mask', 'protection'],
           addedAt: new Date().toISOString()
         };
         
-        // Store in localStorage for hardcoded products
-        const existingWishlist = JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]');
-        const updatedWishlist = [...existingWishlist, wishlistItem];
-        localStorage.setItem('vlanco_hardcoded_wishlist', JSON.stringify(updatedWishlist));
+        // Add to wishlist using the hook (Supabase + localStorage)
+        await addToWishlist(wishlistItem);
         
-        // Show success toast
-        toast({ 
-          title: 'Added to Wishlist', 
+        // Also save to the main localStorage key that the wishlist page reads from
+        const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+        const updatedWishlist = [wishlistItem, ...existingWishlist.filter((item: any) => item.id !== product.id.toString())];
+        localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
+        
+        // Save to guest wishlist key (used by useWishlist hook for guests)
+        const guestWishlist = JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]');
+        const updatedGuestWishlist = [wishlistItem, ...guestWishlist.filter((item: any) => item.id !== product.id.toString())];
+        localStorage.setItem('vlanco_guest_wishlist', JSON.stringify(updatedGuestWishlist));
+        
+        // Save to hardcoded wishlist as backup
+        const hardcodedWishlist = JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]');
+        const updatedHardcodedWishlist = [wishlistItem, ...hardcodedWishlist.filter((item: any) => item.id !== product.id.toString())];
+        localStorage.setItem('vlanco_hardcoded_wishlist', JSON.stringify(updatedHardcodedWishlist));
+        
+        // Dispatch custom event to notify components about wishlist update
+        window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { updatedWishlist } }));
+        
+        // Enhanced success feedback
+        toast({
+          title: "💖 SAVED TO VAULT!",
           description: `${product.name} has been added to your wishlist`,
           duration: 3000
         });
         
-        // Clear animation state after animation completes
-        setTimeout(() => {
-          setWishlistAnimating(null);
-        }, 1000);
+        // Clear animation after delay
+        setTimeout(() => setWishlistAnimating(null), 1000);
       }
     } catch (error) {
       console.error('Error toggling wishlist:', error);
@@ -1485,76 +1647,117 @@ const MaskCollection = () => {
   };
 
   const handleQuickAdd = async (product: any, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    // Ensure a real variant exists for this mask selection
-    const defaultColor = product.colors?.[0]?.name || 'Default';
-    const defaultSize = product.sizes?.[0] || 'One Size';
-    const sku = product.modelNumber || `MASK-${product.id}-${defaultColor}-${defaultSize}`;
-    let variantId = '';
-    try {
-      const insertRes = await supabase
-        .from('product_variants')
-        .insert({
-          product_id: String(product.id),
-          color: defaultColor,
-          size: defaultSize,
-          price: Number(product.price) || 0,
-          sku,
-          stock_quantity: 999,
-          is_active: true,
-          created_at: new Date().toISOString()
-        })
-        .select('id')
-        .single();
-      if (insertRes.error) throw insertRes.error;
-      variantId = String(insertRes.data.id);
-    } catch (err) {
-      const { data: existing } = await supabase
-        .from('product_variants')
-        .select('id')
-        .eq('sku', sku)
-        .maybeSingle();
-      if (!existing?.id) throw err;
-      variantId = String(existing.id);
-    }
-
-    await addToCart(product.id.toString(), variantId, 1, {
-      price: product.price,
-      product: { 
-        id: String(product.id),
-        name: product.name,
-        base_price: Number(product.price) || 0,
-        compare_price: Number(product.originalPrice) || null,
-        description: product.description || `${product.name} - Premium mask collection`,
-        image_url: product.image,
-        image: product.image,
-        images: product.gallery || [product.image],
-        brand: product.brand || 'VLANCO',
-        category: 'Masks',
-        material: product.material || 'Premium Materials',
-        protection: product.protection,
-        rating_average: product.rating,
-        rating_count: product.reviews,
-        size_options: product.sizes || ['Adult Size'],
-        color_options: product.colors?.map(c => c.name || c) || ['Default'],
-        tags: product.tags || ['streetwear', 'mask', 'protection'],
-        is_new_arrival: product.isNew || false,
-        is_bestseller: product.isBestseller || false,
-        stock_quantity: product.inStock ? 10 : 0,
-        modelNumber: product.modelNumber
-      },
-      variant: { 
-        id: variantId,
-        product_id: String(product.id),
-        price: Number(product.price) || 0,
-        color: defaultColor,
-        color_value: product.colors?.[0]?.value || '#000000',
-        size: defaultSize,
-        sku,
-        stock_quantity: 10,
-        is_active: true
-      }
+    e?.stopPropagation();
+    
+    console.log('🔍 handleQuickAdd called for product:', product.id);
+    
+    // Use default selections or pre-selected ones
+    const size = selectedSize[product.id] || product.sizes?.[0] || 'One Size';
+    const colorIndex = selectedColor[product.id] !== undefined ? selectedColor[product.id] : 0;
+    const selectedColorData = product.colors?.[colorIndex] || product.colors?.[0];
+    
+    console.log('🔍 Using size:', size);
+    console.log('🔍 Using color:', selectedColorData?.name || 'Default');
+    console.log('✅ Adding to cart with default/selected options...');
+    
+    // Analytics tracking (fire and forget - don't block cart addition)
+    console.log('📊 Starting analytics tracking for add to cart...');
+    console.log('📊 Product ID:', String(product.id));
+    console.log('📊 Variant ID:', `mask_${product.id}_${colorIndex}_${size}`);
+    console.log('📊 Quantity:', 1);
+    console.log('📊 Price:', product.price);
+    
+    // Fire and forget analytics - don't await
+    Promise.race([
+      trackAddToCart(String(product.id), `mask_${product.id}_${colorIndex}_${size}`, 1, product.price),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Analytics timeout')), 3000)
+      )
+    ]).then(() => {
+      console.log('✅ Analytics tracking successful');
+    }).catch((analyticsError) => {
+      console.error('❌ Analytics tracking failed:', analyticsError);
+      console.log('⚠️ Analytics failed but cart addition continues...');
     });
+    
+    console.log('📊 Analytics started in background, continuing with cart...');
+    
+    // Animation
+    flyToCart(product.id);
+    
+    // Simplified approach: Just call addToCart with complete product details
+    console.log('🛒 Starting cart addition process...');
+    try {
+      console.log('🛒 Preparing product details for cart...');
+      console.log('🛒 addToCart function available:', typeof addToCart);
+      
+      // Create a unique variant ID for this combination
+      const variantId = `mask_${product.id}_${colorIndex}_${size}`;
+      const sku = `${product.id}-${colorIndex}-${size}`;
+      
+      console.log('🛒 Calling addToCart with product details...');
+      await addToCart(product.id.toString(), variantId, 1, {
+        price: product.price,
+        product: { 
+          id: String(product.id),
+          name: product.name,
+          base_price: Number(product.price) || 0,
+          compare_price: Number(product.originalPrice) || null,
+          description: product.description || `${product.name} - Premium mask collection`,
+          image_url: product.image,
+          image: product.image,
+          images: product.gallery || [product.image],
+          brand: product.brand || 'VLANCO',
+          category: 'Masks',
+          material: product.material || 'Premium Materials',
+          protection: product.protection,
+          rating_average: product.rating,
+          rating_count: product.reviews,
+          size_options: product.sizes || ['Adult Size'],
+          color_options: product.colors?.map(c => c.name || c) || ['Default'],
+          tags: product.tags || ['streetwear', 'mask', 'protection'],
+          is_new_arrival: product.isNew || false,
+          is_bestseller: product.isBestseller || false,
+          stock_quantity: product.inStock ? 10 : 0,
+          modelNumber: product.modelNumber
+        },
+        variant: { 
+          id: variantId,
+          product_id: String(product.id),
+          price: Number(product.price) || 0,
+          color: selectedColorData?.name || 'Default',
+          color_value: selectedColorData?.value || '#000000',
+          size: size,
+          sku,
+          stock_quantity: 10,
+          is_active: true
+        }
+      });
+      
+      console.log('✅ addToCart completed successfully');
+      
+      // Show success toast
+      toast({
+        title: "🚀 DEPLOYED TO VAULT!",
+        description: `${product.name} - ${size} - ${selectedColorData?.name || 'Default'}`,
+        duration: 3000
+      });
+    } catch (error) {
+      console.error('❌ Error in handleQuickAdd:', error);
+      console.error('❌ Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        productId: product.id,
+        size,
+        colorIndex,
+        selectedColorData
+      });
+      toast({
+        title: "Error",
+        description: `Failed to add item to cart: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -2276,6 +2479,7 @@ const MaskCollection = () => {
                   >
                     {/* Enhanced Card Container */}
                     <motion.div 
+                      data-product-id={product.id}
                       className="relative bg-gradient-to-br from-background via-muted/20 to-background rounded-3xl overflow-hidden shadow-2xl border border-border/50 transition-all duration-500 group-hover:shadow-3xl group-hover:border-primary/30 h-full"
                       style={{ transformStyle: 'preserve-3d' }}
                     >

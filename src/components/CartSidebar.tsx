@@ -776,12 +776,12 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                                   <div className="flex items-center space-x-2 mb-2">
                                     {item.variant?.color && (
                                       <span className="text-sm text-slate-400">
-                                        {item.variant.color}
+                                        {typeof item.variant.color === 'string' ? item.variant.color : String(item.variant.color)}
                                       </span>
                                     )}
                                     {item.variant?.size && (
                                       <span className="text-sm text-slate-400">
-                                        Size {item.variant.size}
+                                        Size {typeof item.variant.size === 'string' ? item.variant.size : String(item.variant.size)}
                                       </span>
                                     )}
                                   </div>

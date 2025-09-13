@@ -72,17 +72,27 @@ const Wishlist = () => {
 
   useEffect(() => {
     const savedWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+    // Use the complete product data that was saved from collections
     const enhancedWishlist = savedWishlist.map((item: any) => ({
       ...item,
-      images: [item.image, item.image, item.image],
-      description: `Premium streetwear piece from ${item.category} collection. Crafted with attention to detail and modern design aesthetics.`,
-      rating: 4.8,
-      reviews: Math.floor(Math.random() * 100) + 20,
-      isLimited: Math.random() > 0.7,
-      isNew: Math.random() > 0.8,
-      colors: ['Black', 'White', 'Gray'],
-      sizes: ['S', 'M', 'L', 'XL'],
-      compare_price: item.price * 1.3
+      // Ensure we have all the enhanced fields with fallbacks
+      images: item.images || [item.image, item.image, item.image],
+      description: item.description || `Premium ${item.category?.toLowerCase()} piece from VLANCO collection. Crafted with attention to detail and modern design aesthetics.`,
+      rating: item.rating || 4.8,
+      reviews: item.reviews || Math.floor(Math.random() * 100) + 20,
+      isLimited: item.isLimited || item.isBestseller || false,
+      isNew: item.isNew || false,
+      isBestseller: item.isBestseller || false,
+      colors: item.colors || ['Black', 'White', 'Gray'],
+      sizes: item.sizes || ['S', 'M', 'L', 'XL'],
+      compare_price: item.compare_price || (item.price * 1.3),
+      material: item.material || 'Premium Materials',
+      brand: item.brand || 'VLANCO',
+      collection: item.collection || `${item.category} Collection`,
+      tags: item.tags || ['streetwear', 'premium'],
+      features: item.features || [],
+      availability: item.availability || 'In Stock',
+      shipping: item.shipping || 'Standard Shipping'
     }));
     setWishlistItems(enhancedWishlist);
   }, []);
@@ -90,19 +100,28 @@ const Wishlist = () => {
   const removeFromWishlist = (productId: string) => {
     const updatedWishlist = wishlistItems.filter(item => item.id !== productId);
     setWishlistItems(updatedWishlist);
-    localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist.map(item => ({
+    
+    const simplifiedWishlist = updatedWishlist.map(item => ({
       id: item.id,
       name: item.name,
       price: item.price,
       image: item.image,
       category: item.category,
       addedAt: item.addedAt
-    }))));
+    }));
+    
+    localStorage.setItem('vlanco_wishlist', JSON.stringify(simplifiedWishlist));
+    
+    // Dispatch custom event to notify navigation about wishlist update
+    window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { updatedWishlist: simplifiedWishlist } }));
   };
 
   const clearWishlist = () => {
     setWishlistItems([]);
     localStorage.setItem('vlanco_wishlist', JSON.stringify([]));
+    
+    // Dispatch custom event to notify navigation about wishlist update
+    window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { updatedWishlist: [] } }));
   };
 
   const viewProduct = (item: WishlistItem) => {
@@ -523,11 +542,11 @@ const Wishlist = () => {
                         whileHover={{ scale: 1.05 }}
                       />
                       
-                      {/* Badges */}
+                      {/* Enhanced Badges */}
                       <div className="absolute top-4 left-4 flex flex-col gap-2">
                         {item.isNew && (
                           <motion.span 
-                            className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full"
+                            className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-lg"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.2 + index * 0.1 }}
@@ -535,9 +554,19 @@ const Wishlist = () => {
                             NEW
                           </motion.span>
                         )}
+                        {item.isBestseller && (
+                          <motion.span 
+                            className="px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-full shadow-lg"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.25 + index * 0.1 }}
+                          >
+                            BESTSELLER
+                          </motion.span>
+                        )}
                         {item.isLimited && (
                           <motion.span 
-                            className="px-3 py-1 bg-purple-500 text-white text-xs font-bold rounded-full"
+                            className="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full shadow-lg"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.3 + index * 0.1 }}
@@ -547,12 +576,22 @@ const Wishlist = () => {
                         )}
                         {item.compare_price && item.compare_price > item.price && (
                           <motion.span 
-                            className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-full"
+                            className="px-3 py-1 bg-gradient-to-r from-red-500 to-rose-500 text-white text-xs font-bold rounded-full shadow-lg"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: 0.35 + index * 0.1 }}
+                          >
+                            -{Math.round((1 - item.price / item.compare_price) * 100)}% OFF
+                          </motion.span>
+                        )}
+                        {item.availability === 'In Stock' && (
+                          <motion.span 
+                            className="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-bold rounded-full shadow-lg"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.4 + index * 0.1 }}
                           >
-                            SALE
+                            IN STOCK
                           </motion.span>
                         )}
                       </div>
@@ -625,24 +664,83 @@ const Wishlist = () => {
                     <div className={`p-6 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                      {item.category}
-                    </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                              {item.category}
+                            </span>
+                            {item.collection && (
+                              <span className="text-xs font-medium text-muted-foreground bg-muted/20 px-2 py-1 rounded-full">
+                                {item.collection}
+                              </span>
+                            )}
+                          </div>
                           <div className="flex items-center gap-1">
                             <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                             <span className="text-xs font-medium">{item.rating}</span>
                             <span className="text-xs text-muted-foreground">({item.reviews})</span>
                           </div>
-                  </div>
+                        </div>
                   
-                        <h3 className="text-lg font-bold group-hover:text-primary transition-colors">
-                    {item.name}
-                  </h3>
+                        <h3 className="text-lg font-bold group-hover:text-primary transition-colors mb-2">
+                          {item.name}
+                        </h3>
                         
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                        {/* Enhanced product details */}
+                        {item.material && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                            <Package className="w-3 h-3" />
+                            <span>{item.material}</span>
+                          </div>
+                        )}
+                        
+                        {/* Color and Size info */}
+                        {(item.colors || item.sizes) && (
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                            {item.colors && item.colors.length > 0 && (
+                              <div className="flex items-center gap-1">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <span>{item.colors.slice(0, 2).join(', ')}</span>
+                                {item.colors.length > 2 && <span>+{item.colors.length - 2}</span>}
+                              </div>
+                            )}
+                            {item.sizes && item.sizes.length > 0 && (
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">Sizes:</span>
+                                <span>{item.sizes.slice(0, 3).join(', ')}</span>
+                                {item.sizes.length > 3 && <span>+{item.sizes.length - 3}</span>}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Calendar className="w-3 h-3" />
                           <span>Added {new Date(item.addedAt).toLocaleDateString()}</span>
                         </div>
+                        
+                        {/* Product Features */}
+                        {item.features && item.features.length > 0 && (
+                          <div className="mt-3">
+                            <div className="flex flex-wrap gap-1">
+                              {item.features.slice(0, 3).map((feature: string, idx: number) => (
+                                <motion.span
+                                  key={idx}
+                                  className="px-2 py-1 text-xs font-medium bg-muted/20 text-muted-foreground rounded-md border border-border/50"
+                                  initial={{ opacity: 0, scale: 0.8 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: 0.1 + idx * 0.05 }}
+                                >
+                                  {feature}
+                                </motion.span>
+                              ))}
+                              {item.features.length > 3 && (
+                                <span className="px-2 py-1 text-xs text-muted-foreground">
+                                  +{item.features.length - 3} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                   
                   <div className="flex items-center justify-between mb-4">

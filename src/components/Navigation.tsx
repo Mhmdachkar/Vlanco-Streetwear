@@ -1,9 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, ShoppingCart, User, Menu, X, Heart, Sparkles, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
+import { useWishlist } from '@/hooks/useWishlist';
 import AuthModal from './AuthModal';
 import CartSidebar from './CartSidebar';
 import { HeaderLogo } from './VlancoLogo';
@@ -14,12 +15,40 @@ import WishlistPopover from '@/components/ui/WishlistPopover';
 const Navigation = () => {
   const { user, signOut } = useAuth();
   const { itemCount } = useCart();
+  const { itemCount: wishlistCount, items: wishlistItems } = useWishlist();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showCartSidebar, setShowCartSidebar] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [wishlistUpdateTrigger, setWishlistUpdateTrigger] = useState(0);
+  
+  // Debug wishlist count - force refresh when trigger changes
+  const localStorageWishlist = React.useMemo(() => {
+    return JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+  }, [wishlistUpdateTrigger]);
+  
+  const fallbackCount = localStorageWishlist.length;
+  const displayCount = wishlistCount > 0 ? wishlistCount : fallbackCount;
+  
+  console.log('🔍 Navigation - wishlistCount from hook:', wishlistCount);
+  console.log('🔍 Navigation - wishlistItems from hook:', wishlistItems);
+  console.log('🔍 Navigation - localStorage vlanco_wishlist:', localStorageWishlist);
+  console.log('🔍 Navigation - fallbackCount:', fallbackCount);
+  console.log('🔍 Navigation - displayCount:', displayCount);
+  console.log('🔍 Navigation - wishlistUpdateTrigger:', wishlistUpdateTrigger);
+
+  // Listen for wishlist updates
+  useEffect(() => {
+    const handleWishlistUpdate = () => {
+      console.log('🔍 Navigation - Wishlist update received, refreshing count');
+      setWishlistUpdateTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('wishlistUpdated', handleWishlistUpdate);
+    return () => window.removeEventListener('wishlistUpdated', handleWishlistUpdate);
+  }, []);
 
   // Smooth scrolling functionality
   useEffect(() => {
@@ -185,6 +214,19 @@ const Navigation = () => {
                     >
                       <Heart className="w-5 h-5 group-hover:text-red-500 transition-colors" />
                     </motion.div>
+                    
+                    {/* Wishlist Count Badge */}
+                    {displayCount > 0 && (
+                      <motion.div
+                        className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      >
+                        {displayCount > 99 ? '99+' : displayCount}
+                      </motion.div>
+                    )}
+                    
                     {/* Heartbeat Effect */}
                     <motion.div
                       className="absolute inset-0 bg-red-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
