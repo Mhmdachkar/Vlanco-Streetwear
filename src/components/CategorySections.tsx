@@ -10,11 +10,32 @@ import product1Image from '@/assets/product-1.jpg';
 import product2Image from '@/assets/product-2.jpg';
 import product3Image from '@/assets/product-3.jpg';
 
+// Performance detection hook
+const usePerformanceMode = () => {
+  const [performanceMode, setPerformanceMode] = useState(() => {
+    try {
+      const dm = (navigator as any).deviceMemory;
+      const hc = (navigator as any).hardwareConcurrency;
+      const lowMem = typeof dm === 'number' && dm <= 4;
+      const lowCpu = typeof hc === 'number' && hc <= 4;
+      const isLowEnd = navigator.hardwareConcurrency <= 4 || 
+                       window.devicePixelRatio > 2 ||
+                       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      return lowMem || lowCpu || isLowEnd;
+    } catch {
+      return false;
+    }
+  });
+  
+  return performanceMode;
+};
+
 const CategorySections = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [activeFilter, setActiveFilter] = useState('all');
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const performanceMode = usePerformanceMode();
 
   // Memoize categories to prevent unnecessary re-renders
   const categories = useMemo(() => [
@@ -278,36 +299,38 @@ const CategorySections = () => {
                       <IconComponent className={`w-6 h-6 sm:w-8 sm:h-8 ${category.accentColor}`} />
                     </motion.div>
 
-                    {/* Simplified Floating Elements - only 3 instead of 8 */}
-                    <AnimatePresence>
-                      {isHovered && (
-                        <>
-                          {[...Array(3)].map((_, i) => ( // Reduced from 8 to 3
-                            <motion.div
-                              key={i}
-                              className={`absolute w-1.5 h-1.5 bg-gradient-to-r ${category.color} rounded-full shadow-lg`} // Smaller size
-                              style={{
-                                left: `${20 + Math.random() * 60}%`,
-                                top: `${20 + Math.random() * 60}%`,
-                              }}
-                              initial={{ scale: 0, opacity: 0 }}
-                              animate={{ 
-                                scale: [0, 0.8, 0], // Reduced scale
-                                opacity: [0, 0.6, 0], // Reduced opacity
-                                y: [0, -20, -40], // Reduced movement
-                                x: [0, Math.random() * 20 - 10, Math.random() * 40 - 20], // Reduced movement
-                              }}
-                              exit={{ scale: 0, opacity: 0 }}
-                              transition={{
-                                duration: 1.5, // Faster
-                                delay: i * 0.05, // Reduced delay
-                                ease: "easeOut"
-                              }}
-                            />
-                          ))}
-                        </>
-                      )}
-                    </AnimatePresence>
+                    {/* Simplified Floating Elements - only 3 instead of 8, disabled on performance mode */}
+                    {!performanceMode && (
+                      <AnimatePresence>
+                        {isHovered && (
+                          <>
+                            {[...Array(3)].map((_, i) => ( // Reduced from 8 to 3
+                              <motion.div
+                                key={i}
+                                className={`absolute w-1.5 h-1.5 bg-gradient-to-r ${category.color} rounded-full shadow-lg`} // Smaller size
+                                style={{
+                                  left: `${20 + Math.random() * 60}%`,
+                                  top: `${20 + Math.random() * 60}%`,
+                                }}
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ 
+                                  scale: [0, 0.8, 0], // Reduced scale
+                                  opacity: [0, 0.6, 0], // Reduced opacity
+                                  y: [0, -20, -40], // Reduced movement
+                                  x: [0, Math.random() * 20 - 10, Math.random() * 40 - 20], // Reduced movement
+                                }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                transition={{
+                                  duration: 1.5, // Faster
+                                  delay: i * 0.05, // Reduced delay
+                                  ease: "easeOut"
+                                }}
+                              />
+                            ))}
+                          </>
+                        )}
+                      </AnimatePresence>
+                    )}
                   </div>
 
                   {/* Enhanced Content Section (40% of card) */}

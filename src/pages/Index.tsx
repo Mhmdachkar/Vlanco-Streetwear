@@ -7,6 +7,7 @@ import FeaturesSection from '@/components/FeaturesSection';
 import VlancoCommunity from '@/components/VlancoCommunity';
 import LimitedDrops from '@/components/LimitedDrops';
 import Footer from '@/components/Footer';
+import PerformanceSection from '@/components/PerformanceSection';
 import { usePageAnalytics } from '@/hooks/useAnalytics';
 import { ArrowUp, Sparkles, Star, Zap } from 'lucide-react';
 
@@ -72,11 +73,32 @@ const NeuralCursor = React.memo(({ mouseX, mouseY }) => (
 ));
 
 
+// Performance detection hook
+const usePerformanceMode = () => {
+  const [performanceMode, setPerformanceMode] = useState(() => {
+    try {
+      const dm = (navigator as any).deviceMemory;
+      const hc = (navigator as any).hardwareConcurrency;
+      const lowMem = typeof dm === 'number' && dm <= 4;
+      const lowCpu = typeof hc === 'number' && hc <= 4;
+      const isLowEnd = navigator.hardwareConcurrency <= 4 || 
+                       window.devicePixelRatio > 2 ||
+                       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      return lowMem || lowCpu || isLowEnd;
+    } catch {
+      return false;
+    }
+  });
+  
+  return performanceMode;
+};
+
 // --- Main Index Page ---
 const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const shouldReduceMotion = useReducedMotion();
+  const performanceMode = usePerformanceMode();
   
   // Analytics tracking for homepage
   usePageAnalytics('Homepage', {
@@ -106,19 +128,21 @@ const Index = () => {
 
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
     
-    // Ultra-throttled mouse tracking - only update every 3rd frame
+    // Ultra-throttled mouse tracking - only update every 5th frame for performance mode
     let frameCount = 0;
     let rafId: number | null = null;
     let lastEvent: MouseEvent | null = null;
     const updateMouse = () => {
       frameCount++;
-      if (frameCount % 3 === 0 && lastEvent) {
+      const skipFrames = performanceMode ? 5 : 3; // Skip more frames on low-end devices
+      if (frameCount % skipFrames === 0 && lastEvent) {
         mouseX.set(lastEvent.clientX);
         mouseY.set(lastEvent.clientY);
       }
       rafId = requestAnimationFrame(updateMouse);
     };
     const handleMouseMove = (e: MouseEvent) => {
+      if (performanceMode) return; // Skip mouse tracking entirely on low-end devices
       lastEvent = e;
       if (rafId == null) rafId = requestAnimationFrame(updateMouse);
     };
@@ -160,11 +184,11 @@ const Index = () => {
       {/* Background - simplified on mobile for performance */}
       <AnimatedBackground opacity={backgroundOpacity} />
       
-      {/* Cursor effect - simplified on mobile */}
-      {!isMobile && <NeuralCursor mouseX={mouseX} mouseY={mouseY} />}
+      {/* Cursor effect - disabled on mobile and performance mode */}
+      {!isMobile && !performanceMode && <NeuralCursor mouseX={mouseX} mouseY={mouseY} />}
       
-      {/* Ultra-simplified Section Indicator - only on desktop */}
-      {!isMobile && (
+      {/* Ultra-simplified Section Indicator - only on desktop and high-end devices */}
+      {!isMobile && !performanceMode && (
       <motion.div
           className="fixed right-3 top-1/2 transform -translate-y-1/2 z-40"
           initial={{ opacity: 0 }}
@@ -203,21 +227,14 @@ const Index = () => {
 
       <main className="relative z-10">
         {/* Hero: Ultra-optimized entrance */}
-        <motion.div 
+        <PerformanceSection
           data-section="hero"
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }} 
-          whileInView={{ 
-            opacity: 1, 
-            y: 0
-          }} 
-          viewport={{ once: true, amount: 0.1 }} 
-          transition={{ 
-            duration: shouldReduceMotion ? 0.2 : 0.4, 
-            ease: "easeOut"
-          }}
+          animationType="slideUp"
+          duration={performanceMode ? 0.2 : 0.4}
+          performanceMode={performanceMode}
         >
           <HeroSection />
-        </motion.div>
+        </PerformanceSection>
         
         {/* Simplified Divider */}
         <motion.div 
@@ -235,21 +252,14 @@ const Index = () => {
         </motion.div>
         
         {/* Categories: Ultra-optimized slide */}
-        <motion.div 
+        <PerformanceSection
           data-section="categories"
-          initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -30 }} 
-          whileInView={{ 
-            opacity: 1, 
-            x: 0
-          }} 
-          viewport={{ once: true, amount: 0.15 }} 
-          transition={{ 
-            duration: shouldReduceMotion ? 0.2 : 0.4, 
-            ease: "easeOut"
-          }}
+          animationType="slideLeft"
+          duration={performanceMode ? 0.2 : 0.4}
+          performanceMode={performanceMode}
         >
           <CategorySections />
-        </motion.div>
+        </PerformanceSection>
         
         {/* Simplified Divider */}
         <motion.div 
@@ -267,21 +277,14 @@ const Index = () => {
         </motion.div>
         
         {/* Limited Drops: Ultra-optimized reveal */}
-        <motion.div 
+        <PerformanceSection
           data-section="drops"
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }} 
-          whileInView={{ 
-            opacity: 1, 
-            y: 0
-          }} 
-          viewport={{ once: true, amount: 0.1 }} 
-          transition={{ 
-            duration: shouldReduceMotion ? 0.2 : 0.4, 
-            ease: "easeOut"
-          }}
+          animationType="slideUp"
+          duration={performanceMode ? 0.2 : 0.4}
+          performanceMode={performanceMode}
         >
           <LimitedDrops />
-        </motion.div>
+        </PerformanceSection>
         
         {/* Simplified Divider */}
         <motion.div 
@@ -299,21 +302,14 @@ const Index = () => {
         </motion.div>
         
         {/* Features: Ultra-optimized slide */}
-        <motion.div 
+        <PerformanceSection
           data-section="features"
-          initial={{ opacity: 0, x: shouldReduceMotion ? 0 : 30 }} 
-          whileInView={{ 
-            opacity: 1, 
-            x: 0
-          }} 
-          viewport={{ once: true, amount: 0.15 }} 
-          transition={{ 
-            duration: shouldReduceMotion ? 0.2 : 0.4, 
-            ease: "easeOut"
-          }}
+          animationType="slideRight"
+          duration={performanceMode ? 0.2 : 0.4}
+          performanceMode={performanceMode}
         >
           <FeaturesSection />
-        </motion.div>
+        </PerformanceSection>
         
         {/* Simplified Divider */}
         <motion.div 
@@ -331,21 +327,14 @@ const Index = () => {
         </motion.div>
         
         {/* Community: Ultra-optimized rise */}
-        <motion.div 
+        <PerformanceSection
           data-section="community"
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }} 
-          whileInView={{ 
-            opacity: 1, 
-            y: 0
-          }} 
-          viewport={{ once: true, amount: 0.1 }} 
-          transition={{ 
-            duration: shouldReduceMotion ? 0.2 : 0.4, 
-            ease: "easeOut"
-          }}
+          animationType="slideUp"
+          duration={performanceMode ? 0.2 : 0.4}
+          performanceMode={performanceMode}
         >
           <VlancoCommunity />
-        </motion.div>
+        </PerformanceSection>
       </main>
       
       <footer className="relative z-10">

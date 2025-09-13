@@ -743,29 +743,31 @@ const LimitedEditionCard = React.memo(({ item, index, isInView }) => {
           </div>
         </div>
 
-        {/* Floating Elements */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {[...Array(preferPerformance ? 1 : 3)].map((_, i) => (
-            <motion.div
-              key={i}
-              className={`absolute w-1 h-1 bg-gradient-to-r ${rarityColors.accent} rounded-full`}
-              style={{
-                left: `${20 + i * 30}%`,
-                top: `${30 + i * 20}%`,
-              }}
-              animate={isHovered ? {
-                scale: [1, 2, 1],
-                opacity: [0.3, 1, 0.3],
-                rotate: [0, 180, 360]
-              } : {}}
-              transition={{
-                duration: 2,
-                repeat: preferPerformance ? 0 : Infinity,
-                delay: i * 0.3
-              }}
-            />
-          ))}
-        </div>
+        {/* Floating Elements - disabled on performance mode */}
+        {!preferPerformance && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                className={`absolute w-1 h-1 bg-gradient-to-r ${rarityColors.accent} rounded-full`}
+                style={{
+                  left: `${20 + i * 30}%`,
+                  top: `${30 + i * 20}%`,
+                }}
+                animate={isHovered ? {
+                  scale: [1, 2, 1],
+                  opacity: [0.3, 1, 0.3],
+                  rotate: [0, 180, 360]
+                } : {}}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  delay: i * 0.3
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );

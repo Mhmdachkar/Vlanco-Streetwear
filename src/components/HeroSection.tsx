@@ -264,9 +264,30 @@ const ProfessionalCursorTrail = () => {
   );
 };
 
+// Performance detection hook
+const usePerformanceMode = () => {
+  const [performanceMode, setPerformanceMode] = useState(() => {
+    try {
+      const dm = (navigator as any).deviceMemory;
+      const hc = (navigator as any).hardwareConcurrency;
+      const lowMem = typeof dm === 'number' && dm <= 4;
+      const lowCpu = typeof hc === 'number' && hc <= 4;
+      const isLowEnd = navigator.hardwareConcurrency <= 4 || 
+                       window.devicePixelRatio > 2 ||
+                       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      return lowMem || lowCpu || isLowEnd;
+    } catch {
+      return false;
+    }
+  });
+  
+  return performanceMode;
+};
+
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true });
+  const performanceMode = usePerformanceMode();
 
 
   return (
@@ -300,8 +321,8 @@ const HeroSection = () => {
           }}
         />
 
-        {/* Reduced Floating Particles for Performance */}
-        {[...Array(6)].map((_, i) => (
+        {/* Reduced Floating Particles for Performance - only on high-end devices */}
+        {!performanceMode && [...Array(performanceMode ? 2 : 6)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1.5 h-1.5 bg-gradient-to-br from-cyan-400/40 to-blue-500/20 rounded-full"
@@ -325,43 +346,43 @@ const HeroSection = () => {
           />
         ))}
 
-        {/* Simplified Gradient Orbs */}
+        {/* Simplified Gradient Orbs - reduced animation on performance mode */}
         <motion.div
           className="absolute top-1/4 left-1/4 w-[200px] h-[200px] md:w-[400px] md:h-[400px] bg-gradient-to-r from-blue-500/30 to-cyan-500/30 rounded-full blur-3xl"
-          animate={{
+          animate={performanceMode ? {} : {
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.6, 0.3],
             x: [0, 50, 0],
             y: [0, -30, 0],
           }}
-          transition={{ duration: 8, repeat: Infinity }}
+          transition={performanceMode ? {} : { duration: 8, repeat: Infinity }}
         />
         
         <motion.div
           className="absolute bottom-1/4 right-1/4 w-[250px] h-[250px] md:w-[500px] md:h-[500px] bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full blur-3xl"
-          animate={{
+          animate={performanceMode ? {} : {
             scale: [1.2, 1, 1.2],
             opacity: [0.6, 0.3, 0.6],
             x: [0, -30, 0],
             y: [0, 20, 0],
           }}
-          transition={{ duration: 10, repeat: Infinity, delay: 4 }}
+          transition={performanceMode ? {} : { duration: 10, repeat: Infinity, delay: 4 }}
         />
 
-        {/* Simplified Geometric Shapes */}
+        {/* Simplified Geometric Shapes - static on performance mode */}
         <motion.div
           className="absolute top-20 left-20 w-16 h-16 md:w-32 md:h-32 border border-cyan-400/30 transform rotate-45"
-          animate={{ rotate: [45, 405, 45] }}
-          transition={{ duration: 15, repeat: Infinity }}
+          animate={performanceMode ? {} : { rotate: [45, 405, 45] }}
+          transition={performanceMode ? {} : { duration: 15, repeat: Infinity }}
         />
         
         <motion.div
           className="absolute bottom-32 right-32 w-12 h-12 md:w-24 md:h-24 border border-purple-400/30 rounded-full"
-          animate={{ 
+          animate={performanceMode ? {} : { 
             scale: [1, 1.3, 1],
             rotate: [0, 180, 360]
           }}
-          transition={{ duration: 12, repeat: Infinity }}
+          transition={performanceMode ? {} : { duration: 12, repeat: Infinity }}
         />
       </div>
 
