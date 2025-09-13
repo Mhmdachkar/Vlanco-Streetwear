@@ -7,7 +7,7 @@ import { applyDiscount } from '@/services/edgeFunctions';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import CartItemCard from './CartItemCard';
-import CartSummary from './CartSummary';
+// import CartSummary from './CartSummary';
 import type { Tables } from '@/integrations/supabase/types';
 
 // Types
@@ -366,7 +366,7 @@ const UndoNotification = ({ item, progress, onUndo, onCancel }: {
 // Main CartSidebar Component
 const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
-  const { items, loading, error, removeFromCart, updateQuantity, addToWishlist, createCheckout, refetch } = useCart();
+  const { items, loading, error, subtotal, total, itemCount, removeFromCart, updateQuantity, addToCart, createCheckout, refetch } = useCart();
   const { toast } = useToast();
   
   const {
@@ -429,6 +429,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   // Handle quantity updates
   const handleQuantityUpdate = useCallback(async (itemId: string, newQuantity: number) => {
     console.log('🔄 CartSidebar: handleQuantityUpdate called', { itemId, newQuantity });
+    
     const itemKey = itemId;
     setItemLoadingState(itemKey, true);
     clearItemError(itemKey);
@@ -449,58 +450,116 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
     }
   }, [updateQuantity, setItemLoadingState, clearItemError, setItemSuccessState, setItemError, pulseCart, shakeCart]);
 
-  // Handle item removal
+  // Handle item removal with undo functionality
   const handleRemoveItem = useCallback(async (itemId: string) => {
     const item = items.find(item => item.id === itemId);
-    if (!item) return;
+    if (!item) {
+      console.error('❌ Item not found:', itemId);
+      return;
+    }
+    
+    const itemKey = itemId;
+    setItemLoadingState(itemKey, true);
+    clearItemError(itemKey);
     
     try {
+      console.log('🗑️ CartSidebar: Removing item from cart', { itemId });
       await removeFromCart(itemId);
-      startUndo(item, () => {
-        // Re-add item logic would go here
+      
+      // Start undo system with proper re-add functionality
+      startUndo(item, async () => {
+        try {
+          console.log('🔄 CartSidebar: Restoring item to cart', { item });
+          // Re-add the item with its original details
+          await addToCart(
+            item.product_id, 
+            item.variant_id, 
+            item.quantity,
+            {
+              product: item.product,
+              variant: item.variant,
+              price: item.price_at_time || item.variant?.price || item.product?.base_price
+            }
+          );
+          
         toast({
-          title: "Item Restored",
-          description: "Item has been restored to your cart"
-        });
+            title: "✅ Item Restored",
+            description: `${item.product?.name} has been restored to your cart`,
+            duration: 3000
+          });
+          
+          pulseCart();
+        } catch (error) {
+          console.error('❌ Failed to restore item:', error);
+          toast({
+            title: "❌ Restore Failed",
+            description: "Could not restore item to cart",
+            variant: "destructive"
+          });
+        }
       });
+      
       shakeCart();
+      
     } catch (error) {
+      console.error('❌ CartSidebar: Error removing item:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to remove item';
+      setItemError(itemKey, errorMessage);
       toast({
-        title: "Error",
-        description: "Failed to remove item from cart",
+        title: "❌ Remove Failed",
+        description: errorMessage,
         variant: "destructive"
       });
+    } finally {
+      setItemLoadingState(itemKey, false);
     }
-  }, [items, removeFromCart, startUndo, shakeCart, toast]);
+  }, [items, removeFromCart, addToCart, startUndo, shakeCart, toast, setItemLoadingState, clearItemError, setItemError, pulseCart]);
 
-  // Handle checkout
-  const handleCheckout = useCallback(() => {
-    createCheckout(promoCode || undefined);
+  // Handle checkout (simplified - useCart hook handles validation)
+  const handleCheckout = useCallback(async () => {
+    console.log('🛒 CartSidebar: Starting checkout process');
+    
+    try {
+      await createCheckout(promoCode || undefined);
+    } catch (error) {
+      console.error('❌ CartSidebar: Checkout failed:', error);
+      // Error handling is done in useCart hook
+    }
   }, [createCheckout, promoCode]);
 
-  // Handle refresh cart
+  // Handle refresh cart with enhanced feedback
   const handleRefreshCart = useCallback(async () => {
     try {
-      console.log('🔄 Manually refreshing cart...');
+      console.log('🔄 CartSidebar: Manually refreshing cart...');
+      
+      toast({
+        title: "🔄 Refreshing Cart",
+        description: "Syncing with database...",
+        duration: 1000
+      });
+      
       await refetch();
+      
       toast({
-        title: "Cart refreshed",
-        description: "Cart items have been synchronized with the database",
+        title: "✅ Cart Refreshed",
+        description: "Cart items synchronized successfully",
+        duration: 2000
       });
+      
+      pulseCart();
     } catch (error) {
-      console.error('Error refreshing cart:', error);
+      console.error('❌ CartSidebar: Error refreshing cart:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Could not refresh cart items';
       toast({
-        title: "Refresh failed",
-        description: "Could not refresh cart items",
+        title: "❌ Refresh Failed",
+        description: errorMessage,
         variant: "destructive",
+        duration: 3000
       });
+      shakeCart();
     }
-  }, [refetch, toast]);
+  }, [refetch, toast, pulseCart, shakeCart]);
 
-  // Calculate totals
-  const subtotal = useMemo(() => {
-    return items.reduce((total, item) => total + getItemTotal(item), 0);
-  }, [items]);
   // Listen for promo apply from CartSummary
   useEffect(() => {
     const onApply = async (ev: Event) => {
@@ -521,10 +580,6 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
     window.addEventListener('apply-promo', onApply as EventListener);
     return () => window.removeEventListener('apply-promo', onApply as EventListener);
   }, [subtotal, toast]);
-
-  const totalItems = useMemo(() => {
-    return items.reduce((total, item) => total + item.quantity, 0);
-  }, [items]);
 
   // Sidebar animation variants
   const sidebarVariants = {
@@ -579,14 +634,14 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                   <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center">
                     <ShoppingBag className="w-6 h-6 text-white" />
                   </div>
-                  {totalItems > 0 && (
+                  {itemCount > 0 && (
                     <motion.div
                       className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold text-white"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      key={totalItems}
+                      key={itemCount}
                     >
-                      {totalItems}
+                      {itemCount}
                     </motion.div>
                   )}
                 </motion.div>
@@ -596,7 +651,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                   <div>
                     <h2 className="text-xl font-bold text-white">Your Vault</h2>
                     <p className="text-slate-400 text-sm">
-                      {totalItems} item{totalItems !== 1 ? 's' : ''} • ${subtotal.toFixed(2)}
+                      {itemCount} item{itemCount !== 1 ? 's' : ''} • ${subtotal.toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -605,12 +660,22 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center space-x-2">
                 <motion.button
                   onClick={handleRefreshCart}
-                  className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-cyan-400 transition-colors"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9, rotate: 180 }}
-                  title="Refresh cart"
+                  disabled={loading}
+                  className={`p-2 rounded-lg transition-colors ${
+                    loading 
+                      ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed'
+                      : 'bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-cyan-400'
+                  }`}
+                  whileHover={!loading ? { scale: 1.1 } : {}}
+                  whileTap={!loading ? { scale: 0.9, rotate: 180 } : {}}
+                  title={loading ? "Loading..." : "Refresh cart"}
+                >
+                  <motion.div
+                    animate={loading ? { rotate: 360 } : {}}
+                    transition={loading ? { duration: 1, repeat: Infinity, ease: "linear" } : {}}
                 >
                   <RefreshCw className="w-4 h-4" />
+                  </motion.div>
                 </motion.button>
                 
                 <motion.button
@@ -625,7 +690,29 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
             </motion.div>
 
             {/* Content */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden relative">
+              {/* Global Loading Overlay */}
+              <AnimatePresence>
+                {loading && (
+                  <motion.div
+                    className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-30 flex items-center justify-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <div className="text-center">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full mx-auto mb-4"
+                      />
+                      <div className="text-white font-medium">Loading your vault...</div>
+                      <div className="text-slate-400 text-sm mt-1">Syncing cart items</div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {!user && items.length === 0 ? (
                 <SignInPrompt onClose={onClose} />
               ) : items.length === 0 ? (
@@ -661,12 +748,226 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                             delay: index * 0.1 
                           }}
                           layout
+                          className="relative"
                         >
-                          <CartItemCard
-                            item={item}
-                            onRemove={() => handleRemoveItem(item.id)}
-                            onUpdateQuantity={(newQuantity) => handleQuantityUpdate(item.id, newQuantity)}
-                          />
+                          {/* Enhanced Cart Item with Direct Button Controls */}
+                          <div className="relative bg-gradient-to-br from-slate-900/90 via-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-4 overflow-hidden">
+                            {/* Item Header */}
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl overflow-hidden flex items-center justify-center">
+                                  {(item.product as any)?.image ? (
+                                    <img 
+                                      src={(item.product as any).image} 
+                                      alt={item.product.name || 'Product'}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <div className="text-white font-bold text-lg">
+                                      {item.product?.name?.charAt(0) || 'P'}
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                <div className="flex-1">
+                                  <h3 className="text-lg font-bold text-white mb-1">
+                                    {item.product?.name || 'Product Name'}
+                                  </h3>
+                                  <div className="flex items-center space-x-2 mb-2">
+                                    {item.variant?.color && (
+                                      <span className="text-sm text-slate-400">
+                                        {item.variant.color}
+                                      </span>
+                                    )}
+                                    {item.variant?.size && (
+                                      <span className="text-sm text-slate-400">
+                                        Size {item.variant.size}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-sm text-slate-400">
+                                    ${(item.price_at_time || item.variant?.price || item.product?.base_price || 0).toFixed(2)} each
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Remove Button */}
+                              <motion.button
+                                onClick={async (e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  console.log('🗑️ Direct remove button clicked for item:', item.id);
+                                  
+                                  if (itemLoading[item.id]) {
+                                    console.log('⏳ Item is loading, ignoring click');
+                                    return;
+                                  }
+                                  
+                                  await handleRemoveItem(item.id);
+                                }}
+                                disabled={itemLoading[item.id]}
+                                className={`p-2 rounded-lg transition-colors ${
+                                  itemLoading[item.id]
+                                    ? 'bg-red-500/10 text-red-500/50 cursor-not-allowed'
+                                    : 'bg-red-500/20 hover:bg-red-500/40 text-red-400 hover:text-red-300 border border-transparent hover:border-red-500/50'
+                                }`}
+                                whileHover={!itemLoading[item.id] ? { scale: 1.1 } : {}}
+                                whileTap={!itemLoading[item.id] ? { scale: 0.95 } : {}}
+                                title={itemLoading[item.id] ? "Processing..." : "Remove item from cart"}
+                              >
+                                {itemLoading[item.id] ? (
+                                  <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                  >
+                                    <Loader2 className="w-4 h-4" />
+                                  </motion.div>
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
+                              </motion.button>
+                            </div>
+
+                            {/* Price and Quantity Section */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <div className="text-2xl font-bold text-white">
+                                  ${((item.price_at_time || item.variant?.price || item.product?.base_price || 0) * item.quantity).toFixed(2)}
+                                </div>
+                              </div>
+                              
+                              {/* Quantity Controls */}
+                              <div className="flex items-center space-x-3 bg-slate-700/30 rounded-lg p-1">
+                                {/* Minus Button */}
+                                <motion.button
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const newQuantity = item.quantity - 1;
+                                    console.log('➖ Direct minus button clicked for item:', item.id, 'new quantity:', newQuantity);
+                                    
+                                    if (itemLoading[item.id]) {
+                                      console.log('⏳ Item is loading, ignoring click');
+                                      return;
+                                    }
+                                    
+                                    if (newQuantity > 0) {
+                                      await handleQuantityUpdate(item.id, newQuantity);
+                                    } else {
+                                      await handleRemoveItem(item.id);
+                                    }
+                                  }}
+                                  disabled={item.quantity <= 1 || itemLoading[item.id]}
+                                  className={`w-10 h-10 rounded-lg transition-colors flex items-center justify-center ${
+                                    item.quantity <= 1 || itemLoading[item.id]
+                                      ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed' 
+                                      : 'bg-slate-600/50 hover:bg-red-500/30 text-slate-300 hover:text-white border border-transparent hover:border-red-500/50'
+                                  }`}
+                                  whileHover={item.quantity > 1 && !itemLoading[item.id] ? { scale: 1.1 } : {}}
+                                  whileTap={item.quantity > 1 && !itemLoading[item.id] ? { scale: 0.95 } : {}}
+                                  title={item.quantity <= 1 ? "Cannot decrease below 1" : "Decrease quantity"}
+                                >
+                                  {itemLoading[item.id] ? (
+                                    <motion.div
+                                      animate={{ rotate: 360 }}
+                                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    >
+                                      <Loader2 className="w-4 h-4" />
+                                    </motion.div>
+                                  ) : (
+                                    <Minus className="w-5 h-5" />
+                                  )}
+                                </motion.button>
+                                
+                                {/* Quantity Display */}
+                                <motion.div
+                                  className="w-16 text-center text-white font-bold text-lg"
+                                  key={item.quantity}
+                                  initial={{ scale: 1.2 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ duration: 0.2 }}
+                                >
+                                  {item.quantity}
+                                </motion.div>
+                                
+                                {/* Plus Button */}
+                                <motion.button
+                                  onClick={async (e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    const newQuantity = item.quantity + 1;
+                                    console.log('➕ Direct plus button clicked for item:', item.id, 'new quantity:', newQuantity);
+                                    
+                                    if (itemLoading[item.id]) {
+                                      console.log('⏳ Item is loading, ignoring click');
+                                      return;
+                                    }
+                                    
+                                    if (newQuantity <= 99) {
+                                      await handleQuantityUpdate(item.id, newQuantity);
+                                    }
+                                  }}
+                                  disabled={item.quantity >= 99 || itemLoading[item.id]}
+                                  className={`w-10 h-10 rounded-lg transition-colors flex items-center justify-center ${
+                                    item.quantity >= 99 || itemLoading[item.id]
+                                      ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed'
+                                      : 'bg-slate-600/50 hover:bg-green-500/30 text-slate-300 hover:text-white border border-transparent hover:border-green-500/50'
+                                  }`}
+                                  whileHover={item.quantity < 99 && !itemLoading[item.id] ? { scale: 1.1 } : {}}
+                                  whileTap={item.quantity < 99 && !itemLoading[item.id] ? { scale: 0.95 } : {}}
+                                  title={item.quantity >= 99 ? "Maximum quantity reached" : "Increase quantity"}
+                                >
+                                  {itemLoading[item.id] ? (
+                                    <motion.div
+                                      animate={{ rotate: 360 }}
+                                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                    >
+                                      <Loader2 className="w-4 h-4" />
+                                    </motion.div>
+                                  ) : (
+                                    <Plus className="w-5 h-5" />
+                                  )}
+                                </motion.button>
+                              </div>
+                            </div>
+
+                            {/* Stock Status */}
+                            <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-700/50">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 rounded-full bg-green-500" />
+                                <span className="text-sm text-green-400">In Stock</span>
+                              </div>
+                              
+                              <div className="text-slate-400 text-sm">
+                                Added {new Date(item.added_at).toLocaleDateString()}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Loading State Overlay */}
+                          <AnimatePresence>
+                            {itemLoading[item.id] && <LoadingSpinner />}
+                          </AnimatePresence>
+                          
+                          {/* Success State Overlay */}
+                          <AnimatePresence>
+                            {itemSuccess[item.id] && <SuccessIndicator />}
+                          </AnimatePresence>
+                          
+                          {/* Error State Display */}
+                          <AnimatePresence>
+                            {itemErrors[item.id] && (
+                              <div className="mt-2">
+                                <ErrorMessage 
+                                  message={itemErrors[item.id]} 
+                                  onRetry={() => {
+                                    clearItemError(item.id);
+                                    // Retry the last operation - this could be enhanced to remember the last action
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </AnimatePresence>
                         </motion.div>
                       ))}
                     </AnimatePresence>
@@ -698,10 +999,122 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
 
                   {/* Cart Summary */}
                   <div className="p-6 border-t border-slate-700/50 bg-slate-800/30">
-                    <CartSummary
-                      items={items}
-                      onCheckout={handleCheckout}
-                    />
+                    <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
+                      {/* Summary Header */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl flex items-center justify-center">
+                            <ShoppingBag className="w-6 h-6 text-white" />
+                  </div>
+                          <div>
+                            <h2 className="text-xl font-bold text-white">Vault Summary</h2>
+                            <p className="text-slate-400 text-sm">Secure checkout process</p>
+                </div>
+                        </div>
+                        
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-white">{itemCount}</div>
+                          <div className="text-slate-400 text-sm">Items</div>
+                        </div>
+                      </div>
+
+                      {/* Price Breakdown */}
+                      <div className="space-y-3 mb-6">
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-300">Subtotal</span>
+                          <span className="text-white font-medium">${subtotal.toFixed(2)}</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-300">Shipping</span>
+                          <span className="text-white font-medium">
+                            {subtotal >= 100 ? (
+                              <span className="text-green-400 flex items-center space-x-1">
+                                <span>FREE</span>
+                              </span>
+                            ) : (
+                              `$9.99`
+                            )}
+                          </span>
+            </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-300">Tax (8%)</span>
+                          <span className="text-white font-medium">${(subtotal * 0.08).toFixed(2)}</span>
+                        </div>
+                        
+                        <div className="border-t border-slate-700 pt-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-lg font-semibold text-white">Total</span>
+                            <span className="text-2xl font-bold text-white">
+                              ${(subtotal + (subtotal >= 100 ? 0 : 9.99) + (subtotal * 0.08)).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Enhanced Checkout Button */}
+                      <motion.button
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('💳 Direct checkout button clicked');
+                          await handleCheckout();
+                        }}
+                        disabled={items.length === 0 || loading}
+                        className={`group relative w-full font-bold py-4 px-6 rounded-xl transition-all duration-300 overflow-hidden ${
+                          items.length === 0 || loading
+                            ? 'bg-slate-600 cursor-not-allowed text-slate-400'
+                            : 'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white'
+                        }`}
+                        whileHover={!loading && items.length > 0 ? { 
+                          scale: 1.02,
+                          boxShadow: "0 20px 40px rgba(6, 182, 212, 0.3)"
+                        } : {}}
+                        whileTap={!loading && items.length > 0 ? { scale: 0.98 } : {}}
+                      >
+                        {/* Button Content */}
+                        <div className="relative flex items-center justify-center space-x-3">
+                          {loading ? (
+                            <>
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                              >
+                                <Loader2 className="w-5 h-5" />
+                              </motion.div>
+                              <span>PROCESSING...</span>
+                            </>
+                          ) : items.length === 0 ? (
+                            <>
+                              <CreditCard className="w-5 h-5" />
+                              <span>CART IS EMPTY</span>
+                            </>
+                          ) : (
+                            <>
+                              <motion.div
+                                animate={{ rotate: [0, 5, -5, 0] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                              >
+                                <CreditCard className="w-5 h-5" />
+                              </motion.div>
+                              <span>PROCEED TO CHECKOUT</span>
+                              <motion.div
+                                animate={{ x: [0, 5, 0] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                              >
+                                →
+                              </motion.div>
+                            </>
+                          )}
+                        </div>
+                      </motion.button>
+
+                      {/* Security Notice */}
+                      <div className="mt-4 text-center text-slate-400 text-xs">
+                        🔒 Your payment information is encrypted and secure
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

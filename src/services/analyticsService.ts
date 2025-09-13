@@ -16,51 +16,42 @@ export async function trackEvent(params: {
   userAgent?: string;
   ipAddress?: string;
 }): Promise<void> {
+  // Skip analytics in development to prevent CORS errors
+  if (import.meta.env.DEV || window.location.hostname === 'localhost') {
+    console.debug('[analytics] Skipping analytics in development:', params.eventType);
+    return;
+  }
+
   // Check if Supabase is configured
   if (!supabase || typeof supabase.from !== 'function') {
     console.debug('[analytics] Supabase not configured, skipping analytics tracking');
     return;
   }
 
-  // Prefer server-side edge function to bypass RLS issues (if available)
-  if (typeof supabase.functions?.invoke === 'function') {
-    try {
-      const { error: fnError } = await supabase.functions.invoke('analytics-track', {
-        body: {
-          user_id: params.userId ?? null,
-          event_type: params.eventType,
-          event_data: params.eventData ?? null,
-          page_url: params.pageUrl || window.location.href,
-          referrer: params.referrer || document.referrer,
-          session_id: params.sessionId,
-          user_agent: params.userAgent || navigator.userAgent,
-          ip_address: params.ipAddress,
-          created_at: new Date().toISOString(),
-        },
+  try {
+    // Prefer direct insert over edge functions to avoid CORS issues
+    const { error } = await supabase
+      .from('analytics_events')
+      .insert({
+        user_id: params.userId ?? null,
+        event_type: params.eventType,
+        event_data: params.eventData ?? null,
+        page_url: params.pageUrl || window.location.href,
+        referrer: params.referrer || document.referrer,
+        session_id: params.sessionId,
+        user_agent: params.userAgent || navigator.userAgent,
+        ip_address: params.ipAddress,
+        created_at: new Date().toISOString(),
       });
-      if (!fnError) return;
-      // Edge function failed, fall back to direct insert (this is normal if functions aren't deployed)
-    } catch (e) {
-      // Edge function threw error, fall back to direct insert (this is normal if functions aren't deployed)
+
+    if (error) {
+      console.debug('[analytics] Failed to track event:', error.message);
+      // Don't throw error to prevent breaking the app
     }
+  } catch (e) {
+    console.debug('[analytics] Analytics tracking failed:', e);
+    // Don't throw error to prevent breaking the app
   }
-
-  // Fallback: direct insert (this is the normal path for most setups)
-  const { error } = await supabase
-    .from('analytics_events')
-    .insert({
-      user_id: params.userId ?? null,
-      event_type: params.eventType,
-      event_data: params.eventData ?? null,
-      page_url: params.pageUrl || window.location.href,
-      referrer: params.referrer || document.referrer,
-      session_id: params.sessionId,
-      user_agent: params.userAgent || navigator.userAgent,
-      ip_address: params.ipAddress,
-      created_at: new Date().toISOString(),
-    });
-
-  if (error) throw error;
 }
 
 // Track product view
@@ -241,16 +232,21 @@ export async function trackCartEvent(params: {
   quantity?: number;
   price?: number;
 }): Promise<void> {
-  await trackEvent({
-    userId: params.userId,
-    eventType: params.eventType,
-    eventData: {
-      product_id: params.productId,
-      variant_id: params.variantId,
-      quantity: params.quantity,
-      price: params.price,
-    },
-  });
+  try {
+    await trackEvent({
+      userId: params.userId,
+      eventType: params.eventType,
+      eventData: {
+        product_id: params.productId,
+        variant_id: params.variantId,
+        quantity: params.quantity,
+        price: params.price,
+      },
+    });
+  } catch (error) {
+    console.debug('[analytics] Cart event tracking failed:', error);
+    // Don't throw error to prevent breaking cart operations
+  }
 }
 
 // Track wishlist events

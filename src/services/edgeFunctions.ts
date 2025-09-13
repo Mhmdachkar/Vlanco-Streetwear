@@ -24,6 +24,15 @@ export async function createCheckoutSession(cartItems: Array<{ product_id: strin
   return data as { url: string; id: string };
 }
 
+export async function createLocalCheckoutSession(lineItems: any[], cartItems: any[], discountCode?: string) {
+  const { data, error } = await supabase.functions.invoke('checkout-local-session', {
+    body: { lineItems, cartItems, discountCode },
+  });
+  if (error) throw error;
+  return data as { url: string; sessionId: string; subtotal: number };
+}
+
+
 export async function trackAnalytics(event_type: string, payload: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke('analytics-track', {
     body: { event_type, ...payload },

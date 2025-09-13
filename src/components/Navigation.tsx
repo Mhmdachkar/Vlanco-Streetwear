@@ -19,6 +19,7 @@ const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Smooth scrolling functionality
   useEffect(() => {
@@ -29,6 +30,15 @@ const Navigation = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Reset signing out state when user changes
+  useEffect(() => {
+    if (!user) {
+      setIsSigningOut(false);
+      setShowUserMenu(false); // Close user menu when signed out
+      setShowCartSidebar(false); // Close cart sidebar when signed out
+    }
+  }, [user]);
 
   // Enhanced smooth scroll function with Lenis integration
   const smoothScrollTo = (elementId: string) => {
@@ -158,42 +168,6 @@ const Navigation = () => {
                 />
               </motion.button>
 
-              {/* Enhanced Database Test Quick Access */}
-              {user && (
-                <motion.a 
-                  href="/database-test"
-                  className="relative p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
-                  title="Database Test"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <motion.div 
-                    className="w-5 h-5 text-xs font-bold text-cyan-400 group-hover:text-cyan-300 transition-colors"
-                    animate={{ 
-                      scale: [1, 1.1, 1],
-                      opacity: [0.8, 1, 0.8]
-                    }}
-                    transition={{ 
-                      duration: 2, 
-                      repeat: Infinity 
-                    }}
-                  >
-                    DB
-                  </motion.div>
-                  {/* Pulsing Glow */}
-                  <motion.div
-                    className="absolute inset-0 bg-cyan-400/20 rounded-full"
-                    animate={{
-                      scale: [1, 1.3, 1],
-                      opacity: [0.3, 0.6, 0.3]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity
-                    }}
-                  />
-                </motion.a>
-              )}
 
               {/* Enhanced Wishlist */}
               <HoverCard openDelay={150} closeDelay={100}>
@@ -337,38 +311,53 @@ const Navigation = () => {
                         Wishlist
                       </motion.a>
                       
-                      {/* Database Testing Links */}
-                      <div className="px-4 py-2 border-t border-cyan-400/20">
-                        <p className="text-xs text-cyan-400/70 font-medium mb-2">Testing & Analytics</p>
-                        <motion.a 
-                          href="/database-test" 
-                          className="block px-4 py-2 hover:bg-cyan-400/10 transition-colors text-sm hover:text-cyan-400"
-                          whileHover={{ x: 5 }}
-                        >
-                          🗄️ Database Test
-                        </motion.a>
-                        <motion.a 
-                          href="/analytics" 
-                          className="block px-4 py-2 hover:bg-cyan-400/10 transition-colors text-sm hover:text-cyan-400"
-                          whileHover={{ x: 5 }}
-                        >
-                          📊 Analytics
-                        </motion.a>
-                        <motion.a 
-                          href="/test-auth" 
-                          className="block px-4 py-2 hover:bg-cyan-400/10 transition-colors text-sm hover:text-cyan-400"
-                          whileHover={{ x: 5 }}
-                        >
-                          🧪 Auth Test
-                        </motion.a>
-                      </div>
-                      
                       <motion.button 
-                        onClick={signOut}
-                        className="block w-full text-left px-4 py-2 hover:bg-red-400/10 transition-colors hover:text-red-400"
-                        whileHover={{ x: 5 }}
+                        onClick={async () => {
+                          if (isSigningOut) return;
+                          
+                          try {
+                            setIsSigningOut(true);
+                            console.log('🔄 Navigation: Starting sign out process...');
+                            
+                            // Add a timeout fallback to reset loading state
+                            const timeoutId = setTimeout(() => {
+                              console.warn('⚠️ Navigation: Sign out timeout, resetting loading state');
+                              setIsSigningOut(false);
+                            }, 10000); // 10 second timeout
+                            
+                            await signOut();
+                            clearTimeout(timeoutId);
+                            
+                            console.log('✅ Navigation: Sign out completed, closing menu');
+                            setShowUserMenu(false);
+                          } catch (error) {
+                            console.error('❌ Navigation: Sign out failed:', error);
+                            setIsSigningOut(false); // Reset on error
+                          }
+                          // Don't reset isSigningOut on success - let auth state change handle it
+                        }}
+                        disabled={isSigningOut}
+                        className={`block w-full text-left px-4 py-2 transition-colors border-t border-red-400/20 mt-2 pt-2 ${
+                          isSigningOut 
+                            ? 'text-red-400/50 cursor-not-allowed' 
+                            : 'hover:bg-red-400/10 hover:text-red-400'
+                        }`}
+                        whileHover={!isSigningOut ? { x: 5 } : {}}
+                        title={isSigningOut ? "Signing out..." : "Sign out of your account"}
                       >
-                        Sign Out
+                        {isSigningOut ? (
+                          <span className="flex items-center gap-2">
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                            >
+                              ⏳
+                            </motion.div>
+                            Signing Out...
+                          </span>
+                        ) : (
+                          '🚪 Sign Out'
+                        )}
                       </motion.button>
                     </motion.div>
                   )}
@@ -436,6 +425,92 @@ const Navigation = () => {
                       </span>
                     </motion.a>
                   ))}
+                  
+                  {/* Mobile Auth Section */}
+                  <div className="border-t border-cyan-400/20 pt-4 mt-4">
+                    {user ? (
+                      <div className="space-y-2">
+                        <div className="px-4 py-2">
+                          <p className="text-sm text-cyan-400 font-medium">Signed in as:</p>
+                          <p className="text-xs text-cyan-400/70 truncate">{user.email}</p>
+                        </div>
+                        <motion.button
+                          onClick={async () => {
+                            if (isSigningOut) return;
+                            
+                            try {
+                              setIsSigningOut(true);
+                              console.log('🔄 Navigation Mobile: Starting sign out process...');
+                              
+                              // Add a timeout fallback to reset loading state
+                              const timeoutId = setTimeout(() => {
+                                console.warn('⚠️ Navigation Mobile: Sign out timeout, resetting loading state');
+                                setIsSigningOut(false);
+                              }, 10000); // 10 second timeout
+                              
+                              await signOut();
+                              clearTimeout(timeoutId);
+                              
+                              console.log('✅ Navigation Mobile: Sign out completed, closing menu');
+                              setIsMobileMenuOpen(false);
+                            } catch (error) {
+                              console.error('❌ Navigation Mobile: Sign out failed:', error);
+                              setIsSigningOut(false); // Reset on error
+                            }
+                            // Don't reset isSigningOut on success - let auth state change handle it
+                          }}
+                          disabled={isSigningOut}
+                          className={`block w-full text-left px-4 py-3 rounded-lg transition-all duration-300 group ${
+                            isSigningOut 
+                              ? 'text-red-400/50 cursor-not-allowed' 
+                              : 'hover:bg-red-400/10 hover:text-red-400'
+                          }`}
+                          whileHover={!isSigningOut ? { x: 10 } : {}}
+                        >
+                          <span className="flex items-center gap-2">
+                            {isSigningOut ? (
+                              <>
+                                <motion.div
+                                  animate={{ rotate: 360 }}
+                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                >
+                                  ⏳
+                                </motion.div>
+                                Signing Out...
+                              </>
+                            ) : (
+                              <>
+                                🚪 Sign Out
+                                <motion.div
+                                  className="w-1 h-1 bg-red-400 rounded-full opacity-0 group-hover:opacity-100"
+                                  animate={{ scale: [1, 1.5, 1] }}
+                                  transition={{ duration: 1, repeat: Infinity }}
+                                />
+                              </>
+                            )}
+                          </span>
+                        </motion.button>
+                      </div>
+                    ) : (
+                      <motion.button
+                        onClick={() => {
+                          setShowAuthModal(true);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-3 hover:bg-cyan-400/10 rounded-lg transition-all duration-300 hover:text-cyan-400 group"
+                        whileHover={{ x: 10 }}
+                      >
+                        <span className="flex items-center gap-2">
+                          👤 Sign In
+                          <motion.div
+                            className="w-1 h-1 bg-cyan-400 rounded-full opacity-0 group-hover:opacity-100"
+                            animate={{ scale: [1, 1.5, 1] }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                          />
+                        </span>
+                      </motion.button>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             )}

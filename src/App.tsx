@@ -12,8 +12,6 @@ import LandingPage from "./components/LandingPage";
 import SplashScreen from "./components/SplashScreen";
 import MaskCollection from './pages/MaskCollection';
 import AccessoriesCollection from './pages/AccessoriesCollection';
-import DatabaseIntegrationDemo from './components/DatabaseIntegrationDemo';
-import AuthCartTest from './components/AuthCartTest';
 
 // Lazy load components for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -23,6 +21,9 @@ const TShirtCollection = lazy(() => import("./pages/TShirtCollection-backup"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Orders = lazy(() => import("./pages/Orders"));
+const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
+const CheckoutCancel = lazy(() => import("./pages/CheckoutCancel"));
+const DirectCheckout = lazy(() => import("./pages/DirectCheckout"));
 
 const queryClient = new QueryClient();
 
@@ -73,8 +74,9 @@ const AppContent = () => {
             <Route path="/accessories" element={<AccessoriesCollection />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/orders" element={<Orders />} />
-            <Route path="/demo" element={<DatabaseIntegrationDemo />} />
-            <Route path="/test-auth" element={<AuthCartTest />} />
+            <Route path="/checkout/success" element={<CheckoutSuccess />} />
+            <Route path="/checkout/cancel" element={<CheckoutCancel />} />
+            <Route path="/checkout/direct" element={<DirectCheckout />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
