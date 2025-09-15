@@ -4,13 +4,13 @@ import { CheckCircle, Package, ArrowRight, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLocalCart } from '@/hooks/useLocalCart';
+import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 
 const CheckoutSuccess: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { clearCart } = useLocalCart();
+  const { clearCart } = useCart();
   const { user } = useAuth();
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

@@ -4,11 +4,11 @@ import { XCircle, ShoppingCart, ArrowLeft, RefreshCw } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useLocalCart } from '@/hooks/useLocalCart';
+import { useCart } from '@/hooks/useCart';
 
 const CheckoutCancel: React.FC = () => {
   const navigate = useNavigate();
-  const { items, itemCount } = useLocalCart();
+  const { items, itemCount } = useCart();
 
   return (
     <div className="min-h-screen bg-background py-12 px-6">
