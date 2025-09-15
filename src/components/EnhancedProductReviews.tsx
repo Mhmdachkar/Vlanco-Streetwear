@@ -102,7 +102,7 @@ const EnhancedProductReviews: React.FC<EnhancedProductReviewsProps> = ({ product
           quality: 5,
           comfort: 5,
           style: 5,
-          photos: ['/reviews/photo1.jpg', '/reviews/photo2.jpg'],
+          photos: ['/src/assets/ChatGPT Image Aug 29, 2025, 03_00_21 AM.png', '/src/assets/1.png'],
           videos: ['/reviews/video1.mp4'],
           helpfulCount: 28,
           unhelpfulCount: 2,

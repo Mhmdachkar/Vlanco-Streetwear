@@ -27,11 +27,11 @@ import AnimatedCartButton from '@/components/AnimatedCartButton';
 const product: any = (globalThis as any).__pd_placeholder || undefined;
 
 const productImages = [
-  "/src/assets/product-1.jpg",
-  "/src/assets/product-2.jpg", 
-  "/src/assets/product-3.jpg",
-  "/src/assets/product-4.jpg",
-  "/src/assets/product-5.jpg"
+  "/src/assets/1.png",
+  "/src/assets/3.png", 
+  "/src/assets/4.png",
+  "/src/assets/hero-bg.jpg",
+  "/src/assets/hero-bg.jpg"
 ];
 
 // Glitch Button Component
@@ -931,7 +931,6 @@ const VlancoProductPage = () => {
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const [isZoomed, setIsZoomed] = useState(false);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const [cartAnimation, setCartAnimation] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -1002,7 +1001,7 @@ const VlancoProductPage = () => {
         discount: locationProduct.originalPrice ? Math.round(((locationProduct.originalPrice - locationProduct.price) / locationProduct.originalPrice) * 100) : 0,
         category: locationProduct.category || "STREETWEAR",
         description: locationProduct.description,
-        gallery: locationProduct.gallery || [locationProduct.image],
+        gallery: locationProduct.gallery || [locationProduct.image, locationProduct.hoverImage].filter(Boolean),
         stock_quantity: 10, // Default stock
         size_options: locationProduct.sizes || ['Adult Size'],
         color_options: locationProduct.colors?.map(color => ({ name: color.name, hex: color.value })) || [
@@ -1028,7 +1027,7 @@ const VlancoProductPage = () => {
         },
         sku: locationProduct.modelNumber || `MASK-${locationProduct.id}`,
         price: locationProduct.price,
-        images: locationProduct.gallery || [locationProduct.image],
+        images: locationProduct.gallery || [locationProduct.image, locationProduct.hoverImage].filter(Boolean),
         // Additional mask-specific properties
         material: locationProduct.material,
         protection: locationProduct.protection,
@@ -1137,6 +1136,37 @@ const VlancoProductPage = () => {
       });
     }
   }, [product?.id, trackProduct, location.state]);
+
+  // Scroll to top when component mounts and when product changes
+  useEffect(() => {
+    // Multiple methods to ensure scroll to top works
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    
+    // Also scroll to top when product changes
+    if (product?.id) {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      }, 100);
+    }
+  }, [product?.id]);
+
+  // Additional scroll to top on initial mount with delay
+  useEffect(() => {
+    // Immediate scroll
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    
+    // Additional scroll after a short delay to ensure page is rendered
+    const timeoutId = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 50);
+    
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   const [loading, setLoading] = useState(false);
   const [productVariants, setProductVariants] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -1148,14 +1178,17 @@ const VlancoProductPage = () => {
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  const playSound = (type) => {
-    if (!soundEnabled) return;
-    // Sound effect logic here
-  };
+  // Scroll to top when page loading completes
+  useEffect(() => {
+    if (!pageLoading) {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      }, 100);
+    }
+  }, [pageLoading]);
 
   // Error handling and retry mechanisms
   const handleError = (error, context = 'general') => {
-    console.error(`Error in ${context}:`, error);
     setError({
       message: error.message || 'An unexpected error occurred',
       context,
@@ -1275,28 +1308,92 @@ const VlancoProductPage = () => {
     }
 
     try {
-      if (isInWishlist(product.id)) {
-        await removeFromWishlist(product.id);
+      const productId = String(product.id);
+      const isCurrentlyInWishlist = isInWishlist(productId);
+      
+      if (isCurrentlyInWishlist) {
+        await removeFromWishlist(productId);
+        
+        // Also remove from localStorage keys for consistency
+        const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+        const updatedWishlist = existingWishlist.filter((item: any) => item.id !== productId);
+        localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
+        
+        const guestWishlist = JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]');
+        const updatedGuestWishlist = guestWishlist.filter((item: any) => item.id !== productId);
+        localStorage.setItem('vlanco_guest_wishlist', JSON.stringify(updatedGuestWishlist));
+        
+        const hardcodedWishlist = JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]');
+        const updatedHardcodedWishlist = hardcodedWishlist.filter((item: any) => item.id !== productId);
+        localStorage.setItem('vlanco_hardcoded_wishlist', JSON.stringify(updatedHardcodedWishlist));
+        
         setIsWishlisted(false);
+        
+        // Dispatch event to update navigation counter
+        window.dispatchEvent(new CustomEvent('wishlistUpdated'));
+        
+        toast({ 
+          title: 'Removed from Wishlist', 
+          description: `${product.name} removed from wishlist`, 
+          duration: 2500 
+        });
       } else {
-        await addToWishlist({
-          id: product.id,
+        // Track analytics for add to wishlist
+        try {
+          await trackAddToWishlist(productId);
+        } catch (analyticsError) {
+          console.error('❌ Wishlist analytics tracking failed:', analyticsError);
+        }
+        
+        // Create comprehensive wishlist item with complete product information
+        const wishlistItem = {
+          id: productId,
           name: product.name,
-          price: product.base_price || product.price || 0,
-          image: product.gallery?.[0] || product.images?.[0] || '/src/assets/product-1.jpg',
+          price: Number(product.base_price || product.price) || 0,
+          compare_price: Number(product.compare_price) || null,
+          image: product.gallery?.[0] || product.images?.[0] || '/src/assets/1.png',
+          images: product.gallery || product.images || [product.gallery?.[0] || product.images?.[0] || '/src/assets/1.png'],
           category: product.category || 'Product',
           description: product.description,
-          rating: 4.5,
-          reviews: 0,
+          rating: product.reviews?.average || 4.5,
+          reviews: product.reviews?.total || 0,
           isLimited: false,
-          isNew: false,
+          isNew: product.isNew || false,
           colors: product.color_options?.map(c => c.name) || ['Black', 'White'],
-          sizes: product.size_options || ['S', 'M', 'L', 'XL']
+          sizes: product.size_options || ['S', 'M', 'L', 'XL'],
+          material: product.material,
+          features: product.features?.map(f => f.text) || [],
+          brand: 'VLANCO',
+          collection: product.collection || 'Streetwear Collection',
+          modelNumber: product.sku || `PROD-${productId}`,
+          addedAt: new Date().toISOString()
+        };
+        
+        // Add to wishlist using the hook (Supabase + localStorage) - non-blocking
+        addToWishlist(wishlistItem).then(() => {
+          console.log('✅ ProductDetail - Added to wishlist via hook');
+        }).catch((hookError) => {
+          console.error('❌ ProductDetail - addToWishlist hook error:', hookError);
         });
+        
+        // Also save to the main localStorage key that the wishlist page reads from
+        const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+        const updatedWishlist = [wishlistItem, ...existingWishlist.filter((item: any) => item.id !== productId)];
+        localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
+        
         setIsWishlisted(true);
+        
+        // Dispatch event to update navigation counter
+        window.dispatchEvent(new CustomEvent('wishlistUpdated'));
+        
+        toast({ 
+          title: 'Added to Wishlist', 
+          description: `${product.name} added to wishlist`, 
+          duration: 2500 
+        });
       }
     } catch (error) {
-      console.error('Error updating wishlist:', error);
+      console.error('❌ Error in handleToggleWishlist:', error);
     }
   };
 
@@ -1335,7 +1432,6 @@ const VlancoProductPage = () => {
         result.status === 'fulfilled' ? result.value : null
       ));
     } catch (error) {
-      console.error('Error preloading images:', error);
     }
   };
 
@@ -1418,7 +1514,6 @@ const VlancoProductPage = () => {
           });
       }
     } catch (error) {
-      console.error('Error tracking activity:', error);
     }
   };
 
@@ -1443,7 +1538,6 @@ const VlancoProductPage = () => {
           });
       }
     } catch (error) {
-      console.error('Error tracking product interaction:', error);
     }
   };
 
@@ -1460,7 +1554,6 @@ const VlancoProductPage = () => {
     const handleAddToCart = async () => {
     // Input validation
     if (!selectedSize || selectedSize.trim() === '') {
-      setCartAnimationWithTimeout(true, 600);
       toast({
         title: "Size Required",
         description: "Please select a size before adding to cart",
@@ -1470,7 +1563,6 @@ const VlancoProductPage = () => {
     }
     
     if (selectedColor === undefined || selectedColor < 0 || selectedColor >= product.color_options.length) {
-      setCartAnimationWithTimeout(true, 600);
       toast({
         title: "Color Required",
         description: "Please select a valid color before adding to cart",
@@ -1480,33 +1572,9 @@ const VlancoProductPage = () => {
     }
     
     if (quantity < 1 || quantity > 5) {
-      setCartAnimationWithTimeout(true, 600);
       toast({
         title: "Invalid Quantity",
         description: "Quantity must be between 1 and 5",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Enhanced stock validation with quantity limits
-    const quantityValidation = validateQuantity(quantity, product.stock_quantity);
-    if (!quantityValidation.valid) {
-      setCartAnimationWithTimeout(true, 600);
-      toast({
-        title: "Invalid Quantity",
-        description: quantityValidation.message,
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Check stock availability (including reserved stock)
-    if (product.stock_quantity < quantity) {
-      setCartAnimationWithTimeout(true, 600);
-      toast({
-        title: "Insufficient Stock",
-        description: `Only ${product.stock_quantity} items available`,
         variant: "destructive"
       });
       return;
@@ -1516,134 +1584,65 @@ const VlancoProductPage = () => {
       setLoading(true);
       setCartAnimationWithTimeout(true, 3000);
       
-      // Validate product data
-      if (!product.id || !product.base_price || !product.color_options[selectedColor]) {
-        throw new Error('Invalid product data');
-      }
+      // Use the same approach as T-shirt collection
+      const variantId = `product_${product.id}_${selectedColor}_${selectedSize}`;
+      const sku = `${product.id}-${selectedColor}-${selectedSize}`;
       
-      // Create or find product variant with enhanced security
-      const variantData = {
-        product_id: product.id,
-        color: product.color_options[selectedColor].name,
-        size: selectedSize,
+      // Track analytics for add to cart (fire and forget)
+      trackAddToCart(String(product.id), variantId, quantity, product.base_price).catch((analyticsError) => {
+        console.error('❌ Analytics tracking failed:', analyticsError);
+      });
+      
+      // Add to cart with the same structure as T-shirt collection
+      await addToCart(String(product.id), variantId, quantity, {
         price: product.base_price,
-        sku: `${product.id}-${selectedSize}-${selectedColor}`,
-        stock_quantity: Math.max(0, product.stock_quantity - quantity), // Reduce stock
-        is_active: true,
-        created_at: new Date().toISOString()
-      };
-      
-      // Insert variant; if it exists, fetch by sku
-      let variantIdLocal = '';
-      try {
-        const insertRes = await supabase
-          .from('product_variants')
-          .insert(variantData)
-          .select('id, sku, stock_quantity')
-          .single();
-        if (insertRes.error) throw insertRes.error;
-        variantIdLocal = String(insertRes.data.id);
-      } catch (variantInsertErr) {
-        const { data: existing } = await supabase
-          .from('product_variants')
-          .select('id, sku, stock_quantity')
-          .eq('sku', variantData.sku)
-          .maybeSingle();
-        if (!existing?.id) {
-          console.error('Variant creation error:', variantInsertErr);
-          throw new Error('Failed to create product variant');
-        }
-        variantIdLocal = String(existing.id);
-      }
-      
-      // Track product interaction
-      await trackProductInteraction('add_to_cart', quantity);
-      
-      // Track analytics for add to cart
-      await trackAddToCart(String(product.id), String(variantIdLocal), quantity, product.base_price);
-      
-      // Add to cart with enhanced error handling and product details
-      const productDetails = {
-        product: {
+        product: { 
           id: String(product.id),
           name: product.name,
-          base_price: product.base_price,
-          compare_price: product.compare_price,
-          description: product.description,
-          sku: product.sku,
-          image: Array.isArray(product.images) ? (product.images[0]?.src || product.images[0]) : undefined,
-          images: Array.isArray(product.images) ? product.images : undefined,
-          rating: product.reviews?.average,
-          reviews: product.reviews?.total,
-          brand: product.brand,
-          collection: product.collection,
-          material: product.material,
-          protection: product.protection,
+          base_price: Number(product.base_price) || 0,
+          compare_price: Number(product.compare_price) || null,
+          description: product.description || `${product.name} - Premium streetwear collection`,
+          image_url: product.gallery?.[0] || product.images?.[0] || '/src/assets/1.png',
+          image: product.gallery?.[0] || product.images?.[0] || '/src/assets/1.png',
+          images: product.gallery || product.images || [product.gallery?.[0] || product.images?.[0] || '/src/assets/1.png'],
+          brand: product.brand || 'VLANCO',
+          category: product.category || 'Product',
+          material: product.material || 'Premium Material',
+          rating_average: product.reviews?.average || 4.5,
+          rating_count: product.reviews?.total || 0,
+          size_options: product.size_options || ['S', 'M', 'L', 'XL'],
+          color_options: product.color_options?.map(c => c.name) || ['Default'],
+          tags: ['streetwear', 'premium'],
+          is_new_arrival: product.isNew || false,
+          is_bestseller: product.isBestseller || false,
+          stock_quantity: product.stock_quantity || 10
         },
-        variant: {
-          id: String(variantIdLocal),
+        variant: { 
+          id: variantId,
+          product_id: String(product.id),
+          price: Number(product.base_price) || 0,
           color: product.color_options[selectedColor].name,
+          color_value: product.color_options[selectedColor].hex || '#000000',
           size: selectedSize,
-          price: product.base_price,
-          sku: variantData.sku,
-          stock_quantity: variantData.stock_quantity
-        },
-        price: product.base_price,
-        quantity
-      };
-      
-      await addToCart(String(product.id), String(variantIdLocal), quantity, productDetails);
-      
-      // Update product stock in database
-      const newStockQuantity = Math.max(0, product.stock_quantity - quantity);
-      await supabase
-        .from('products')
-        .update({ 
-          stock_quantity: newStockQuantity,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', product.id);
-      
-      // Update local state
-      setProduct(prev => ({
-        ...prev,
-        stock_quantity: newStockQuantity
-      }));
-      
-      // Log security event
-      logSecurityEvent('cart_item_added', {
-        product_id: product.id,
-        variant_id: variantIdLocal,
-        quantity,
-        user_id: user?.id
+          sku,
+          stock_quantity: 10,
+          is_active: true
+        }
       });
       
       // Enhanced success feedback with vault-like effects
-      playSound('success');
       toast({
         title: "🚀 DEPLOYED TO VAULT!",
         description: `${product.name} - ${selectedSize} - ${product.color_options[selectedColor].name} (Qty: ${quantity})`,
         duration: 3000
       });
       
-      // Enhanced cart animation with particle effects
-      // Animation is already set to show for 3 seconds by setCartAnimationWithTimeout above
-      
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      
-      let errorMessage = "Failed to add item to cart. Please try again.";
-      if (error.message === 'Invalid product data') {
-        errorMessage = "Product data is invalid. Please refresh the page.";
-      } else if (error.message === 'Failed to create product variant') {
-        errorMessage = "Unable to create product variant. Please try again.";
-      } else if (error.message === 'Invalid variant data received') {
-        errorMessage = "Server returned invalid data. Please try again.";
-      }
+      console.error('❌ Error in handleAddToCart:', error);
       
       toast({
         title: "Error",
-        description: errorMessage,
+        description: "Failed to add item to cart. Please try again.",
         variant: "destructive",
         duration: 5000
       });
@@ -1863,46 +1862,8 @@ const VlancoProductPage = () => {
          </motion.div>
       </div>
 
-             {/* Enhanced Sound Toggle */}
-      <motion.button
-         className="fixed top-8 right-8 z-50 w-12 h-12 bg-black/30 backdrop-blur-xl border border-cyan-500/30 rounded-full flex items-center justify-center hover:border-cyan-400 hover:bg-black/50 transition-all duration-300"
-        onClick={() => setSoundEnabled(!soundEnabled)}
-         initial={{ opacity: 0, scale: 0, rotate: -180 }}
-         animate={{ opacity: 1, scale: 1, rotate: 0 }}
-         transition={{ duration: 0.8, delay: 1.5, ease: "easeOut" }}
-         whileHover={{ 
-           scale: 1.1, 
-           rotate: 5,
-           boxShadow: "0 0 20px rgba(6, 182, 212, 0.4)"
-         }}
-         whileTap={{ scale: 0.9, rotate: -5 }}
-       >
-         <AnimatePresence mode="wait">
-           {soundEnabled ? (
-             <motion.div
-               key="volume-on"
-               initial={{ opacity: 0, scale: 0.5 }}
-               animate={{ opacity: 1, scale: 1 }}
-               exit={{ opacity: 0, scale: 0.5 }}
-               transition={{ duration: 0.2 }}
-             >
-               <Volume2 className="w-5 h-5 text-cyan-400" />
-             </motion.div>
-           ) : (
-             <motion.div
-               key="volume-off"
-               initial={{ opacity: 0, scale: 0.5 }}
-               animate={{ opacity: 1, scale: 1 }}
-               exit={{ opacity: 0, scale: 0.5 }}
-               transition={{ duration: 0.2 }}
-             >
-               <VolumeX className="w-5 h-5 text-gray-400" />
-             </motion.div>
-           )}
-         </AnimatePresence>
-      </motion.button>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
         {/* Enhanced Back Button */}
         <motion.div
           className="mb-8"
@@ -2067,29 +2028,7 @@ const VlancoProductPage = () => {
               {/* Action Buttons */}
               <div className="flex items-center gap-3">
                 <motion.button
-                  onClick={() => {
-                    setIsWishlisted((prev) => !prev);
-                    try {
-                      const key = 'vlanco_wishlist';
-                      const raw = localStorage.getItem(key);
-                      const list = raw ? JSON.parse(raw) : [];
-                      const exists = list.some((i: any) => i.id === String(product.id));
-                      if (exists) {
-                        const updated = list.filter((i: any) => i.id !== String(product.id));
-                        localStorage.setItem(key, JSON.stringify(updated));
-                      } else {
-                        const entry = {
-                          id: String(product.id),
-                          name: product.name,
-                          price: product.price,
-                          image: product.images?.[0] || '',
-                          category: product.category || 'Streetwear',
-                          addedAt: new Date().toISOString(),
-                        };
-                        localStorage.setItem(key, JSON.stringify([entry, ...list]));
-                      }
-                    } catch (_) {}
-                  }}
+                  onClick={handleToggleWishlist}
                   className={`
                     p-3 rounded-xl border-2 transition-all backdrop-blur-xl
                     ${isWishlisted 

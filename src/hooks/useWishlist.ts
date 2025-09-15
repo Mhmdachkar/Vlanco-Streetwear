@@ -79,7 +79,7 @@ export function useWishlist() {
         name: item.product?.name || 'Product',
         price: item.product?.base_price || 0,
         compare_price: item.product?.compare_price,
-        image: item.product?.image_url || '/src/assets/product-1.jpg',
+        image: item.product?.image_url || '/src/assets/1.png',
         images: item.product?.images || [],
         category: item.product?.category_id || 'Streetwear',
         addedAt: item.added_at || new Date().toISOString(),

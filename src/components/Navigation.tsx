@@ -32,17 +32,10 @@ const Navigation = () => {
   const fallbackCount = localStorageWishlist.length;
   const displayCount = wishlistCount > 0 ? wishlistCount : fallbackCount;
   
-  console.log('🔍 Navigation - wishlistCount from hook:', wishlistCount);
-  console.log('🔍 Navigation - wishlistItems from hook:', wishlistItems);
-  console.log('🔍 Navigation - localStorage vlanco_wishlist:', localStorageWishlist);
-  console.log('🔍 Navigation - fallbackCount:', fallbackCount);
-  console.log('🔍 Navigation - displayCount:', displayCount);
-  console.log('🔍 Navigation - wishlistUpdateTrigger:', wishlistUpdateTrigger);
 
   // Listen for wishlist updates
   useEffect(() => {
     const handleWishlistUpdate = () => {
-      console.log('🔍 Navigation - Wishlist update received, refreshing count');
       setWishlistUpdateTrigger(prev => prev + 1);
     };
 

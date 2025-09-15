@@ -913,8 +913,6 @@ INSERT INTO public.products (id, name, description, base_price, compare_price, s
 ('product_2', 'Streetwear Classic', 'Classic streetwear design with premium materials', 55.00, 75.00, 'active', true, false, true, '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440011', '/src/assets/product-2.jpg', ARRAY['/src/assets/product-2.jpg'], ARRAY['Black', 'Navy', 'Charcoal'], ARRAY['S', 'M', 'L', 'XL'], 4.3, 95, 80),
 ('product_3', 'Limited Edition Drop', 'Exclusive limited edition streetwear piece', 85.00, 120.00, 'active', true, true, true, '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440011', '/src/assets/product-3.jpg', ARRAY['/src/assets/product-3.jpg'], ARRAY['Black', 'Red'], ARRAY['M', 'L', 'XL'], 4.7, 65, 25),
 ('product_4', 'Minimalist Design', 'Clean minimalist streetwear aesthetic', 42.00, 55.00, 'active', false, false, false, '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440011', '/src/assets/product-4.jpg', ARRAY['/src/assets/product-4.jpg'], ARRAY['White', 'Light Gray'], ARRAY['S', 'M', 'L'], 4.2, 78, 60),
--- Test product for AuthCartTest component
-('test-product-123', 'Test VLANCO T-Shirt', 'Test product for authentication and cart testing', 29.99, null, 'active', false, false, false, '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440011', '/src/assets/product-1.jpg', ARRAY['/src/assets/product-1.jpg'], ARRAY['Black'], ARRAY['M'], 4.0, 10, 50)
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert mask products
@@ -932,8 +930,6 @@ INSERT INTO public.product_variants (id, product_id, color, size, price, stock_q
 ('variant_2_2', 'product_2', 'Navy', 'M', 55.00, 40, true, 'STREET-CLS-NAV-M'),
 ('variant_3_1', 'product_3', 'Black', 'L', 85.00, 15, true, 'LIMITED-BLK-L'),
 ('variant_3_2', 'product_3', 'Red', 'M', 85.00, 10, true, 'LIMITED-RED-M'),
--- Test product variant
-('test-variant-456', 'test-product-123', 'Black', 'M', 29.99, 50, true, 'TEST-BLK-M'),
 -- Mask variants
 ('mask_1_variant_1', 'mask_1', 'Black', '56-58cm', 2.36, 50, true, 'THERMAL-BLK-56'),
 ('mask_1_variant_2', 'mask_1', 'Gray', '58-60cm', 2.36, 40, true, 'THERMAL-GRY-58'),
@@ -947,7 +943,6 @@ INSERT INTO public.product_images (id, product_id, variant_id, image_url, alt_te
 ('img_2', 'product_2', null, '/src/assets/product-2.jpg', 'Streetwear Classic', true, 1),
 ('img_3', 'product_3', null, '/src/assets/product-3.jpg', 'Limited Edition Drop', true, 1),
 ('img_4', 'product_4', null, '/src/assets/product-4.jpg', 'Minimalist Design', true, 1),
-('img_test', 'test-product-123', null, '/src/assets/product-1.jpg', 'Test VLANCO T-Shirt', true, 1),
 -- Mask images
 ('img_mask_1', 'mask_1', null, '/src/assets/mask_photos/mask_photos_2/mask1.png', 'Winter Thermal Balaclava', true, 1),
 ('img_mask_1_2', 'mask_1', null, '/src/assets/mask_photos/mask_photos_2/mask2.png', 'Winter Thermal Balaclava Side View', false, 2),

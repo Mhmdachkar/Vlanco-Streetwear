@@ -49,11 +49,15 @@ import AnimatedCartButton from '@/components/AnimatedCartButton';
 
 // Import photos from assets
 import heroBgImage from '@/assets/hero-bg.jpg';
-import photo1Image from '@/assets/photo1.jpg';
-import product1Image from '@/assets/product-1.jpg';
-import product2Image from '@/assets/product-2.jpg';
-import product3Image from '@/assets/product-3.jpg';
-import product4Image from '@/assets/product-4.jpg';
+import photo1Image from '@/assets/ChatGPT Image Aug 29, 2025, 03_00_21 AM.png';
+import product1Image from '@/assets/1.png';
+import product2Image from '@/assets/2.png';
+import product3Image from '@/assets/3.png';
+import product4Image from '@/assets/4.png';
+import droplist1Image from '@/assets/droplist/1.png';
+import droplist2Image from '@/assets/droplist/2.png';
+import droplist3Image from '@/assets/droplist/3.png';
+import droplist4Image from '@/assets/droplist/4.png';
 
 
 
@@ -324,131 +328,122 @@ const TShirtCollection = () => {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [wishlistAnimating, setWishlistAnimating] = useState<number | null>(null);
   
-  // Enhanced mock products with professional images
-  const mockTshirts = [
+  // Authentic VLanco products organized by categories
+  const tshirtsAndIshirts = [
     {
       id: 1,
-      name: 'Essential Urban Tee',
-      price: 45,
-      originalPrice: 60,
-      image: heroBgImage,
-      hoverImage: photo1Image,
-      rating: 4.8,
-      reviews: 234,
+      name: 'VLanco "Street Racer" Graphic Tank Top',
+      price: 32,
+      originalPrice: 45,
+      image: droplist3Image,
+      hoverImage: product3Image,
+      rating: 4.7,
+      reviews: 89,
       isNew: true,
       isBestseller: false,
       colors: [
-        { name: 'Black', value: '#000000' },
-        { name: 'White', value: '#FFFFFF' },
-        { name: 'Navy', value: '#1e40af' }
+        { name: 'Slate Grey', value: '#475569' }
       ],
       sizes: ['S', 'M', 'L', 'XL'],
-      category: 'Basic'
+      category: 'Tank Tops',
+      description: 'Turn heads with the VLanco "Street Racer" Tank Top, a perfect fusion of street culture and high-speed adrenaline. Featuring a bold monochrome graphic of a sleek sports car and urban model, this piece embodies the spirit of underground racing and modern streetwear.',
+      material: '100% soft-touch cotton',
+      features: [
+        'Lightweight, breathable feel',
+        'High-resolution street racing print',
+        'Sleeveless athletic silhouette',
+        'Ribbed crewneck for durability',
+        'Minimal VLanco "VLR" logo branding'
+      ]
     },
     {
       id: 2,
-      name: 'Streetwear Classic',
-      price: 55,
-      originalPrice: 75,
-      image: product1Image,
-      hoverImage: product2Image,
-      rating: 4.9,
-      reviews: 189,
-      isNew: false,
-      isBestseller: true,
-      colors: [
-        { name: 'Black', value: '#000000' },
-        { name: 'Gray', value: '#6b7280' }
-      ],
-      sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-      category: 'Premium'
-    },
-    {
-      id: 3,
-      name: 'Limited Edition Drop',
-      price: 85,
-      originalPrice: 120,
-      image: product2Image,
-      hoverImage: product3Image,
-      rating: 5.0,
-      reviews: 92,
-      isNew: true,
-      isBestseller: true,
-      colors: [
-        { name: 'Black', value: '#000000' },
-        { name: 'Red', value: '#dc2626' },
-        { name: 'White', value: '#FFFFFF' }
-      ],
-      sizes: ['S', 'M', 'L', 'XL'],
-      category: 'Limited'
-    },
-    {
-      id: 4,
-      name: 'Minimalist Design',
-      price: 42,
-      originalPrice: 55,
-      image: product3Image,
+      name: 'VLanco "44 Speed Series" Athletic Tank Top',
+      price: 35,
+      originalPrice: 48,
+      image: droplist4Image,
       hoverImage: product4Image,
-      rating: 4.7,
-      reviews: 156,
+      rating: 4.6,
+      reviews: 134,
       isNew: false,
-      isBestseller: false,
-      colors: [
-        { name: 'White', value: '#FFFFFF' },
-        { name: 'Gray', value: '#6b7280' }
-      ],
-      sizes: ['S', 'M', 'L', 'XL'],
-      category: 'Basic'
-    },
-    {
-      id: 5,
-      name: 'Premium Comfort',
-      price: 68,
-      originalPrice: 90,
-      image: product4Image,
-      hoverImage: heroBgImage,
-      rating: 4.8,
-      reviews: 203,
-      isNew: true,
-      isBestseller: false,
-      colors: [
-        { name: 'Black', value: '#000000' },
-        { name: 'Navy', value: '#1e40af' },
-        { name: 'Green', value: '#16a34a' }
-      ],
-      sizes: ['XS', 'S', 'M', 'L', 'XL'],
-      category: 'Premium'
-    },
-    {
-      id: 6,
-      name: 'Artist Collaboration',
-      price: 95,
-      originalPrice: 130,
-      image: photo1Image,
-      hoverImage: product1Image,
-      rating: 4.9,
-      reviews: 78,
-      isNew: true,
       isBestseller: true,
       colors: [
-        { name: 'Black', value: '#000000' },
-        { name: 'White', value: '#FFFFFF' }
+        { name: 'Deep Grey', value: '#374151' }
       ],
       sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-      category: 'Collaboration'
+      category: 'Tank Tops',
+      description: 'Embrace the spirit of speed with the VLanco "44 Speed Series" Tank Top, a premium piece designed for both performance and style. Featuring a bold number 44 graphic surrounded by dynamic racing-inspired linework.',
+      material: 'Cotton-polyester blend',
+      features: [
+        'Moisture-wicking technology',
+        'Prominent racing number 44 design',
+        'Athletic fit for freedom of movement',
+        'Reinforced crewneck construction',
+        'Dual VLanco logos for professional look'
+      ]
     }
   ];
 
+  const pantsAndShorts = [
+    {
+      id: 3,
+      name: 'VLanco Racing-Inspired Street Pants',
+      price: 89,
+      originalPrice: 125,
+      image: droplist2Image,
+      hoverImage: product1Image,
+      rating: 4.8,
+      reviews: 67,
+      isNew: true,
+      isBestseller: true,
+      colors: [
+        { name: 'Black', value: '#000000' }
+      ],
+      sizes: ['S', 'M', 'L', 'XL'],
+      category: 'Pants',
+      description: 'Elevate your streetwear game with the VLanco Racing-Inspired Street Pants, built for those who live and breathe speed and style. Inspired by high-performance motorsports, these pants feature reflective silver detailing and bold VLanco racing logos.',
+      material: 'Premium polyester blend',
+      features: [
+        'Reflective silver racing graphics',
+        'Elastic waistband with drawstring',
+        'Dual zippered pockets',
+        'Wide-leg relaxed fit',
+        'Signature VLanco 99 logos'
+      ]
+    },
+    {
+      id: 4,
+      name: 'VLanco "Gridlock" Racing Shorts',
+      price: 45,
+      originalPrice: 65,
+      image: droplist1Image,
+      hoverImage: product2Image,
+      rating: 4.5,
+      reviews: 98,
+      isNew: false,
+      isBestseller: false,
+      colors: [
+        { name: 'Black', value: '#000000' }
+      ],
+      sizes: ['S', 'M', 'L', 'XL'],
+      category: 'Shorts',
+      description: 'Dominate the streets with the VLanco "Gridlock" Racing Shorts, engineered for comfort and high-octane style. These shorts capture the raw energy of the track with bold, race-inspired graphics, including the iconic VLanco oval logo and a classic checkered flag emblem.',
+      material: 'Premium cotton-fleece blend',
+      features: [
+        'VLanco oval logo and checkered flag graphics',
+        'Relaxed above-the-knee cut',
+        'Elastic waistband for secure fit',
+        'Convenient side pockets',
+        'Crisp white and silver-tone graphics'
+      ]
+    }
+  ];
+
+  // Combined array for backward compatibility
+  const mockTshirts = [...tshirtsAndIshirts, ...pantsAndShorts];
+
   // Console logging and page analytics - moved to useEffect to prevent excessive re-renders
   useEffect(() => {
-    console.log('🎯 TShirtCollection - Component loaded');
-    console.log('🎯 TShirtCollection - User:', user?.id || 'Not logged in');
-    console.log('🎯 TShirtCollection - Mock products:', mockTshirts.length);
-    
-    // Debug: Check localStorage contents
-    console.log('🔍 TShirtCollection - localStorage vlanco_wishlist:', JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]'));
-    console.log('🔍 TShirtCollection - localStorage vlanco_guest_wishlist:', JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]'));
-    console.log('🔍 TShirtCollection - localStorage vlanco_hardcoded_wishlist:', JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]'));
   }, [user?.id, mockTshirts.length]);
 
   // Track page view - only once when component mounts
@@ -509,93 +504,12 @@ const TShirtCollection = () => {
     ]
   };
 
-  // Debug function to test wishlist functionality
-  const testWishlistFunctionality = () => {
-    console.log('🧪 Testing wishlist functionality...');
-    const testProduct = mockTshirts[0];
-    console.log('🧪 Test product:', testProduct);
-    
-    // Test localStorage operations
-    const testItem = {
-      id: 'test-' + Date.now(),
-      name: 'Test Product',
-      price: 99,
-      image: testProduct.image,
-      category: 'Test',
-      addedAt: new Date().toISOString()
-    };
-    
-    // Save to all localStorage keys
-    localStorage.setItem('vlanco_wishlist', JSON.stringify([testItem]));
-    localStorage.setItem('vlanco_guest_wishlist', JSON.stringify([testItem]));
-    localStorage.setItem('vlanco_hardcoded_wishlist', JSON.stringify([testItem]));
-    
-    console.log('🧪 Test item saved to all localStorage keys');
-    console.log('🧪 localStorage vlanco_wishlist:', JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]'));
-    console.log('🧪 localStorage vlanco_guest_wishlist:', JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]'));
-    console.log('🧪 localStorage vlanco_hardcoded_wishlist:', JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]'));
-    
-    toast({
-      title: '🧪 Test Complete',
-      description: 'Check console for test results',
-      duration: 3000
-    });
-  };
-
-  // Test function to add a real product to wishlist (bypassing Supabase)
-  const testRealProductWishlist = () => {
-    console.log('🧪 Testing real product wishlist functionality...');
-    const testProduct = mockTshirts[0];
-    
-    const wishlistItem = {
-      id: String(testProduct.id),
-      name: testProduct.name,
-      price: testProduct.price,
-      compare_price: testProduct.originalPrice || null,
-      image: testProduct.image,
-      images: [testProduct.image, testProduct.hoverImage].filter(Boolean),
-      category: testProduct.category || 'T-Shirts',
-      description: testProduct.description || `${testProduct.name} - Premium streetwear from VLANCO`,
-      rating: 4.8,
-      reviews: Math.floor(Math.random() * 100) + 20,
-      isLimited: testProduct.isLimited || false,
-      isNew: testProduct.isNew || false,
-      isBestseller: testProduct.isBestseller || false,
-      colors: testProduct.colors || ['Black', 'White'],
-      sizes: testProduct.sizes || ['S', 'M', 'L', 'XL'],
-      material: 'Premium Cotton',
-      brand: 'VLANCO',
-      collection: 'Premium Collection',
-      tags: ['streetwear', 'premium', 'cotton'],
-      features: ['Comfortable', 'Durable', 'Style'],
-      availability: 'In Stock',
-      shipping: 'Standard Shipping',
-      addedAt: new Date().toISOString()
-    };
-    
-    // Save to localStorage directly (bypassing Supabase)
-    const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
-    const updatedWishlist = [wishlistItem, ...existingWishlist.filter((item: any) => item.id !== String(testProduct.id))];
-    localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
-    
-    console.log('🧪 Real product added to localStorage:', updatedWishlist);
-    
-    toast({
-      title: '🧪 Real Product Test',
-      description: `${testProduct.name} added to wishlist (localStorage only)`,
-      duration: 3000
-    });
-  };
 
   const handleToggleWishlist = async (product: any, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     
-    console.log('🎯 TShirtCollection - handleToggleWishlist called');
-    console.log('🎯 TShirtCollection - Product:', product.name, 'ID:', product.id);
-    console.log('🎯 TShirtCollection - User:', user?.id || 'Not logged in');
     
     if (!user) { 
-      console.log('🎯 TShirtCollection - No user, showing auth modal');
       setShowAuthModal(true); 
       return; 
     }
@@ -604,10 +518,8 @@ const TShirtCollection = () => {
       const productId = String(product.id);
       const isCurrentlyInWishlist = isInWishlist(productId);
       
-      console.log('🎯 TShirtCollection - Is in wishlist:', isCurrentlyInWishlist);
       
       if (isCurrentlyInWishlist) {
-        console.log('🎯 TShirtCollection - Removing from wishlist');
         await removeFromWishlist(productId);
         
         // Also remove from localStorage keys for consistency
@@ -1741,58 +1653,33 @@ const TShirtCollection = () => {
               </motion.div>
             </div>
             
-            {/* Debug Test Buttons */}
-            <motion.div
-              className="mb-8 text-center flex gap-4 justify-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <motion.button
-                onClick={testWishlistFunctionality}
-                className="px-6 py-3 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                🧪 Test Basic Functionality
-              </motion.button>
-              
-              <motion.button
-                onClick={testRealProductWishlist}
-                className="px-6 py-3 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                🧪 Test Real Product
-              </motion.button>
-              
-              <motion.button
-                onClick={() => {
-                  const wishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
-                  console.log('🔍 Current wishlist in localStorage:', wishlist);
-                  console.log('🔍 Wishlist count:', wishlist.length);
-                  toast({
-                    title: '🔍 Wishlist Debug',
-                    description: `Found ${wishlist.length} items in localStorage`,
-                    duration: 3000
-                  });
-                }}
-                className="px-6 py-3 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                🔍 Check Wishlist
-              </motion.button>
-            </motion.div>
             
-            {/* Enhanced Product Grid with 3D Effects */}
-            <motion.div
-              className={`grid gap-6 sm:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`}
+            {/* Racing Bottoms Section */}
+            <motion.section
+              className="mb-16"
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              {filteredProducts.map((product, index) => {
+            <motion.div
+                className="text-center mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
+                <h2 className="text-4xl md:text-5xl font-black text-white mb-4 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+                  Racing Bottoms
+                </h2>
+                <p className="text-gray-300 text-lg">Motorsport-inspired pants and shorts for the ultimate racing look</p>
+              </motion.div>
+              
+              <motion.div
+                className="grid gap-6 sm:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                {pantsAndShorts.map((product, index) => {
                 const colorOptions = product.colors || [];
                 const sizeOptions = product.sizes || [];
                 const colorIdx = selectedColor[product.id];
@@ -1865,17 +1752,12 @@ const TShirtCollection = () => {
                             colors: product.colors,
                             sizes: product.sizes,
                             category: product.category,
-                            description: `${product.name} - Premium streetwear collection from VLANCO`,
-                            material: 'Premium Cotton',
+                            description: product.description,
+                            material: product.material,
                             brand: 'VLANCO',
                             collection: 'T-Shirts Collection',
                             modelNumber: `TSH-${product.id}`,
-                            features: [
-                              'Premium Quality Materials',
-                              'Comfortable Fit',
-                              'Durable Construction',
-                              'Modern Design'
-                            ],
+                            features: product.features,
                             selectedColor: colorIdx,
                             selectedSize: size,
                             from: 'tshirt_collection'
@@ -1948,14 +1830,461 @@ const TShirtCollection = () => {
                           alt={product.name}
                           className="absolute inset-0 w-full h-full object-cover"
                           style={{ imageRendering: 'auto' }}
-                          initial={{ opacity: 0, scale: 1.02 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
                           animate={hoveredProduct === product.id ? { 
                             opacity: 1,
-                            scale: 1.05,
+                            scale: 0.98,
                             filter: 'blur(0px)'
                           } : { 
                             opacity: 0,
-                            scale: 1.02,
+                            scale: 0.95,
+                            filter: 'blur(1px)'
+                          }}
+                          transition={{ 
+                            duration: 0.8, 
+                            ease: "easeInOut",
+                            opacity: { duration: 0.7, ease: "easeInOut" },
+                            scale: { duration: 0.8, ease: "easeOut" },
+                            filter: { duration: 0.4, ease: "easeInOut" }
+                          }}
+                        />
+                        
+                        {/* Enhanced Gradient Overlay */}
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10"
+                          initial={{ opacity: 0.4 }}
+                          animate={hoveredProduct === product.id ? { opacity: 0.7 } : { opacity: 0.4 }}
+                          transition={{ duration: 0.6, ease: "easeInOut" }}
+                        />
+                        
+                        {/* Transition Glow Effect */}
+                        <motion.div
+                          className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 via-transparent to-purple-500/20 z-5 pointer-events-none"
+                          initial={{ opacity: 0 }}
+                          animate={hoveredProduct === product.id ? { 
+                            opacity: 1,
+                            scale: 1.1
+                          } : { 
+                            opacity: 0,
+                            scale: 1
+                          }}
+                          transition={{ 
+                            duration: 0.8, 
+                            ease: "easeInOut",
+                            opacity: { duration: 0.6, ease: "easeInOut" },
+                            scale: { duration: 0.8, ease: "easeOut" }
+                          }}
+                        />
+                        
+                        {/* Enhanced Floating Hologram Badges */}
+                        <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
+                          {product.isNew && (
+                            <motion.span 
+                              className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-400 text-white text-xs font-bold rounded-full shadow-lg"
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
+                              whileHover={{ scale: 1.1, rotate: 5 }}
+                            >
+                              NEW
+                            </motion.span>
+                          )}
+                          {product.isBestseller && (
+                            <motion.span 
+                              className="px-3 py-1.5 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white text-xs font-bold rounded-full shadow-lg"
+                              initial={{ scale: 0, rotate: 180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ delay: 0.3 + index * 0.1, type: "spring", stiffness: 200 }}
+                              whileHover={{ scale: 1.1, rotate: -5 }}
+                            >
+                              BESTSELLER
+                            </motion.span>
+                          )}
+                        </div>
+                        
+                        {/* Enhanced Rating Badge */}
+                        <motion.div
+                          className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-2 bg-black/80 backdrop-blur-md rounded-full border border-white/20 z-20"
+                          initial={{ opacity: 0, x: 20, scale: 0.8 }}
+                          animate={isInView ? { opacity: 1, x: 0, scale: 1 } : {}}
+                          transition={{ delay: index * 0.2 + 0.5, type: "spring", stiffness: 200 }}
+                whileHover={{ scale: 1.05 }}
+                        >
+                          <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                          <span className="text-sm font-semibold text-white">{product.rating}</span>
+                        </motion.div>
+                        
+                        {/* Particle animation removed for performance */}
+                      </div>
+                      
+                      {/* Enhanced Product Info with Better Layout */}
+                      <div className="absolute bottom-0 left-0 right-0 z-30 p-8 flex flex-col gap-4">
+                        {/* Enhanced Category and Reviews */}
+                        <div className="flex items-center justify-between mb-2">
+                          <motion.span 
+                            className="text-sm font-bold text-cyan-400 bg-cyan-400/20 px-4 py-2 rounded-full border border-cyan-400/40 shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                          >
+                            {product.category}
+                          </motion.span>
+                          <div className="flex items-center gap-2 text-sm text-white/90">
+                            <Users className="w-4 h-4" />
+                            <span className="font-semibold">{product.reviews} reviews</span>
+                          </div>
+                        </div>
+                        
+                        {/* Enhanced Product Title */}
+                        <h3 className="text-xl font-black text-white drop-shadow-lg group-hover:text-cyan-300 transition-colors duration-300 mb-3 leading-tight">
+                          {product.name}
+                        </h3>
+                        
+                        {/* Available Options Info - No Selectors */}
+                        <div className="mb-4 flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm text-white/70">Colors:</div>
+                            <div className="flex items-center gap-1">
+                              {product.colors.slice(0, 3).map((color, colorIndex) => (
+                                <div
+                                  key={colorIndex}
+                                  className="w-4 h-4 rounded-full border border-white/30"
+                                  style={{ backgroundColor: color.value }}
+                                  title={color.name}
+                                />
+                              ))}
+                              {product.colors.length > 3 && (
+                                <span className="text-xs text-white/60 ml-1">+{product.colors.length - 3}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm text-white/70">Sizes:</div>
+                            <div className="text-sm text-white/90 font-medium">
+                              {product.sizes.slice(0, 3).join(', ')}
+                              {product.sizes.length > 3 && ` +${product.sizes.length - 3} more`}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Enhanced Price and Action Buttons */}
+                        <div className="flex items-center justify-between mt-4">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-baseline gap-3">
+                              <motion.span 
+                                className="text-2xl font-black text-white drop-shadow-lg"
+                                whileHover={{ scale: 1.05 }}
+                              >
+                                ${product.price}
+                              </motion.span>
+                              {product.originalPrice && (
+                                <span className="text-lg text-white/60 line-through font-medium">
+                                  ${product.originalPrice}
+                                </span>
+                              )}
+                            </div>
+                            {product.originalPrice && (
+                              <motion.span 
+                                className="text-sm text-green-400 font-bold"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                              >
+                                Save ${(product.originalPrice - product.price).toFixed(2)}
+                              </motion.span>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            {/* Enhanced Add to Cart Button - Cart Icon Only */}
+                            <motion.button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleQuickAdd(product);
+                              }}
+                              className="group relative p-4 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-cyan-400 text-white shadow-xl border-2 border-cyan-400/60 hover:from-blue-600 hover:to-cyan-500 transition-all duration-300 hover:shadow-cyan-400/50 hover:shadow-2xl"
+                              whileHover={{ 
+                                scale: 1.1,
+                                rotate: [0, -5, 5, 0],
+                                transition: { duration: 0.3 }
+                              }}
+                whileTap={{ scale: 0.95 }}
+                              title="Add to Cart"
+                            >
+                              <ShoppingCart className="w-6 h-6" />
+                              
+                              {/* Pulse animation on hover */}
+                              <motion.div
+                                className="absolute inset-0 rounded-full bg-cyan-400/30"
+                                initial={{ scale: 0, opacity: 0 }}
+                                whileHover={{ 
+                                  scale: 1.4, 
+                                  opacity: [0, 0.5, 0],
+                                  transition: { duration: 0.6, repeat: Infinity }
+                                }}
+                              />
+              </motion.button>
+              
+                            {/* Enhanced Wishlist Button with Professional Feedback */}
+              <motion.button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                console.log('🎯 TShirtCollection - Heart button clicked for product:', product.name);
+                                handleToggleWishlist(product, e);
+                              }}
+                              className={`p-3 rounded-full shadow-lg border-2 transition-all duration-300 ${
+                                isInWishlist(String(product.id))
+                                  ? 'bg-red-500/20 text-red-500 border-red-500/60 hover:bg-red-500/30 shadow-red-500/20'
+                                  : 'bg-white/15 text-white hover:bg-white/25 border-white/30 hover:shadow-white/20'
+                              }`}
+                              whileHover={{ 
+                                scale: 1.15,
+                                boxShadow: isInWishlist(String(product.id)) 
+                                  ? '0 0 25px rgba(239, 68, 68, 0.6)' 
+                                  : '0 0 25px rgba(255, 255, 255, 0.3)'
+                              }}
+                              whileTap={{ 
+                                scale: 0.9,
+                                transition: { duration: 0.1 }
+                              }}
+                              animate={wishlistAnimating === product.id ? {
+                                scale: [1, 1.4, 1],
+                                boxShadow: [
+                                  '0 0 0px rgba(239, 68, 68, 0)',
+                                  '0 0 40px rgba(239, 68, 68, 1)',
+                                  '0 0 0px rgba(239, 68, 68, 0)'
+                                ]
+                              } : {}}
+                              transition={{
+                                scale: { duration: 0.3, ease: "easeOut" },
+                                boxShadow: { duration: 0.3, ease: "easeOut" }
+                              }}
+                              title={isInWishlist(String(product.id)) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                              aria-label={isInWishlist(String(product.id)) ? 'Remove from Wishlist' : 'Add to Wishlist'}
+                            >
+                              <motion.div
+                                animate={wishlistAnimating === product.id ? {
+                                  scale: [1, 1.2, 1],
+                                  rotate: [0, 10, -10, 0]
+                                } : {}}
+                                transition={{
+                                  duration: 0.4,
+                                  ease: "easeOut"
+                                }}
+                              >
+                                <Heart className={`w-5 h-5 transition-all duration-300 ${
+                                  isInWishlist(String(product.id)) 
+                                    ? 'text-red-500 fill-red-500' 
+                                    : 'text-white group-hover:text-red-300'
+                                }`} />
+                              </motion.div>
+                              
+                              {/* Blow-up Effect Overlay */}
+                              <motion.div
+                                className="absolute inset-0 rounded-full bg-red-500/40"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={wishlistAnimating === product.id ? {
+                                  scale: [0, 2, 0],
+                                  opacity: [0, 1, 0]
+                                } : {}}
+                                transition={{
+                                  duration: 0.6,
+                                  ease: "easeOut"
+                                }}
+                              />
+              </motion.button>
+                          </div>
+                        </div>
+                      </div>
+            </motion.div>
+                  </motion.div>
+                );
+              })}
+              </motion.div>
+            </motion.section>
+
+            {/* Racing Tank Tops Section */}
+            <motion.section
+              className="mb-16"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+            <motion.div
+                className="text-center mb-12"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.7 }}
+              >
+                <h2 className="text-4xl md:text-5xl font-black text-white mb-4 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                  Racing Tank Tops
+                </h2>
+                <p className="text-gray-300 text-lg">High-performance streetwear for speed enthusiasts</p>
+              </motion.div>
+              
+              <motion.div
+                className="grid gap-6 sm:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.8 }}
+            >
+                {tshirtsAndIshirts.map((product, index) => {
+                const colorOptions = product.colors || [];
+                const sizeOptions = product.sizes || [];
+                const colorIdx = selectedColor[product.id];
+                const size = selectedSize[product.id];
+                const canAdd = colorOptions.length > 0 ? colorIdx !== undefined : true;
+                const canAddSize = sizeOptions.length > 0 ? !!size : true;
+                return (
+                  <motion.div
+                    key={product.id}
+                    className="group relative rounded-3xl overflow-hidden h-[650px]"
+                    initial={{ opacity: 0, y: 40, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    whileHover={{
+                      y: -16,
+                      scale: 1.03,
+                      transition: { duration: 0.4, ease: "easeOut" }
+                    }}
+                    onHoverStart={() => setHoveredProduct(product.id)}
+                    onHoverEnd={() => setHoveredProduct(null)}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      const colorIdx = selectedColor[product.id] || 0;
+                      const size = selectedSize[product.id] || product.sizes?.[0] || '';
+                      const params = new URLSearchParams();
+                      
+                      // Enhanced navigation with comprehensive product data
+                      if (size) params.set('size', size);
+                      if (colorIdx !== undefined) {
+                        params.set('colorIdx', String(colorIdx));
+                        const colorEntry = (product.colors || [])[colorIdx];
+                        const colorName = typeof colorEntry === 'string' ? colorEntry : colorEntry?.name;
+                        if (colorName) params.set('color', colorName);
+                      }
+                      
+                      // Add essential context
+                      params.set('category', product.category);
+                      params.set('from', 'tshirt_collection');
+                      if (product.isNew) params.set('badge', 'new');
+                      if (product.isBestseller) params.set('badge', 'bestseller');
+                      if (user) params.set('user_context', 'authenticated');
+                      
+                      // Track product view analytics (fire and forget)
+                      trackProduct(String(product.id), {
+                        product_name: product.name,
+                        product_category: product.category,
+                        product_price: product.price,
+                        product_brand: 'VLANCO',
+                        page_type: 'product_list',
+                        came_from: 'tshirt_collection'
+                      }).catch(error => console.warn('Analytics tracking failed:', error));
+                      
+                      // Navigate with smooth transition
+                      navigate(`/product/${product.id}${params.toString() ? `?${params.toString()}` : ''}`, {
+                        state: {
+                          product: {
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            originalPrice: product.originalPrice,
+                            image: product.image,
+                            hoverImage: product.hoverImage,
+                            images: [product.image, product.hoverImage].filter(Boolean),
+                            rating: product.rating,
+                            reviews: product.reviews,
+                            isNew: product.isNew,
+                            isBestseller: product.isBestseller,
+                            colors: product.colors,
+                            sizes: product.sizes,
+                            category: product.category,
+                            description: product.description,
+                            material: product.material,
+                            brand: 'VLANCO',
+                            collection: 'Pants & Shorts Collection',
+                            modelNumber: `PTS-${product.id}`,
+                            features: product.features,
+                            selectedColor: colorIdx,
+                            selectedSize: size,
+                            from: 'tshirt_collection'
+                          },
+                          transition: {
+                            type: 'product-card',
+                            direction: 'forward',
+                            sourcePosition: { x: e.clientX, y: e.clientY }
+                          }
+                        }
+                      });
+                    }}
+                  >
+                    {/* Enhanced Card Container */}
+                    <motion.div 
+                      className="relative bg-gradient-to-br from-background via-muted/20 to-background rounded-3xl overflow-hidden shadow-2xl border border-border/50 transition-all duration-500 group-hover:shadow-3xl group-hover:border-primary/30 h-full"
+                      style={{ transformStyle: 'preserve-3d' }}
+                    >
+                      {/* Enhanced Dynamic Spotlight Glow */}
+                      <motion.div
+                        className="absolute inset-0 pointer-events-none z-10"
+                        animate={hoveredProduct === product.id ? { opacity: 1 } : { opacity: 0 }}
+                        style={{
+                          background: 'radial-gradient(circle at 60% 40%, rgba(0, 212, 255, 0.15) 0%, transparent 70%)',
+                          transition: 'all 0.4s ease',
+                        }}
+                      />
+                      
+                      {/* Enhanced Animated Neon Border */}
+                      <motion.div
+                        className="absolute inset-0 rounded-2xl border-2 border-primary/40 pointer-events-none z-20"
+                        animate={hoveredProduct === product.id ? {
+                          boxShadow: '0 0 30px 4px rgba(0, 212, 255, 0.3)',
+                          borderColor: 'rgba(0, 212, 255, 0.8)',
+                          opacity: 1
+                        } : {
+                          boxShadow: '0 0 0px 0px rgba(0, 212, 255, 0)',
+                          borderColor: 'rgba(0, 212, 255, 0.2)',
+                          opacity: 0.3
+                        }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                      />
+                      
+                      {/* Enhanced Product Image Container */}
+                      <div className={`relative overflow-hidden h-full`}> 
+                        {/* Base Image */}
+                        <motion.img
+                          ref={el => (imageRefs.current[product.id] = el)}
+                          src={product.image}
+                          alt={product.name}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          style={{ imageRendering: 'auto' }}
+                          animate={hoveredProduct === product.id ? { 
+                            scale: 1.05,
+                            filter: 'blur(0px)'
+                          } : { 
+                            scale: 1,
+                            filter: 'blur(0px)'
+                          }}
+                          transition={{ 
+                            duration: 0.8, 
+                            ease: "easeOut",
+                            filter: { duration: 0.4, ease: "easeInOut" }
+                          }}
+                        />
+                        
+                        {/* Hover Image with Cross-Fade */}
+                        <motion.img
+                          src={product.hoverImage}
+                          alt={product.name}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          style={{ imageRendering: 'auto' }}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={hoveredProduct === product.id ? { 
+                            opacity: 1,
+                            scale: 0.98,
+                            filter: 'blur(0px)'
+                          } : { 
+                            opacity: 0,
+                            scale: 0.95,
                             filter: 'blur(1px)'
                           }}
                           transition={{ 
@@ -2217,6 +2546,7 @@ const TShirtCollection = () => {
                 );
               })}
             </motion.div>
+            </motion.section>
             {/* Enhanced New Drop Coming Soon Section */}
             <motion.section 
               className="relative mt-20 py-20 overflow-hidden rounded-3xl border border-cyan-400/20"

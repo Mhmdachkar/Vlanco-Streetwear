@@ -37,12 +37,6 @@ const WishlistPopover: React.FC = () => {
   const displayItems = items && items.length > 0 ? items : localStorageItems;
   const displayCount = itemCount > 0 ? itemCount : localStorageItems.length;
 
-  // Debug logging
-  console.log('🔍 WishlistPopover - items from hook:', items);
-  console.log('🔍 WishlistPopover - itemCount from hook:', itemCount);
-  console.log('🔍 WishlistPopover - localStorageItems:', localStorageItems);
-  console.log('🔍 WishlistPopover - displayItems:', displayItems);
-  console.log('🔍 WishlistPopover - displayCount:', displayCount);
 
   if (!displayItems || displayItems.length === 0) {
     return (

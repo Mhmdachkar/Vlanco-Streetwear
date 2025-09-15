@@ -3,11 +3,11 @@ import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { Camera, Star, Eye, Heart, ArrowRight, Sparkles, Zap, Crown } from 'lucide-react';
 
 // Import product photos from assets
-import product1Image from '@/assets/product-1.jpg';
-import product2Image from '@/assets/product-2.jpg';
-import product3Image from '@/assets/product-3.jpg';
-import product4Image from '@/assets/product-4.jpg';
-import product5Image from '@/assets/product-5.jpg';
+import product1Image from '@/assets/1.png';
+import product2Image from '@/assets/3.png';
+import product3Image from '@/assets/4.png';
+import product4Image from '@/assets/hero-bg.jpg';
+import product5Image from '@/assets/hero-bg.jpg';
 
 const FeaturesSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,7 +22,7 @@ const FeaturesSection = () => {
       title: "VLANCO Brand Essence",
       subtitle: "Street Culture Redefined",
       description: "Capturing the raw energy and authenticity of urban fashion culture.",
-      image: product4Image, // Uses imported product-4.jpg from assets
+      image: product4Image, // Uses imported hero-bg.jpg from assets
       category: "Brand Photography",
       rating: 5.0,
       likes: 1247,
@@ -36,7 +36,7 @@ const FeaturesSection = () => {
       title: "Premium Collection",
       subtitle: "Crafted for Excellence",
       description: "Every piece tells a story of quality, innovation, and street authenticity.",
-      image: product5Image, // Uses imported product-5.jpg from assets
+      image: product5Image, // Uses imported hero-bg.jpg from assets
       category: "Product Showcase",
       rating: 4.9,
       likes: 892,
@@ -50,7 +50,7 @@ const FeaturesSection = () => {
       title: "Urban Lifestyle",
       subtitle: "Living the VLANCO Way",
       description: "Experience the lifestyle that defines modern streetwear culture.",
-      image: "/photo1.jpg",
+      image: "/src/assets/ChatGPT Image Aug 29, 2025, 03_00_21 AM.png",
       category: "Lifestyle",
       rating: 4.8,
       likes: 756,

@@ -48,11 +48,11 @@ import AnimatedSpaceBackground from '@/components/AnimatedSpaceBackground';
 
 // Import photos from assets
 import heroBgImage from '@/assets/hero-bg.jpg';
-import photo1Image from '@/assets/photo1.jpg';
-import product1Image from '@/assets/product-1.jpg';
-import product2Image from '@/assets/product-2.jpg';
-import product3Image from '@/assets/product-3.jpg';
-import product4Image from '@/assets/product-4.jpg';
+import photo1Image from '@/assets/ChatGPT Image Aug 29, 2025, 03_00_21 AM.png';
+import product1Image from '@/assets/1.png';
+import product2Image from '@/assets/3.png';
+import product3Image from '@/assets/4.png';
+import product4Image from '@/assets/hero-bg.jpg';
 
 // Import mask media files
 import s9775MaskImage1 from '@/assets/mask_photos/Screenshot 2025-09-01 181745.png';
@@ -1034,12 +1034,9 @@ const MaskCollection = () => {
   
   // Fly to cart animation function (fixed selector)
   const flyToCart = (productId: number) => {
-    console.log('🎯 flyToCart called for product:', productId);
     
     const productElement = document.querySelector(`[data-product-id="${productId}"]`);
-    console.log('🎯 Product element found:', !!productElement);
     if (!productElement) {
-      console.warn('❌ Product element not found for ID:', productId);
       return;
     }
 
@@ -1049,21 +1046,16 @@ const MaskCollection = () => {
                       document.querySelector('.cart-icon') || 
                       document.querySelector('[data-cart-button]');
     
-    console.log('🎯 Cart button found:', !!cartButton);
     if (!cartButton) {
-      console.warn('❌ Cart button not found');
       return;
     }
 
     const productRect = productElement.getBoundingClientRect();
     const cartRect = cartButton.getBoundingClientRect();
     
-    console.log('🎯 Product rect:', productRect);
-    console.log('🎯 Cart rect:', cartRect);
 
     const productImg = productElement.querySelector('img') as HTMLImageElement;
     if (!productImg) {
-      console.warn('❌ Product image not found');
       return;
     }
 
@@ -1085,20 +1077,17 @@ const MaskCollection = () => {
     `;
 
     document.body.appendChild(floatingImg);
-    console.log('🎯 Floating image created and added to DOM');
 
     requestAnimationFrame(() => {
       floatingImg.style.left = `${cartRect.left + cartRect.width / 2}px`;
       floatingImg.style.top = `${cartRect.top + cartRect.height / 2}px`;
       floatingImg.style.transform = 'translate(-50%, -50%) scale(0.3) rotate(360deg)';
       floatingImg.style.opacity = '0';
-      console.log('🎯 Animation started');
     });
 
     setTimeout(() => {
       if (document.body.contains(floatingImg)) {
         document.body.removeChild(floatingImg);
-        console.log('🎯 Floating image removed from DOM');
       }
     }, 850);
   };
@@ -1649,23 +1638,14 @@ const MaskCollection = () => {
   const handleQuickAdd = async (product: any, e?: React.MouseEvent) => {
     e?.stopPropagation();
     
-    console.log('🔍 handleQuickAdd called for product:', product.id);
     
     // Use default selections or pre-selected ones
     const size = selectedSize[product.id] || product.sizes?.[0] || 'One Size';
     const colorIndex = selectedColor[product.id] !== undefined ? selectedColor[product.id] : 0;
     const selectedColorData = product.colors?.[colorIndex] || product.colors?.[0];
     
-    console.log('🔍 Using size:', size);
-    console.log('🔍 Using color:', selectedColorData?.name || 'Default');
-    console.log('✅ Adding to cart with default/selected options...');
     
     // Analytics tracking (fire and forget - don't block cart addition)
-    console.log('📊 Starting analytics tracking for add to cart...');
-    console.log('📊 Product ID:', String(product.id));
-    console.log('📊 Variant ID:', `mask_${product.id}_${colorIndex}_${size}`);
-    console.log('📊 Quantity:', 1);
-    console.log('📊 Price:', product.price);
     
     // Fire and forget analytics - don't await
     Promise.race([
@@ -1674,28 +1654,20 @@ const MaskCollection = () => {
         setTimeout(() => reject(new Error('Analytics timeout')), 3000)
       )
     ]).then(() => {
-      console.log('✅ Analytics tracking successful');
     }).catch((analyticsError) => {
-      console.error('❌ Analytics tracking failed:', analyticsError);
-      console.log('⚠️ Analytics failed but cart addition continues...');
     });
     
-    console.log('📊 Analytics started in background, continuing with cart...');
     
     // Animation
     flyToCart(product.id);
     
     // Simplified approach: Just call addToCart with complete product details
-    console.log('🛒 Starting cart addition process...');
     try {
-      console.log('🛒 Preparing product details for cart...');
-      console.log('🛒 addToCart function available:', typeof addToCart);
       
       // Create a unique variant ID for this combination
       const variantId = `mask_${product.id}_${colorIndex}_${size}`;
       const sku = `${product.id}-${colorIndex}-${size}`;
       
-      console.log('🛒 Calling addToCart with product details...');
       await addToCart(product.id.toString(), variantId, 1, {
         price: product.price,
         product: { 
@@ -1734,7 +1706,6 @@ const MaskCollection = () => {
         }
       });
       
-      console.log('✅ addToCart completed successfully');
       
       // Show success toast
       toast({
@@ -1743,15 +1714,7 @@ const MaskCollection = () => {
         duration: 3000
       });
     } catch (error) {
-      console.error('❌ Error in handleQuickAdd:', error);
-      console.error('❌ Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        productId: product.id,
-        size,
-        colorIndex,
-        selectedColorData
-      });
+      // Error handling - no console logging needed
       toast({
         title: "Error",
         description: `Failed to add item to cart: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -2404,11 +2367,8 @@ const MaskCollection = () => {
                       
                       // Track product view analytics
                       try {
-                        console.log('🎯 Tracking product view for mask:', product.id);
                         // Note: Need to add analytics import and hook usage at component level
-                        console.log('✅ Product view analytics would be tracked here');
                       } catch (analyticsError) {
-                        console.error('❌ Product view analytics tracking failed:', analyticsError);
                       }
                       
                       // Store selected options in session storage for seamless experience

@@ -42,11 +42,11 @@ const mockProducts: Product[] = [
     name: "Urban Flux Gradient Tee",
     price: 89,
     originalPrice: 119,
-    image: "/src/assets/product-1.jpg",
+    image: "/src/assets/1.png",
     images: [
-      "/src/assets/product-1.jpg",
-      "/src/assets/product-2.jpg",
-      "/src/assets/product-3.jpg"
+      "/src/assets/1.png",
+      "/src/assets/3.png",
+      "/src/assets/4.png"
     ],
     category: "T-Shirts",
     description: "Experience the future of streetwear with our Urban Flux Gradient Tee. This cutting-edge design features a revolutionary color-shifting gradient that responds to light and movement, creating a unique visual experience every time you wear it.",
@@ -67,9 +67,9 @@ const mockProducts: Product[] = [
     },
     sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     colors: [
-      { name: "Cyber Blue", value: "#00D4FF", image: "/src/assets/product-1.jpg" },
-      { name: "Neon Purple", value: "#8B5CF6", image: "/src/assets/product-2.jpg" },
-      { name: "Electric Green", value: "#10B981", image: "/src/assets/product-3.jpg" }
+      { name: "Cyber Blue", value: "#00D4FF", image: "/src/assets/1.png" },
+      { name: "Neon Purple", value: "#8B5CF6", image: "/src/assets/3.png" },
+      { name: "Electric Green", value: "#10B981", image: "/src/assets/4.png" }
     ],
     rating: 4.8,
     reviews: 127,
@@ -83,11 +83,11 @@ const mockProducts: Product[] = [
     name: "Neon Dreams Oversized Tee",
     price: 75,
     originalPrice: 95,
-    image: "/src/assets/product-2.jpg",
+    image: "/src/assets/3.png",
     images: [
-      "/src/assets/product-2.jpg",
-      "/src/assets/product-1.jpg",
-      "/src/assets/product-3.jpg"
+      "/src/assets/3.png",
+      "/src/assets/1.png",
+      "/src/assets/4.png"
     ],
     category: "T-Shirts",
     description: "Dive into the cyberpunk aesthetic with our Neon Dreams Oversized Tee. Featuring bold geometric patterns and glow-in-the-dark accents, this shirt is perfect for making a statement in any urban environment.",
@@ -108,9 +108,9 @@ const mockProducts: Product[] = [
     },
     sizes: ["S", "M", "L", "XL", "XXL"],
     colors: [
-      { name: "Electric Pink", value: "#FF0080", image: "/src/assets/product-2.jpg" },
-      { name: "Acid Yellow", value: "#FFFF00", image: "/src/assets/product-1.jpg" },
-      { name: "Plasma Blue", value: "#0080FF", image: "/src/assets/product-3.jpg" }
+      { name: "Electric Pink", value: "#FF0080", image: "/src/assets/3.png" },
+      { name: "Acid Yellow", value: "#FFFF00", image: "/src/assets/1.png" },
+      { name: "Plasma Blue", value: "#0080FF", image: "/src/assets/4.png" }
     ],
     rating: 4.6,
     reviews: 89,
@@ -123,11 +123,11 @@ const mockProducts: Product[] = [
     id: 3,
     name: "Matrix Code Black Tee",
     price: 69,
-    image: "/src/assets/product-3.jpg",
+    image: "/src/assets/4.png",
     images: [
-      "/src/assets/product-3.jpg",
-      "/src/assets/product-1.jpg",
-      "/src/assets/product-2.jpg"
+      "/src/assets/4.png",
+      "/src/assets/1.png",
+      "/src/assets/3.png"
     ],
     category: "T-Shirts",
     description: "Enter the digital realm with our Matrix Code Black Tee. This minimalist masterpiece features subtle embossed code patterns that catch light beautifully, perfect for tech enthusiasts and urban explorers.",
@@ -148,8 +148,8 @@ const mockProducts: Product[] = [
     },
     sizes: ["XS", "S", "M", "L", "XL"],
     colors: [
-      { name: "Matrix Black", value: "#000000", image: "/src/assets/product-3.jpg" },
-      { name: "Code Gray", value: "#404040", image: "/src/assets/product-1.jpg" }
+      { name: "Matrix Black", value: "#000000", image: "/src/assets/4.png" },
+      { name: "Code Gray", value: "#404040", image: "/src/assets/1.png" }
     ],
     rating: 4.9,
     reviews: 156,
@@ -165,11 +165,11 @@ const mockProducts: Product[] = [
     name: "Cyber Guardian LED Mask",
     price: 149,
     originalPrice: 199,
-    image: "/src/assets/product-1.jpg",
+    image: "/src/assets/1.png",
     images: [
-      "/src/assets/product-1.jpg",
-      "/src/assets/product-2.jpg",
-      "/src/assets/product-3.jpg"
+      "/src/assets/1.png",
+      "/src/assets/3.png",
+      "/src/assets/4.png"
     ],
     category: "Masks",
     description: "Protect yourself in style with our Cyber Guardian LED Mask. Featuring built-in LED strips, air filtration system, and voice modulation technology, this isn't just a mask - it's a statement piece for the future.",
@@ -192,9 +192,9 @@ const mockProducts: Product[] = [
     },
     sizes: ["S/M", "L/XL"],
     colors: [
-      { name: "Cyber Black", value: "#000000", image: "/src/assets/product-1.jpg" },
-      { name: "Chrome Silver", value: "#C0C0C0", image: "/src/assets/product-2.jpg" },
-      { name: "Neon Blue", value: "#00BFFF", image: "/src/assets/product-3.jpg" }
+      { name: "Cyber Black", value: "#000000", image: "/src/assets/1.png" },
+      { name: "Chrome Silver", value: "#C0C0C0", image: "/src/assets/3.png" },
+      { name: "Neon Blue", value: "#00BFFF", image: "/src/assets/4.png" }
     ],
     rating: 4.7,
     reviews: 73,
@@ -208,11 +208,11 @@ const mockProducts: Product[] = [
     name: "Urban Stealth Tactical Mask",
     price: 89,
     originalPrice: 129,
-    image: "/src/assets/product-2.jpg",
+    image: "/src/assets/3.png",
     images: [
-      "/src/assets/product-2.jpg",
-      "/src/assets/product-3.jpg",
-      "/src/assets/product-1.jpg"
+      "/src/assets/3.png",
+      "/src/assets/4.png",
+      "/src/assets/1.png"
     ],
     category: "Masks",
     description: "Blend into the urban landscape with our Urban Stealth Tactical Mask. Designed for maximum protection and minimal detection, featuring advanced materials and a sleek, low-profile design.",
@@ -233,9 +233,9 @@ const mockProducts: Product[] = [
     },
     sizes: ["One Size Adjustable"],
     colors: [
-      { name: "Tactical Black", value: "#1a1a1a", image: "/src/assets/product-2.jpg" },
-      { name: "Urban Gray", value: "#808080", image: "/src/assets/product-3.jpg" },
-      { name: "Olive Drab", value: "#556B2F", image: "/src/assets/product-1.jpg" }
+      { name: "Tactical Black", value: "#1a1a1a", image: "/src/assets/3.png" },
+      { name: "Urban Gray", value: "#808080", image: "/src/assets/4.png" },
+      { name: "Olive Drab", value: "#556B2F", image: "/src/assets/1.png" }
     ],
     rating: 4.5,
     reviews: 94,
@@ -248,11 +248,11 @@ const mockProducts: Product[] = [
     id: 6,
     name: "Holographic Prism Face Shield",
     price: 199,
-    image: "/src/assets/product-3.jpg",
+    image: "/src/assets/4.png",
     images: [
-      "/src/assets/product-3.jpg",
-      "/src/assets/product-1.jpg",
-      "/src/assets/product-2.jpg"
+      "/src/assets/4.png",
+      "/src/assets/1.png",
+      "/src/assets/3.png"
     ],
     category: "Masks",
     description: "Step into the metaverse with our Holographic Prism Face Shield. This revolutionary design features holographic projection technology and AR integration for the ultimate digital fashion experience.",
@@ -274,8 +274,8 @@ const mockProducts: Product[] = [
     },
     sizes: ["Universal"],
     colors: [
-      { name: "Prism Clear", value: "transparent", image: "/src/assets/product-3.jpg" },
-      { name: "Rainbow Chrome", value: "#FF00FF", image: "/src/assets/product-1.jpg" }
+      { name: "Prism Clear", value: "transparent", image: "/src/assets/4.png" },
+      { name: "Rainbow Chrome", value: "#FF00FF", image: "/src/assets/1.png" }
     ],
     rating: 4.3,
     reviews: 31,
@@ -291,11 +291,11 @@ const mockProducts: Product[] = [
     name: "Quantum Glow Smart Backpack",
     price: 299,
     originalPrice: 399,
-    image: "/src/assets/product-1.jpg",
+    image: "/src/assets/1.png",
     images: [
-      "/src/assets/product-1.jpg",
-      "/src/assets/product-2.jpg",
-      "/src/assets/product-3.jpg"
+      "/src/assets/1.png",
+      "/src/assets/3.png",
+      "/src/assets/4.png"
     ],
     category: "Accessories",
     description: "Carry your digital life in style with our Quantum Glow Smart Backpack. Featuring integrated LED panels, wireless charging, GPS tracking, and enough space for all your tech gear.",
@@ -319,9 +319,9 @@ const mockProducts: Product[] = [
     },
     sizes: ["One Size"],
     colors: [
-      { name: "Quantum Black", value: "#000000", image: "/src/assets/product-1.jpg" },
-      { name: "Cyber Blue", value: "#0066CC", image: "/src/assets/product-2.jpg" },
-      { name: "Neon Green", value: "#00FF41", image: "/src/assets/product-3.jpg" }
+      { name: "Quantum Black", value: "#000000", image: "/src/assets/1.png" },
+      { name: "Cyber Blue", value: "#0066CC", image: "/src/assets/3.png" },
+      { name: "Neon Green", value: "#00FF41", image: "/src/assets/4.png" }
     ],
     rating: 4.8,
     reviews: 167,
@@ -335,11 +335,11 @@ const mockProducts: Product[] = [
     name: "Neural Interface Snapback",
     price: 89,
     originalPrice: 119,
-    image: "/src/assets/product-2.jpg",
+    image: "/src/assets/3.png",
     images: [
-      "/src/assets/product-2.jpg",
-      "/src/assets/product-3.jpg",
-      "/src/assets/product-1.jpg"
+      "/src/assets/3.png",
+      "/src/assets/4.png",
+      "/src/assets/1.png"
     ],
     category: "Accessories",
     description: "Connect to the digital realm with our Neural Interface Snapback. Featuring EEG monitoring sensors, gesture controls, and a futuristic design that pushes the boundaries of wearable technology.",
@@ -361,9 +361,9 @@ const mockProducts: Product[] = [
     },
     sizes: ["One Size Adjustable"],
     colors: [
-      { name: "Matrix Black", value: "#000000", image: "/src/assets/product-2.jpg" },
-      { name: "Tech Gray", value: "#4A5568", image: "/src/assets/product-3.jpg" },
-      { name: "Neural Blue", value: "#2563EB", image: "/src/assets/product-1.jpg" }
+      { name: "Matrix Black", value: "#000000", image: "/src/assets/3.png" },
+      { name: "Tech Gray", value: "#4A5568", image: "/src/assets/4.png" },
+      { name: "Neural Blue", value: "#2563EB", image: "/src/assets/1.png" }
     ],
     rating: 4.4,
     reviews: 56,
@@ -376,11 +376,11 @@ const mockProducts: Product[] = [
     id: 9,
     name: "Holographic Chain Necklace",
     price: 159,
-    image: "/src/assets/product-3.jpg",
+    image: "/src/assets/4.png",
     images: [
-      "/src/assets/product-3.jpg",
-      "/src/assets/product-1.jpg",
-      "/src/assets/product-2.jpg"
+      "/src/assets/4.png",
+      "/src/assets/1.png",
+      "/src/assets/3.png"
     ],
     category: "Accessories",
     description: "Make a statement with our Holographic Chain Necklace. This stunning piece features color-shifting links that create mesmerizing light patterns, perfect for festivals and special occasions.",
@@ -401,9 +401,9 @@ const mockProducts: Product[] = [
     },
     sizes: ["Adjustable"],
     colors: [
-      { name: "Prismatic", value: "rainbow", image: "/src/assets/product-3.jpg" },
-      { name: "Aurora Blue", value: "#4169E1", image: "/src/assets/product-1.jpg" },
-      { name: "Sunset Gold", value: "#FFD700", image: "/src/assets/product-2.jpg" }
+      { name: "Prismatic", value: "rainbow", image: "/src/assets/4.png" },
+      { name: "Aurora Blue", value: "#4169E1", image: "/src/assets/1.png" },
+      { name: "Sunset Gold", value: "#FFD700", image: "/src/assets/3.png" }
     ],
     rating: 4.6,
     reviews: 78,
@@ -417,11 +417,11 @@ const mockProducts: Product[] = [
     name: "AR Smart Glasses V2",
     price: 599,
     originalPrice: 799,
-    image: "/src/assets/product-1.jpg",
+    image: "/src/assets/1.png",
     images: [
-      "/src/assets/product-1.jpg",
-      "/src/assets/product-2.jpg",
-      "/src/assets/product-3.jpg"
+      "/src/assets/1.png",
+      "/src/assets/3.png",
+      "/src/assets/4.png"
     ],
     category: "Accessories",
     description: "Experience augmented reality like never before with our AR Smart Glasses V2. Featuring crystal-clear displays, all-day battery life, and seamless integration with your digital lifestyle.",
@@ -444,9 +444,9 @@ const mockProducts: Product[] = [
     },
     sizes: ["Universal"],
     colors: [
-      { name: "Titanium Silver", value: "#C0C0C0", image: "/src/assets/product-1.jpg" },
-      { name: "Matte Black", value: "#000000", image: "/src/assets/product-2.jpg" },
-      { name: "Rose Gold", value: "#E8B4B8", image: "/src/assets/product-3.jpg" }
+      { name: "Titanium Silver", value: "#C0C0C0", image: "/src/assets/1.png" },
+      { name: "Matte Black", value: "#000000", image: "/src/assets/3.png" },
+      { name: "Rose Gold", value: "#E8B4B8", image: "/src/assets/4.png" }
     ],
     rating: 4.9,
     reviews: 234,
@@ -460,11 +460,11 @@ const mockProducts: Product[] = [
     name: "Neon Pulse LED Belt",
     price: 79,
     originalPrice: 99,
-    image: "/src/assets/product-2.jpg",
+    image: "/src/assets/3.png",
     images: [
-      "/src/assets/product-2.jpg",
-      "/src/assets/product-3.jpg",
-      "/src/assets/product-1.jpg"
+      "/src/assets/3.png",
+      "/src/assets/4.png",
+      "/src/assets/1.png"
     ],
     category: "Accessories",
     description: "Light up the night with our Neon Pulse LED Belt. This innovative accessory features customizable LED patterns, music synchronization, and a sleek design that's perfect for parties and festivals.",
@@ -486,9 +486,9 @@ const mockProducts: Product[] = [
     },
     sizes: ["S/M (28-36\")", "L/XL (34-44\")"],
     colors: [
-      { name: "RGB Multi", value: "multicolor", image: "/src/assets/product-2.jpg" },
-      { name: "Electric Blue", value: "#0080FF", image: "/src/assets/product-3.jpg" },
-      { name: "Neon Pink", value: "#FF1493", image: "/src/assets/product-1.jpg" }
+      { name: "RGB Multi", value: "multicolor", image: "/src/assets/3.png" },
+      { name: "Electric Blue", value: "#0080FF", image: "/src/assets/4.png" },
+      { name: "Neon Pink", value: "#FF1493", image: "/src/assets/1.png" }
     ],
     rating: 4.2,
     reviews: 112,
@@ -502,11 +502,11 @@ const mockProducts: Product[] = [
     name: "Cyber Punk Fingerless Gloves",
     price: 45,
     originalPrice: 65,
-    image: "/src/assets/product-3.jpg",
+    image: "/src/assets/4.png",
     images: [
-      "/src/assets/product-3.jpg",
-      "/src/assets/product-1.jpg",
-      "/src/assets/product-2.jpg"
+      "/src/assets/4.png",
+      "/src/assets/1.png",
+      "/src/assets/3.png"
     ],
     category: "Accessories",
     description: "Complete your cyberpunk look with our signature Fingerless Gloves. Featuring conductive fingertips for touchscreen use, reinforced knuckles, and a distinctive aesthetic that screams street tech.",
@@ -527,9 +527,9 @@ const mockProducts: Product[] = [
     },
     sizes: ["S", "M", "L", "XL"],
     colors: [
-      { name: "Cyber Black", value: "#000000", image: "/src/assets/product-3.jpg" },
-      { name: "Electric Green", value: "#00FF00", image: "/src/assets/product-1.jpg" },
-      { name: "Neon Orange", value: "#FF4500", image: "/src/assets/product-2.jpg" }
+      { name: "Cyber Black", value: "#000000", image: "/src/assets/4.png" },
+      { name: "Electric Green", value: "#00FF00", image: "/src/assets/1.png" },
+      { name: "Neon Orange", value: "#FF4500", image: "/src/assets/3.png" }
     ],
     rating: 4.7,
     reviews: 189,
@@ -583,10 +583,10 @@ export const useProducts = () => {
           originalPrice: p.compare_price || undefined,
           image: p.images?.find((img: any) => img.is_primary)?.image_url || 
                  p.images?.[0]?.image_url || 
-                 '/src/assets/product-1.jpg',
+                 '/src/assets/1.png',
           images: p.images?.sort((a: any, b: any) => (a.sort_order || 0) - (b.sort_order || 0))
                     .map((img: any) => img.image_url) || 
-                  ['/src/assets/product-1.jpg'],
+                  ['/src/assets/1.png'],
           category: p.category?.name || 'Streetwear',
           description: p.description,
           features: Array.isArray(p.meta_fields?.features) ? p.meta_fields.features : undefined,

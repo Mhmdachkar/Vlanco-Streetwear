@@ -79,12 +79,10 @@ function useProvideCart(): CartContextValue {
       if (savedCart) {
         const parsedCart = JSON.parse(savedCart);
         setItems(parsedCart);
-        console.log('✅ Cart loaded from localStorage:', parsedCart.length, 'items');
       } else {
         setItems([]);
       }
     } catch (error) {
-      console.error('❌ Error loading cart:', error);
       setItems([]);
     }
   }, [getCartKey]);
@@ -94,9 +92,7 @@ function useProvideCart(): CartContextValue {
     try {
       const cartKey = getCartKey();
       localStorage.setItem(cartKey, JSON.stringify(cartItems));
-      console.log('✅ Cart saved to localStorage:', cartItems.length, 'items');
     } catch (error) {
-      console.error('❌ Error saving cart:', error);
     }
   }, [getCartKey]);
 
@@ -108,7 +104,6 @@ function useProvideCart(): CartContextValue {
   // Add item to cart
   const addToCart = useCallback(async (productId: string, variantId: string, quantity: number = 1, productDetails?: any) => {
     try {
-      console.log('🛒 Adding item to local cart:', { productId, variantId, quantity });
       
       setError(null);
       
@@ -123,7 +118,6 @@ function useProvideCart(): CartContextValue {
         // Update existing item
         updatedItems = [...items];
         updatedItems[existingIndex].quantity += quantity;
-        console.log('📦 Updated existing item quantity');
       } else {
         // Add new item
         const newItem: CartItem = {
@@ -138,7 +132,7 @@ function useProvideCart(): CartContextValue {
             id: productId,
             name: productDetails?.product?.name || `Product ${productId}`,
             base_price: productDetails?.product?.base_price || productDetails?.price || 0,
-            image_url: productDetails?.product?.image_url || productDetails?.product?.image || '/src/assets/product-1.jpg',
+            image_url: productDetails?.product?.image_url || productDetails?.product?.image || '/src/assets/1.png',
             description: productDetails?.product?.description || 'Streetwear product',
             category: productDetails?.product?.category || 'Streetwear',
             brand: productDetails?.product?.brand || 'VLANCO',
@@ -158,7 +152,6 @@ function useProvideCart(): CartContextValue {
         };
         
         updatedItems = [newItem, ...items];
-        console.log('📦 Added new item to cart');
       }
       
       // Update state and save to localStorage
@@ -171,9 +164,7 @@ function useProvideCart(): CartContextValue {
         duration: 3000
       });
       
-      console.log('✅ Item added to cart successfully');
     } catch (error) {
-      console.error('❌ Error adding to cart:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to add item to cart';
       setError(errorMessage);
       toast({
@@ -189,7 +180,6 @@ function useProvideCart(): CartContextValue {
   // Update item quantity
   const updateQuantity = useCallback(async (itemId: string, quantity: number) => {
     try {
-      console.log('🔄 Updating item quantity:', { itemId, quantity });
       
       if (quantity <= 0) {
         await removeFromCart(itemId);
@@ -209,9 +199,7 @@ function useProvideCart(): CartContextValue {
         duration: 2000
       });
       
-      console.log('✅ Quantity updated successfully');
     } catch (error) {
-      console.error('❌ Error updating quantity:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to update quantity';
       setError(errorMessage);
       throw error;
@@ -221,7 +209,6 @@ function useProvideCart(): CartContextValue {
   // Remove item from cart
   const removeFromCart = useCallback(async (itemId: string) => {
     try {
-      console.log('🗑️ Removing item from cart:', itemId);
       
       const itemToRemove = items.find(item => item.id === itemId);
       const updatedItems = items.filter(item => item.id !== itemId);
@@ -255,9 +242,7 @@ function useProvideCart(): CartContextValue {
         });
       }
       
-      console.log('✅ Item removed successfully');
     } catch (error) {
-      console.error('❌ Error removing item:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to remove item';
       setError(errorMessage);
       throw error;
@@ -267,7 +252,6 @@ function useProvideCart(): CartContextValue {
   // Clear entire cart
   const clearCart = useCallback(async () => {
     try {
-      console.log('🧹 Clearing cart');
       setItems([]);
       saveCart([]);
       toast({
@@ -275,9 +259,7 @@ function useProvideCart(): CartContextValue {
         description: 'All items have been removed from your cart',
         duration: 3000
       });
-      console.log('✅ Cart cleared successfully');
     } catch (error) {
-      console.error('❌ Error clearing cart:', error);
       throw error;
     }
   }, [saveCart]);
@@ -300,7 +282,6 @@ function useProvideCart(): CartContextValue {
   // Create checkout session
   const createCheckout = useCallback(async (discountCode?: string) => {
     try {
-      console.log('💳 Creating Stripe checkout session...');
       setLoading(true);
       setError(null);
       
@@ -315,32 +296,26 @@ function useProvideCart(): CartContextValue {
         quantity: item.quantity,
         price: item.price_at_time || item.variant?.price || item.product?.base_price || 0,
         product_name: item.product?.name || 'Product',
-        product_image: item.product?.image_url || item.product?.image || '/src/assets/product-1.jpg',
+        product_image: item.product?.image_url || item.product?.image || '/src/assets/1.png',
         variant_color: item.variant?.color || 'Default',
         variant_size: item.variant?.size || 'M',
         variant_sku: item.variant?.sku || `${item.product_id}-${item.variant_id}`,
         user_email: user?.email || undefined
       }));
       
-      console.log('📦 Converting cart items for Stripe:', localCartItems);
       
       // Create Stripe checkout session
-      console.log('🔄 Calling createLocalCheckoutSession...');
       const { url, sessionId } = await createLocalCheckoutSession(localCartItems, discountCode);
       
-      console.log('✅ Stripe checkout session created:', sessionId);
-      console.log('🔗 Checkout URL:', url);
       
       // Redirect to Stripe checkout
       if (url) {
-        console.log('🔄 Redirecting to checkout URL...');
         window.location.href = url;
       } else {
         throw new Error('No checkout URL received from Stripe');
       }
       
     } catch (error) {
-      console.error('❌ Error creating checkout:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to create checkout session';
       setError(errorMessage);
       

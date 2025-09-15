@@ -6,9 +6,9 @@ import MagneticButton from '@/components/ui/MagneticButton';
 import ParallaxHeading from '@/components/ui/ParallaxHeading';
 
 // Import product photos from assets
-import product1Image from '@/assets/product-1.jpg';
-import product2Image from '@/assets/product-2.jpg';
-import product3Image from '@/assets/product-3.jpg';
+import product1Image from '@/assets/1.png';
+import product2Image from '@/assets/3.png';
+import product3Image from '@/assets/4.png';
 
 // Performance detection hook
 const usePerformanceMode = () => {
@@ -40,20 +40,20 @@ const CategorySections = () => {
   // Memoize categories to prevent unnecessary re-renders
   const categories = useMemo(() => [
     {
-      id: 'tshirts',
-      title: 'T-Shirts',
-      subtitle: 'Urban Essentials',
-      description: 'Premium streetwear tees that define your style with comfort and authenticity. Each piece tells a story of urban culture and bold expression.',
+      id: 'streetwear',
+      title: 'Streetwear Collection',
+      subtitle: 'Racing-Inspired Apparel',
+      description: 'Premium racing-inspired streetwear including tank tops, I-shirts, pants, and shorts. Each piece embodies the spirit of speed and urban culture.',
       image: product1Image,
       route: '/tshirts',
-      count: '25+',
+      count: '4+',
       color: 'from-blue-600 to-purple-600',
       bgGradient: 'from-blue-900/20 to-purple-900/20',
       borderColor: 'border-blue-500/30',
       accentColor: 'text-blue-400',
       icon: Shirt,
-      featured: ['Urban Basic', 'Graphic Tees', 'Limited Edition'],
-      stats: { items: '25+', newDrops: '5', trending: '12' },
+      featured: ['Racing Tank Tops', 'Street Pants', 'Gridlock Shorts'],
+      stats: { items: '4+', newDrops: '2', trending: '4' },
       gradient: 'from-blue-500 to-purple-600'
     },
     {
@@ -102,9 +102,9 @@ const CategorySections = () => {
   // Memoize functions to prevent unnecessary re-renders
   const getProductsByCategory = useCallback((categoryName: string) => {
     return [
-      { id: 1, name: 'Urban Tee', price: 49.99, image: '/src/assets/product-1.jpg' },
-      { id: 2, name: 'Street Hoodie', price: 79.99, image: '/src/assets/product-2.jpg' },
-      { id: 3, name: 'Designer Mask', price: 29.99, image: '/src/assets/product-3.jpg' }
+      { id: 1, name: 'Urban Tee', price: 49.99, image: '/src/assets/1.png' },
+      { id: 2, name: 'Street Hoodie', price: 79.99, image: '/src/assets/3.png' },
+      { id: 3, name: 'Designer Mask', price: 29.99, image: '/src/assets/4.png' }
     ];
   }, []);
 
