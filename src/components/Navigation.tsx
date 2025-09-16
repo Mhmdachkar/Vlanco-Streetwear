@@ -105,8 +105,8 @@ const Navigation = () => {
         animate={{ y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16 sm:h-18">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6">
+          <div className="flex items-center justify-between h-14 sm:h-16 md:h-18">
             {/* Brand Logo & Text */}
             <div className="flex items-center gap-3">
               <HeaderLogo onClick={() => smoothScrollTo('hero')} />
@@ -170,10 +170,10 @@ const Navigation = () => {
             </div>
 
             {/* Enhanced Right Side Icons */}
-            <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
               {/* Enhanced Search */}
               <motion.button 
-                className="relative p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
+                className="relative p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.95 }}
                 title="Search"
@@ -182,7 +182,7 @@ const Navigation = () => {
                   animate={{ rotate: 360 }}
                   transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
                 >
-                  <Search className="w-5 h-5 group-hover:text-cyan-400 transition-colors" />
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-cyan-400 transition-colors" />
                 </motion.div>
                 {/* Hover Glow */}
                 <motion.div
@@ -196,7 +196,7 @@ const Navigation = () => {
                 <HoverCardTrigger asChild>
                   <motion.button 
                     onClick={() => window.location.href = '/wishlist'}
-                    className="relative p-2 hover:bg-red-400/10 rounded-full transition-all duration-300 group"
+                    className="relative p-1.5 sm:p-2 hover:bg-red-400/10 rounded-full transition-all duration-300 group"
                     title="Wishlist"
                     whileHover={{ scale: 1.1, rotate: -5 }}
                     whileTap={{ scale: 0.95 }}
@@ -205,7 +205,7 @@ const Navigation = () => {
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      <Heart className="w-5 h-5 group-hover:text-red-500 transition-colors" />
+                      <Heart className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-500 transition-colors" />
                     </motion.div>
                     
                     {/* Wishlist Count Badge */}
@@ -246,7 +246,7 @@ const Navigation = () => {
                     id="cart-icon"
                     data-cart-icon="true"
                     onClick={() => setShowCartSidebar(true)}
-                    className="relative p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
+                    className="relative p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     whileTap={{ scale: 0.95 }}
                     title="Shopping Cart"
@@ -255,7 +255,7 @@ const Navigation = () => {
                       animate={{ y: [0, -2, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      <ShoppingCart className="w-5 h-5 group-hover:text-cyan-400 transition-colors" />
+                      <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-cyan-400 transition-colors" />
                     </motion.div>
                     {itemCount > 0 && (
                       <motion.span 
@@ -288,7 +288,7 @@ const Navigation = () => {
               <div className="relative">
                 <motion.button 
                   onClick={() => user ? setShowUserMenu(!showUserMenu) : setShowAuthModal(true)}
-                  className="relative p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
+                  className="relative p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                   whileHover={{ scale: 1.1, rotate: -5 }}
                   whileTap={{ scale: 0.95 }}
                   title={user ? "User Menu" : "Sign In"}
@@ -303,7 +303,7 @@ const Navigation = () => {
                       repeat: Infinity 
                     }}
                   >
-                    <User className="w-5 h-5 group-hover:text-cyan-400 transition-colors" />
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-cyan-400 transition-colors" />
                   </motion.div>
                   {/* User Glow */}
                   <motion.div
@@ -402,7 +402,7 @@ const Navigation = () => {
               {/* Enhanced Mobile Menu Button */}
               <motion.button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
+                className="md:hidden p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -411,9 +411,9 @@ const Navigation = () => {
                   transition={{ duration: 0.3 }}
                 >
                   {isMobileMenuOpen ? (
-                    <X className="w-5 h-5 group-hover:text-cyan-400 transition-colors" />
+                    <X className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-cyan-400 transition-colors" />
                   ) : (
-                    <Menu className="w-5 h-5 group-hover:text-cyan-400 transition-colors" />
+                    <Menu className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-cyan-400 transition-colors" />
                   )}
                 </motion.div>
               </motion.button>

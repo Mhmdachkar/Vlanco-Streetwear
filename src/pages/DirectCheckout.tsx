@@ -13,6 +13,13 @@ const DirectCheckout: React.FC = () => {
   const [checkoutData, setCheckoutData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customerInfo, setCustomerInfo] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    company: '',
+    notes: ''
+  });
 
   useEffect(() => {
     // Get checkout data from sessionStorage
@@ -34,6 +41,12 @@ const DirectCheckout: React.FC = () => {
   const handleStripeCheckout = async () => {
     if (!checkoutData) return;
 
+    // Validate required customer information
+    if (!customerInfo.firstName.trim() || !customerInfo.lastName.trim()) {
+      setError('Please provide your first and last name to continue with checkout.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -52,23 +65,42 @@ const DirectCheckout: React.FC = () => {
         throw new Error('Failed to load Stripe');
       }
 
-      console.log('🔄 Initiating Stripe checkout with data:', checkoutData);
+      console.log('🔄 Creating checkout session via Supabase function...');
       
-      // Create checkout session using Stripe's client-side API
-      // This approach works with dynamic line items
+      // Create checkout session using our Supabase function
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const response = await fetch(`${supabaseUrl}/functions/v1/checkout-local-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          cartItems: checkoutData.cartItems,
+          customerEmail: checkoutData.customerEmail,
+          discountCode: checkoutData.discountCode,
+          customerInfo: {
+            ...customerInfo,
+            fullName: `${customerInfo.firstName} ${customerInfo.lastName}`.trim(),
+            timestamp: new Date().toISOString(),
+          },
+          successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/checkout/cancel`,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create checkout session');
+      }
+
+      const { sessionId } = await response.json();
+      console.log('✅ Checkout session created:', sessionId);
       
-      console.log('📦 Line items for Stripe:', checkoutData.lineItems);
-      
+      // Redirect to Stripe Checkout
       const { error: stripeError } = await stripe.redirectToCheckout({
-        lineItems: checkoutData.lineItems,
-        mode: 'payment',
-        successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/checkout/cancel`,
-        customerEmail: checkoutData.cartItems[0]?.user_email || undefined,
-        billingAddressCollection: 'required',
-        shippingAddressCollection: {
-          allowedCountries: ['US', 'CA', 'GB', 'AU', 'DE', 'FR', 'IT', 'ES', 'NL', 'BE'],
-        }
+        sessionId: sessionId,
       });
 
       if (stripeError) {
@@ -191,6 +223,77 @@ const DirectCheckout: React.FC = () => {
                     <div className="flex justify-between font-bold text-lg border-t pt-2">
                       <span>Total:</span>
                       <span>${totals.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Customer Information Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Package className="w-5 h-5" />
+                    Customer Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium">First Name *</label>
+                        <input
+                          type="text"
+                          value={customerInfo.firstName}
+                          onChange={(e) => setCustomerInfo(prev => ({ ...prev, firstName: e.target.value }))}
+                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="Enter first name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium">Last Name *</label>
+                        <input
+                          type="text"
+                          value={customerInfo.lastName}
+                          onChange={(e) => setCustomerInfo(prev => ({ ...prev, lastName: e.target.value }))}
+                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                          placeholder="Enter last name"
+                          required
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Phone Number</label>
+                      <input
+                        type="tel"
+                        value={customerInfo.phone}
+                        onChange={(e) => setCustomerInfo(prev => ({ ...prev, phone: e.target.value }))}
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Company (Optional)</label>
+                      <input
+                        type="text"
+                        value={customerInfo.company}
+                        onChange={(e) => setCustomerInfo(prev => ({ ...prev, company: e.target.value }))}
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Enter company name"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Order Notes (Optional)</label>
+                      <textarea
+                        value={customerInfo.notes}
+                        onChange={(e) => setCustomerInfo(prev => ({ ...prev, notes: e.target.value }))}
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="Any special instructions or notes for your order"
+                        rows={3}
+                      />
                     </div>
                   </div>
                 </CardContent>

@@ -1,0 +1,375 @@
+/* Mobile Optimizations for VLANCO Streetwear */
+
+/* Base mobile optimizations */
+@media (max-width: 767px) {
+  /* Improve touch targets */
+  button, a, input, select, textarea {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Optimize text rendering on mobile */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Reduce motion for better performance */
+  * {
+    animation-duration: 0.3s !important;
+    transition-duration: 0.3s !important;
+  }
+
+  /* Optimize scrolling */
+  html {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Improve tap highlights */
+  * {
+    -webkit-tap-highlight-color: rgba(59, 130, 246, 0.2);
+  }
+
+  /* Optimize images */
+  img {
+    max-width: 100%;
+    height: auto;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+
+  /* Improve form elements */
+  input, textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    border-radius: 8px;
+  }
+
+  /* Optimize containers */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Improve button spacing */
+  .btn-group {
+    gap: 0.75rem;
+  }
+
+  /* Optimize card layouts */
+  .card {
+    margin-bottom: 1rem;
+    border-radius: 12px;
+  }
+
+  /* Improve navigation */
+  .nav-item {
+    padding: 0.75rem 1rem;
+  }
+
+  /* Optimize hero section for mobile */
+  .hero-section {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.125rem;
+    line-height: 1.5;
+    margin-bottom: 2rem;
+  }
+
+  /* Optimize product grids */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  /* Improve modal responsiveness */
+  .modal {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+
+  /* Optimize sidebar */
+  .sidebar {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  /* Improve cart sidebar */
+  .cart-sidebar {
+    width: 100%;
+    max-width: 400px;
+    height: 100vh;
+    max-height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Cart sidebar scrolling optimizations */
+  .cart-items-container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior: contain;
+    height: calc(100vh - 320px) !important;
+    max-height: calc(100vh - 320px) !important;
+    min-height: 150px !important;
+    flex-shrink: 0 !important; /* Prevent flex shrinking */
+    
+    /* Custom scrollbar styling */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+  }
+
+  .cart-items-container::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .cart-items-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .cart-items-container::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.5);
+    border-radius: 3px;
+  }
+
+  .cart-items-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.7);
+  }
+
+  /* Ensure checkout button is always accessible */
+  .cart-checkout-section {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    background: inherit;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    flex-shrink: 0;
+  }
+
+  /* Optimize animations for mobile */
+  .animate-float {
+    animation-duration: 4s;
+  }
+
+  .animate-pulse {
+    animation-duration: 2s;
+  }
+
+  /* Reduce complex animations on mobile */
+  .complex-animation {
+    animation: none;
+  }
+
+  /* Improve loading states */
+  .loading-skeleton {
+    animation-duration: 1.5s;
+  }
+
+  /* Optimize hover effects for touch devices */
+  @media (hover: none) {
+    .hover-effect {
+      transform: none;
+    }
+    
+    .hover-scale:hover {
+      transform: none;
+    }
+  }
+
+  /* Improve focus states for accessibility */
+  button:focus,
+  a:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid rgba(59, 130, 246, 0.6);
+    outline-offset: 2px;
+  }
+
+  /* Optimize text selection */
+  ::selection {
+    background-color: rgba(59, 130, 246, 0.3);
+    color: inherit;
+  }
+
+  /* Improve scrollbar on mobile */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 2px;
+  }
+
+  /* Optimize performance */
+  .performance-optimized {
+    will-change: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Reduce layout shifts */
+  .stable-layout {
+    contain: layout style paint;
+  }
+
+  /* Optimize font loading */
+  .font-optimized {
+    font-display: swap;
+  }
+}
+
+/* Desktop cart optimizations */
+@media (min-width: 769px) {
+  .cart-items-container {
+    height: calc(100vh - 350px) !important;
+    max-height: calc(100vh - 350px) !important;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .cart-items-container {
+    height: calc(100vh - 300px) !important;
+    max-height: calc(100vh - 300px) !important;
+    min-height: 120px !important;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero-title {
+    font-size: 3.5rem;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Large mobile devices */
+@media (min-width: 480px) and (max-width: 767px) {
+  .hero-title {
+    font-size: 3rem;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 479px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .product-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .btn-group {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-group button {
+    width: 100%;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-width: 767px) and (orientation: landscape) {
+  .hero-section {
+    min-height: auto;
+    padding: 1rem;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .nav-item {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* High DPI mobile devices */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .hero-title {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Dark mode mobile optimizations */
+@media (prefers-color-scheme: dark) and (max-width: 767px) {
+  .modal {
+    background-color: rgba(0, 0, 0, 0.95);
+  }
+
+  .card {
+    background-color: rgba(15, 23, 42, 0.8);
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-float,
+  .animate-pulse,
+  .animate-spin {
+    animation: none;
+  }
+}
+
+/* Print optimizations */
+@media print {
+  .nav,
+  .sidebar,
+  .cart-sidebar,
+  .modal {
+    display: none !important;
+  }
+
+  .hero-section {
+    min-height: auto;
+    page-break-inside: avoid;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

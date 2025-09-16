@@ -128,7 +128,7 @@ const Index = () => {
 
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
     
-    // Ultra-throttled mouse tracking - only update every 5th frame for performance mode
+    // Ultra-throttled mouse tracking - disabled on mobile for performance
     let frameCount = 0;
     let rafId: number | null = null;
     let lastEvent: MouseEvent | null = null;
@@ -142,7 +142,7 @@ const Index = () => {
       rafId = requestAnimationFrame(updateMouse);
     };
     const handleMouseMove = (e: MouseEvent) => {
-      if (performanceMode) return; // Skip mouse tracking entirely on low-end devices
+      if (performanceMode || isMobile) return; // Skip mouse tracking on low-end devices and mobile
       lastEvent = e;
       if (rafId == null) rafId = requestAnimationFrame(updateMouse);
     };

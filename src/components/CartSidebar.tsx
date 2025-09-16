@@ -10,6 +10,38 @@ import CartItemCard from './CartItemCard';
 // import CartSummary from './CartSummary';
 import type { Tables } from '@/integrations/supabase/types';
 
+// Custom hook for cart height calculations
+const useCartHeight = () => {
+  const [windowHeight, setWindowHeight] = useState(typeof window !== 'undefined' ? window.innerHeight : 800);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowHeight(window.innerHeight);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  // Calculate available height for cart items
+  const getCartItemsHeight = useCallback(() => {
+    const headerHeight = 140; // Increased header height
+    const checkoutHeight = 250; // Increased checkout section height
+    const padding = 60; // Increased padding for safety
+    const availableHeight = windowHeight - headerHeight - checkoutHeight - padding;
+    const calculatedHeight = Math.max(availableHeight, 150); // Reduced minimum height
+    
+    // More conservative fallback
+    if (calculatedHeight < 150 || calculatedHeight > windowHeight * 0.7) {
+      return Math.min(windowHeight * 0.5, 350); // 50% of viewport or max 350px
+    }
+    
+    return calculatedHeight;
+  }, [windowHeight]);
+  
+  return { windowHeight, getCartItemsHeight };
+};
+
 // Types
 type CartItem = Tables<'cart_items'> & {
   product: Tables<'products'>;
@@ -367,7 +399,11 @@ const UndoNotification = ({ item, progress, onUndo, onCancel }: {
 const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const { items, loading, error, subtotal, total, itemCount, removeFromCart, updateQuantity, addToCart, createCheckout, refetch } = useCart();
+  const { getCartItemsHeight } = useCartHeight();
   const { toast } = useToast();
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const cartItemsRef = useRef<HTMLDivElement>(null);
   
   const {
     itemLoading,
@@ -581,6 +617,40 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
     return () => window.removeEventListener('apply-promo', onApply as EventListener);
   }, [subtotal, toast]);
 
+  // Handle scroll events to show/hide scroll indicator
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    const { scrollTop, scrollHeight, clientHeight } = target;
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 10;
+    const isAtTop = scrollTop < 50;
+    
+    setShowScrollIndicator(!isAtBottom && items.length > 3);
+    setShowScrollToBottom(!isAtBottom && !isAtTop && items.length > 3);
+  }, [items.length]);
+
+  // Scroll to bottom function
+  const scrollToBottom = useCallback(() => {
+    if (cartItemsRef.current) {
+      cartItemsRef.current.scrollTo({
+        top: cartItemsRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
+
+  // Reset scroll indicator when items change
+  useEffect(() => {
+    setShowScrollIndicator(items.length > 3);
+    setShowScrollToBottom(false);
+    
+    // Debug logging
+    console.log('🛒 Cart items changed:', {
+      itemCount: items.length,
+      calculatedHeight: getCartItemsHeight(),
+      windowHeight: typeof window !== 'undefined' ? window.innerHeight : 'N/A'
+    });
+  }, [items.length, getCartItemsHeight]);
+
   // Sidebar animation variants
   const sidebarVariants = {
     closed: { x: "100%", opacity: 0 },
@@ -612,7 +682,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed right-0 top-0 h-full w-full max-w-md bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl z-50 overflow-hidden"
+            className="fixed right-0 top-0 h-full w-full max-w-md bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl z-50 overflow-hidden cart-sidebar"
             variants={sidebarVariants}
             initial="closed"
             animate="open"
@@ -690,7 +760,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
             </motion.div>
 
             {/* Content */}
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 overflow-hidden relative flex flex-col" style={{ height: 'calc(100vh - 80px)' }}>
               {/* Global Loading Overlay */}
               <AnimatePresence>
                 {loading && (
@@ -719,14 +789,18 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                 <EmptyCart onClose={onClose} />
               ) : (
                 <div className="h-full flex flex-col">
-                  {/* Cart Items - Enhanced Scrollable Area with Better Isolation */}
+                  {/* Cart Items - Dynamic Height Scrollable Area */}
                   <div 
-                    className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-thin scrollable-area overscroll-contain max-h-[calc(100vh-220px)] pr-2"
+                    ref={cartItemsRef}
+                    className="overflow-y-auto p-6 space-y-4 scrollbar-thin scrollable-area overscroll-contain pr-2 cart-items-container"
                     style={{
                       scrollbarWidth: 'thin',
                       scrollbarColor: '#475569 #1e293b',
                       scrollBehavior: 'smooth',
-                      WebkitOverflowScrolling: 'touch'
+                      WebkitOverflowScrolling: 'touch',
+                      height: 'calc(100vh - 400px)', // Fixed height to ensure checkout is visible
+                      minHeight: '150px', // Minimum height for small screens
+                      maxHeight: 'calc(100vh - 400px)' // Maximum height constraint
                     }}
                     onTouchStart={(e) => e.stopPropagation()}
                     onTouchMove={(e) => e.stopPropagation()}
@@ -734,6 +808,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                       // Prevent wheel events from bubbling to parent
                       e.stopPropagation();
                     }}
+                    onScroll={handleScroll}
                   >
                     <AnimatePresence mode="popLayout">
                       {items.map((item, index) => (
@@ -995,10 +1070,102 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                         </motion.div>
                       </motion.div>
                     )}
+                    
+                    {/* Scroll indicator when there are many items */}
+                    {showScrollIndicator && items.length > 3 && (
+                      <motion.div 
+                        className="text-center py-4"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="text-slate-400 text-sm flex items-center justify-center space-x-2">
+                          <motion.div 
+                            className="w-2 h-2 bg-cyan-400 rounded-full"
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity }}
+                          ></motion.div>
+                          <span>Scroll to see more items</span>
+                          <motion.div 
+                            className="w-2 h-2 bg-cyan-400 rounded-full"
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
+                          ></motion.div>
+                        </div>
+                        <motion.div 
+                          className="text-cyan-400 text-lg mt-2"
+                          animate={{ y: [0, 5, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          ↓
+                        </motion.div>
+                      </motion.div>
+                    )}
+                    
+                    {/* Always show checkout reminder */}
+                    {items.length > 0 && (
+                      <motion.div 
+                        className="text-center py-3 border-t border-slate-700/30 mt-4"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <div className="text-slate-300 text-sm flex items-center justify-center space-x-2">
+                          <CreditCard className="w-4 h-4 text-cyan-400" />
+                          <span>Checkout button below ↓</span>
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {/* Scroll to bottom button */}
+                    {showScrollToBottom && (
+                      <motion.button
+                        onClick={scrollToBottom}
+                        className="fixed bottom-32 right-8 w-12 h-12 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full shadow-lg flex items-center justify-center text-white z-20"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        title="Scroll to checkout"
+                      >
+                        <motion.div
+                          animate={{ y: [0, 2, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                        >
+                          ↓
+                        </motion.div>
+                      </motion.button>
+                    )}
                   </div>
 
-                  {/* Cart Summary */}
-                  <div className="p-6 border-t border-slate-700/50 bg-slate-800/30">
+                  {/* Cart Summary - Fixed at bottom */}
+                  <div className="flex-shrink-0 p-6 border-t border-slate-700/50 bg-slate-800/30 cart-checkout-section" style={{ position: 'sticky', bottom: 0, zIndex: 20 }}>
+                    {/* Checkout section indicator */}
+                    <motion.div 
+                      className="text-center mb-4"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <div className="text-cyan-400 text-sm font-medium flex items-center justify-center space-x-2">
+                        <motion.div
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          💳
+                        </motion.div>
+                        <span>Ready to Checkout?</span>
+                        <motion.div
+                          animate={{ rotate: [0, 10, -10, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                        >
+                          💳
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                    
                     <div className="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6">
                       {/* Summary Header */}
                       <div className="flex items-center justify-between mb-6">
@@ -1065,13 +1232,16 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                         className={`group relative w-full font-bold py-4 px-6 rounded-xl transition-all duration-300 overflow-hidden ${
                           items.length === 0 || loading
                             ? 'bg-slate-600 cursor-not-allowed text-slate-400'
-                            : 'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white'
+                            : 'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white shadow-lg'
                         }`}
                         whileHover={!loading && items.length > 0 ? { 
                           scale: 1.02,
                           boxShadow: "0 20px 40px rgba(6, 182, 212, 0.3)"
                         } : {}}
                         whileTap={!loading && items.length > 0 ? { scale: 0.98 } : {}}
+                        style={{
+                          minHeight: '48px', // Ensure minimum touch target size
+                        }}
                       >
                         {/* Button Content */}
                         <div className="relative flex items-center justify-center space-x-3">

@@ -334,7 +334,7 @@ const CategorySections = () => {
                   </div>
 
                   {/* Enhanced Content Section (40% of card) */}
-                  <div className="p-5 sm:p-6 lg:p-8 h-[180px] sm:h-[220px] lg:h-[240px] flex flex-col justify-between">
+                  <div className="p-4 sm:p-5 md:p-6 lg:p-8 h-[160px] sm:h-[180px] md:h-[220px] lg:h-[240px] flex flex-col justify-between">
                     <div>
                       <motion.div
                         className="mb-4"
@@ -354,7 +354,7 @@ const CategorySections = () => {
                           </motion.div>
                         </div>
                         
-                        <h3 className="text-2xl sm:text-3xl font-black mb-2 sm:mb-3 group-hover:text-primary transition-colors">
+                        <h3 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 sm:mb-3 group-hover:text-primary transition-colors">
                           {category.title}
                         </h3>
                         

@@ -14,8 +14,8 @@ export interface LocalCartItem {
 }
 
 /**
- * Create a direct Stripe checkout session using client-side approach
- * This stores the checkout data and redirects to a custom checkout page
+ * Create a direct Stripe checkout session using Supabase function
+ * This creates a proper Stripe checkout session on the server
  */
 export async function createDirectStripeCheckout(
   cartItems: LocalCartItem[],
@@ -35,44 +35,12 @@ export async function createDirectStripeCheckout(
       throw new Error('VITE_STRIPE_PUBLISHABLE_KEY is not configured');
     }
 
-    // Create line items for Stripe
-    const lineItems = cartItems.map(item => {
-      // Ensure price is valid (convert to cents and round)
-      const unitAmount = Math.max(Math.round(item.price * 100), 1); // Minimum 1 cent
-      
-      // Create a descriptive product name
-      const productName = `${item.product_name} - ${item.variant_color} (${item.variant_size})`;
-      
-      // Ensure we have a valid image URL
-      let imageUrl = item.product_image;
-      if (!imageUrl || imageUrl.startsWith('/')) {
-        // Convert relative URLs to absolute URLs
-        const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
-        imageUrl = imageUrl.startsWith('/') ? `${baseUrl}${imageUrl}` : `${baseUrl}/default-product.jpg`;
-      }
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-      return {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: productName,
-            images: [imageUrl],
-            description: `SKU: ${item.variant_sku}`,
-            metadata: {
-              product_id: item.product_id,
-              variant_id: item.variant_id,
-              variant_color: item.variant_color,
-              variant_size: item.variant_size,
-              variant_sku: item.variant_sku,
-            },
-          },
-          unit_amount: unitAmount,
-        },
-        quantity: item.quantity,
-      };
-    });
-
-    console.log('📋 Created Stripe line items:', lineItems);
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Supabase configuration is missing');
+    }
 
     // Calculate totals for logging
     const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -87,9 +55,41 @@ export async function createDirectStripeCheckout(
       total: total.toFixed(2)
     });
 
-    // Store checkout data for the checkout page
+    // Create checkout session using Supabase function
+    const response = await fetch(`${supabaseUrl}/functions/v1/checkout-local-session`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify({
+        cartItems,
+        customerEmail: customerEmail || cartItems[0]?.user_email,
+        discountCode,
+        customerInfo: {
+          firstName: '',
+          lastName: '',
+          phone: '',
+          company: '',
+          notes: '',
+          fullName: '',
+          timestamp: new Date().toISOString(),
+        },
+        successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/checkout/cancel`,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create checkout session');
+    }
+
+    const { sessionId, url } = await response.json();
+    console.log('✅ Checkout session created:', sessionId);
+
+    // Store checkout data for the checkout page (for display purposes)
     const checkoutData = {
-      lineItems,
       cartItems,
       totals: {
         subtotal,
@@ -103,12 +103,9 @@ export async function createDirectStripeCheckout(
 
     sessionStorage.setItem('stripe_checkout_data', JSON.stringify(checkoutData));
 
-    // Redirect to our custom checkout page that will handle the Stripe integration
-    const checkoutUrl = '/checkout/direct';
-    
     return {
-      url: checkoutUrl,
-      sessionId: `direct_${Date.now()}`
+      url: url || '/checkout/direct',
+      sessionId: sessionId
     };
 
   } catch (error) {

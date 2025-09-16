@@ -3,13 +3,14 @@ import { motion, useMotionValue, useTransform, useInView } from 'framer-motion';
 import { ShoppingBag, Play, ArrowRight, Sparkles, Star, Heart, Zap } from 'lucide-react';
 import { WatermarkLogo, HeroLogo } from './VlancoLogo';
 
-// Optimized Smoky Word Animation Component with better performance
-const AnimatedText = ({ text, className, delay = 0, duration = 1.2, isInView }: {
+// Optimized Smoky Word Animation Component with mobile performance
+const AnimatedText = ({ text, className, delay = 0, duration = 1.2, isInView, isMobile = false }: {
   text: string;
   className?: string;
   delay?: number;
   duration?: number;
   isInView: boolean;
+  isMobile?: boolean;
 }) => {
   const words = useMemo(() => text.split(' '), [text]);
   
@@ -32,23 +33,23 @@ const AnimatedText = ({ text, className, delay = 0, duration = 1.2, isInView }: 
             filter: "blur(0px)"
           } : {}}
           transition={{
-            duration: duration,
-            delay: delay + index * 0.15,
+            duration: isMobile ? duration * 0.7 : duration,
+            delay: isMobile ? delay + index * 0.08 : delay + index * 0.15,
             ease: [0.25, 0.46, 0.45, 0.94], // Custom easing for smooth smoke effect
             opacity: {
-              duration: duration * 0.8,
+              duration: isMobile ? duration * 0.6 : duration * 0.8,
               ease: "easeOut"
             },
             y: {
-              duration: duration * 1.2,
+              duration: isMobile ? duration * 0.8 : duration * 1.2,
               ease: [0.25, 0.46, 0.45, 0.94]
             },
             scale: {
-              duration: duration * 0.9,
+              duration: isMobile ? duration * 0.6 : duration * 0.9,
               ease: "easeOut"
             },
             filter: {
-              duration: duration * 1.1,
+              duration: isMobile ? duration * 0.8 : duration * 1.1,
               ease: "easeOut"
             }
           }}
@@ -78,12 +79,13 @@ const AnimatedText = ({ text, className, delay = 0, duration = 1.2, isInView }: 
   );
 };
 
-// Enhanced Smoke Disappear Animation Component
-const SmokeDisappearText = ({ text, className, delay = 0, isInView }: {
+// Enhanced Smoke Disappear Animation Component with mobile optimization
+const SmokeDisappearText = ({ text, className, delay = 0, isInView, isMobile = false }: {
   text: string;
   className?: string;
   delay?: number;
   isInView: boolean;
+  isMobile?: boolean;
 }) => {
   const words = useMemo(() => text.split(' '), [text]);
   const [disappearingWords, setDisappearingWords] = useState<Set<number>>(new Set());
@@ -264,7 +266,7 @@ const ProfessionalCursorTrail = () => {
   );
 };
 
-// Performance detection hook
+// Enhanced Performance detection hook with mobile optimization
 const usePerformanceMode = () => {
   const [performanceMode, setPerformanceMode] = useState(() => {
     try {
@@ -272,9 +274,10 @@ const usePerformanceMode = () => {
       const hc = (navigator as any).hardwareConcurrency;
       const lowMem = typeof dm === 'number' && dm <= 4;
       const lowCpu = typeof hc === 'number' && hc <= 4;
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       const isLowEnd = navigator.hardwareConcurrency <= 4 || 
                        window.devicePixelRatio > 2 ||
-                       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                       isMobile;
       return lowMem || lowCpu || isLowEnd;
     } catch {
       return false;
@@ -284,10 +287,30 @@ const usePerformanceMode = () => {
   return performanceMode;
 };
 
+// Mobile detection hook
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth < 768;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isMobile;
+};
+
 const HeroSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true });
   const performanceMode = usePerformanceMode();
+  const isMobile = useIsMobile();
 
 
   return (
@@ -321,8 +344,8 @@ const HeroSection = () => {
           }}
         />
 
-        {/* Reduced Floating Particles for Performance - only on high-end devices */}
-        {!performanceMode && [...Array(performanceMode ? 2 : 6)].map((_, i) => (
+        {/* Optimized Floating Particles for Mobile Performance */}
+        {!performanceMode && !isMobile && [...Array(4)].map((_, i) => (
           <motion.div
             key={i}
             className="absolute w-1.5 h-1.5 bg-gradient-to-br from-cyan-400/40 to-blue-500/20 rounded-full"
@@ -397,10 +420,18 @@ const HeroSection = () => {
           transition={{ duration: 1, delay: 0.3 }}
         >
               <motion.h1
-            className="text-4xl sm:text-5xl md:text-7xl lg:text-9xl font-black text-center relative"
+            className={`font-black text-center relative ${
+              isMobile 
+                ? "text-3xl sm:text-4xl" 
+                : "text-4xl sm:text-5xl md:text-7xl lg:text-9xl"
+            }`}
             initial={{ opacity: 0, scale: 0.5, rotateX: -90 }}
             animate={isInView ? { opacity: 1, scale: 1, rotateX: 0 } : {}}
-            transition={{ duration: 1.2, delay: 0.5, type: "spring" as const }}
+            transition={{ 
+              duration: isMobile ? 0.8 : 1.2, 
+              delay: isMobile ? 0.2 : 0.5, 
+              type: "spring" as const 
+            }}
           >
             <motion.span
               className="text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text relative inline-block"
@@ -501,8 +532,9 @@ const HeroSection = () => {
                 <SmokeDisappearText
                   text="Where street culture meets cutting-edge design."
                   className="text-transparent bg-gradient-to-r from-gray-200 to-gray-300 bg-clip-text font-medium"
-                  delay={1.2}
+                  delay={isMobile ? 0.8 : 1.2}
                   isInView={isInView}
+                  isMobile={isMobile}
                 />
               </div>
               
@@ -511,8 +543,9 @@ const HeroSection = () => {
                 <SmokeDisappearText
                   text="Discover premium streetwear"
                   className="text-transparent bg-gradient-to-r from-cyan-300 to-blue-400 bg-clip-text font-semibold"
-                  delay={2.5}
+                  delay={isMobile ? 1.5 : 2.5}
                   isInView={isInView}
+                  isMobile={isMobile}
                 />
               </div>
               
@@ -521,8 +554,9 @@ const HeroSection = () => {
                 <SmokeDisappearText
                   text="that defines the next generation of urban fashion."
                   className="text-transparent bg-gradient-to-r from-gray-200 to-gray-300 bg-clip-text font-medium"
-                  delay={3.8}
+                  delay={isMobile ? 2.2 : 3.8}
                   isInView={isInView}
+                  isMobile={isMobile}
                 />
               </div>
             </div>
@@ -534,16 +568,16 @@ const HeroSection = () => {
           className="flex flex-col sm:flex-row gap-3 sm:gap-6 justify-center items-center mb-12 sm:mb-16 px-4"
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 1.0, delay: 5.2 }}
+          transition={{ duration: isMobile ? 0.6 : 1.0, delay: isMobile ? 3.0 : 5.2 }}
         >
           {/* Enhanced Shop Now Button */}
           <motion.button
             className="group relative px-6 py-3 sm:px-8 sm:py-4 md:px-10 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl font-semibold text-sm sm:text-base md:text-lg shadow-2xl overflow-hidden w-full sm:w-auto"
-            whileHover={{ 
+            whileHover={!isMobile ? { 
               scale: 1.05, 
               y: -3,
               boxShadow: "0 20px 40px rgba(59, 130, 246, 0.4)"
-            }}
+            } : {}}
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               const collectionsSection = document.getElementById('collections');
@@ -612,13 +646,13 @@ const HeroSection = () => {
           {/* Enhanced Watch Film Button */}
           <motion.button
             className="group relative px-6 py-3 sm:px-8 sm:py-4 md:px-10 border-2 border-cyan-400/50 text-gray-300 rounded-xl font-semibold text-sm sm:text-base md:text-lg backdrop-blur-sm bg-white/5 overflow-hidden w-full sm:w-auto"
-            whileHover={{ 
+            whileHover={!isMobile ? { 
               scale: 1.05,
               borderColor: "rgba(59, 130, 246, 1)",
               color: "rgba(59, 130, 246, 1)",
               y: -3,
               boxShadow: "0 20px 40px rgba(59, 130, 246, 0.3)"
-            }}
+            } : {}}
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               const brandSection = document.getElementById('brand-experience');
