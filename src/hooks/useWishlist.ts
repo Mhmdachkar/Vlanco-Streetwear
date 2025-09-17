@@ -48,14 +48,20 @@ export function useWishlist() {
 
   // Fetch wishlist items from Supabase
   const fetchWishlistItems = useCallback(async () => {
+    console.log('🔍 useWishlist - fetchWishlistItems called');
+    console.log('🔍 useWishlist - User:', user?.id || 'No user');
+    
     if (!user) {
-      setItems(getLocalWishlist());
+      const localWishlist = getLocalWishlist();
+      console.log('🔍 useWishlist - No user, using local wishlist:', localWishlist);
+      setItems(localWishlist);
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
+      console.log('🔍 useWishlist - Fetching from Supabase for user:', user.id);
       
       const { data, error: fetchError } = await supabase
         .from('wishlist_items')
@@ -92,6 +98,8 @@ export function useWishlist() {
         sizes: item.product?.size_options || ['S', 'M', 'L', 'XL']
       }));
 
+      console.log('🔍 useWishlist - fetchWishlistItems - Raw Supabase data:', data);
+      console.log('🔍 useWishlist - fetchWishlistItems - Transformed items:', transformedItems);
       setItems(transformedItems);
     } catch (error) {
       console.error('Exception fetching wishlist items:', error);
@@ -117,6 +125,8 @@ export function useWishlist() {
         wishlist.push({ ...item, addedAt: new Date().toISOString() });
         setLocalWishlist(wishlist);
         setItems(wishlist);
+        // Dispatch event to update UI immediately
+        window.dispatchEvent(new CustomEvent('wishlistUpdated'));
         toast({ 
           title: 'Added to Wishlist', 
           description: 'Item has been added to your wishlist',
@@ -159,8 +169,36 @@ export function useWishlist() {
       
       console.log('🔍 useWishlist - Supabase insert successful');
       
+      // Update local state immediately for better UX
+      const newItem = {
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        compare_price: item.compare_price,
+        image: item.image,
+        images: item.images,
+        category: item.category,
+        addedAt: new Date().toISOString(),
+        description: item.description,
+        rating: item.rating,
+        reviews: item.reviews,
+        isLimited: item.isLimited,
+        isNew: item.isNew,
+        colors: item.colors,
+        sizes: item.sizes
+      };
+      
+      setItems(prevItems => {
+        const updatedItems = [...prevItems, newItem];
+        console.log('🔍 useWishlist - Updated items state:', updatedItems);
+        return updatedItems;
+      });
+      
       console.log('🔍 useWishlist - Fetching wishlist items...');
       await fetchWishlistItems();
+      
+      // Dispatch event to update UI immediately
+      window.dispatchEvent(new CustomEvent('wishlistUpdated'));
       
       // Track analytics
       console.log('🔍 useWishlist - Tracking analytics...');
@@ -199,6 +237,8 @@ export function useWishlist() {
       const updatedWishlist = wishlist.filter(item => item.id !== itemId);
       setLocalWishlist(updatedWishlist);
       setItems(updatedWishlist);
+      // Dispatch event to update UI immediately
+      window.dispatchEvent(new CustomEvent('wishlistUpdated'));
       toast({ 
         title: 'Removed from Wishlist', 
         description: 'Item has been removed from your wishlist',
@@ -219,7 +259,17 @@ export function useWishlist() {
 
       if (deleteError) throw deleteError;
       
+      // Update local state immediately for better UX
+      setItems(prevItems => {
+        const updatedItems = prevItems.filter(item => item.id !== itemId);
+        console.log('🔍 useWishlist - Removed item, updated items state:', updatedItems);
+        return updatedItems;
+      });
+      
       await fetchWishlistItems();
+      
+      // Dispatch event to update UI immediately
+      window.dispatchEvent(new CustomEvent('wishlistUpdated'));
       
       // Track analytics
       await trackWishlistEvent({
@@ -290,7 +340,11 @@ export function useWishlist() {
 
   // Check if product is in wishlist
   const isInWishlist = useCallback((productId: string) => {
-    return items.some(item => item.id === productId);
+    console.log('🔍 isInWishlist called with productId:', productId, 'type:', typeof productId);
+    console.log('🔍 Current wishlist items:', items.map(item => ({ id: item.id, type: typeof item.id })));
+    const result = items.some(item => String(item.id) === String(productId));
+    console.log('🔍 isInWishlist result:', result);
+    return result;
   }, [items]);
 
   // Merge guest wishlist into Supabase wishlist on sign-in
@@ -327,7 +381,8 @@ export function useWishlist() {
       console.log('🔍 useWishlist - localStorage changed, refreshing wishlist');
       if (!user) {
         // For guest users, update from localStorage
-        const localWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
+        const localWishlist = getLocalWishlist();
+        console.log('🔍 useWishlist - Updated local wishlist:', localWishlist);
         setItems(localWishlist);
       }
     };

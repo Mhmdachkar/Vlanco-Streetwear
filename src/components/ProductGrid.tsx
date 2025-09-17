@@ -11,6 +11,26 @@ import { supabase } from '@/integrations/supabase/client';
 import AuthModal from './AuthModal';
 import { useWishlist } from '@/hooks/useWishlist';
 
+// Performance detection hook
+const usePerformanceMode = () => {
+  const [performanceMode, setPerformanceMode] = useState(() => {
+    try {
+      const dm = (navigator as any).deviceMemory;
+      const hc = (navigator as any).hardwareConcurrency;
+      const lowMem = typeof dm === 'number' && dm <= 4;
+      const lowCpu = typeof hc === 'number' && hc <= 4;
+      const isLowEnd = navigator.hardwareConcurrency <= 4 || 
+                       window.devicePixelRatio > 2 ||
+                       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      return lowMem || lowCpu || isLowEnd;
+    } catch {
+      return false;
+    }
+  });
+  
+  return performanceMode;
+};
+
 // Optimized count-up animation hook with better performance
 function useCountUp(target: number, duration = 1200, decimals = 0, suffix = '') {
   const [value, setValue] = useState(0);
@@ -45,34 +65,38 @@ function useCountUp(target: number, duration = 1200, decimals = 0, suffix = '') 
   return display;
 }
 
-// Optimized Floating Particles Component with reduced count
-const FloatingParticles = React.memo(({ count = 10, color = "from-primary/20 to-purple-500/10" }: { count?: number; color?: string }) => (
-  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-    {[...Array(count)].map((_, i) => (
-      <motion.div
-        key={`particle-${i}`}
-        className={`absolute w-1 h-1 bg-gradient-to-br ${color} rounded-full`}
-        style={{
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-        }}
-        animate={{
-          y: [0, -30, 0],
-          x: [0, Math.random() * 15 - 7.5, 0],
-          scale: [0, 1, 0.5, 1, 0],
-          opacity: [0, 0.8, 0.6, 0.4, 0],
-          rotate: [0, 180, 360],
-        }}
-        transition={{
-          duration: Math.random() * 12 + 8,
-          repeat: Infinity,
-          delay: Math.random() * 6,
-          ease: "easeInOut",
-        }}
-      />
-    ))}
-  </div>
-));
+// Ultra-optimized Floating Particles Component with performance mode
+const FloatingParticles = React.memo(({ count = 5, color = "from-primary/20 to-purple-500/10", performanceMode = false }: { count?: number; color?: string; performanceMode?: boolean }) => {
+  // Skip particles in performance mode
+  if (performanceMode) return null;
+  
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {[...Array(Math.min(count, 5))].map((_, i) => (
+        <motion.div
+          key={`particle-${i}`}
+          className={`absolute w-0.5 h-0.5 bg-gradient-to-br ${color} rounded-full`}
+          style={{
+            left: `${20 + Math.random() * 60}%`,
+            top: `${20 + Math.random() * 60}%`,
+          }}
+          animate={{
+            y: [0, -20, 0],
+            x: [0, Math.random() * 10 - 5, 0],
+            scale: [0, 0.8, 0],
+            opacity: [0, 0.4, 0],
+          }}
+          transition={{
+            duration: 6 + Math.random() * 4,
+            repeat: Infinity,
+            delay: Math.random() * 4,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+});
 
 // Optimized Loading Skeleton Component
 const LoadingSkeleton = React.memo(() => {
@@ -109,7 +133,7 @@ const ProductCard = React.memo(({
   onAddToCart, 
   onToggleWishlist, 
   onNavigate, 
-  wishlist, 
+  isInWishlist, 
   isInView 
 }: {
   product: any;
@@ -117,7 +141,7 @@ const ProductCard = React.memo(({
   onAddToCart: (e: React.MouseEvent, product: any) => void;
   onToggleWishlist: (product: any) => void;
   onNavigate: (slug: string) => void;
-  wishlist: string[];
+  isInWishlist: (productId: string) => boolean;
   isInView: boolean;
 }) => {
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
@@ -206,17 +230,41 @@ const ProductCard = React.memo(({
                 e.stopPropagation();
                 onToggleWishlist(product);
               }}
-              className="p-3 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background transition-colors"
+              className={`p-3 backdrop-blur-sm rounded-full transition-all duration-200 ${
+                isInWishlist(String(product.id))
+                  ? 'bg-red-500/20 hover:bg-red-500/30 border border-red-500/30'
+                  : 'bg-background/80 hover:bg-background border border-transparent'
+              }`}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              animate={isInWishlist(String(product.id)) ? {
+                boxShadow: [
+                  '0 0 0px rgba(239, 68, 68, 0)',
+                  '0 0 10px rgba(239, 68, 68, 0.3)',
+                  '0 0 0px rgba(239, 68, 68, 0)'
+                ]
+              } : {}}
+              transition={{
+                boxShadow: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+              }}
             >
+              <motion.div
+                animate={isInWishlist(String(product.id)) ? {
+                  scale: [1, 1.2, 1]
+                } : {}}
+                transition={{
+                  duration: 0.3,
+                  ease: "easeOut"
+                }}
+              >
               <Heart 
-                className={`w-4 h-4 ${
-                  wishlist.includes(String(product.id))
+                className={`w-4 h-4 transition-all duration-200 ${
+                  isInWishlist(String(product.id))
                     ? 'text-red-500 fill-red-500' 
-                    : 'text-muted-foreground'
+                    : 'text-muted-foreground hover:text-red-400'
                 }`} 
               />
+              </motion.div>
             </motion.button>
             
             <motion.button
@@ -360,11 +408,31 @@ const ProductGrid = () => {
   const { addToCart, removeFromCart, items } = useCart();
   const { items: wishlistItems, addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
+  
+  // Debug wishlist items
+  useEffect(() => {
+    console.log('🔍 ProductGrid - Current wishlist items:', wishlistItems);
+    console.log('🔍 ProductGrid - Wishlist items count:', wishlistItems.length);
+    console.log('🔍 ProductGrid - Wishlist items IDs:', wishlistItems.map(item => item.id));
+  }, [wishlistItems]);
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const performanceMode = usePerformanceMode();
   
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [wishlistRefreshKey, setWishlistRefreshKey] = useState(0);
+
+  // Listen for wishlist updates to force re-render
+  useEffect(() => {
+    const handleWishlistUpdate = () => {
+      console.log('🔍 ProductGrid - Wishlist updated, forcing re-render');
+      setWishlistRefreshKey(prev => prev + 1);
+    };
+
+    window.addEventListener('wishlistUpdated', handleWishlistUpdate);
+    return () => window.removeEventListener('wishlistUpdated', handleWishlistUpdate);
+  }, []);
 
   // Memoized handlers for better performance
   const handleAddToCart = useCallback(async (e: React.MouseEvent, product: any) => {
@@ -492,22 +560,29 @@ const ProductGrid = () => {
   }, [user, addToCart, items, removeFromCart]);
 
   const handleToggleWishlist = useCallback(async (product: any) => {
+    console.log('🔍 handleToggleWishlist called with product:', product);
+    console.log('🔍 Product ID:', product.id, 'type:', typeof product.id);
+    console.log('🔍 Current user:', user?.id || 'No user');
+    console.log('🔍 isInWishlist check:', isInWishlist(String(product.id)));
+    
     if (!user) {
       setShowAuthModal(true);
       return;
     }
 
     try {
-      if (isInWishlist(product.id)) {
-        await removeFromWishlist(product.id);
+      if (isInWishlist(String(product.id))) {
+        console.log('🔍 Removing from wishlist...');
+        await removeFromWishlist(String(product.id));
         toast({
           title: 'Removed from Wishlist',
           description: `${product.name} has been removed from your wishlist.`,
           duration: 3000
         });
       } else {
+        console.log('🔍 Adding to wishlist...');
         await addToWishlist({
-          id: product.id,
+          id: String(product.id),
           name: product.name,
           price: product.displayPrice ?? product.price ?? 0,
           image: product.displayImage,
@@ -527,6 +602,7 @@ const ProductGrid = () => {
         });
       }
     } catch (error) {
+      console.error('🔍 Error in handleToggleWishlist:', error);
       toast({
         title: 'Error',
         description: 'Failed to update wishlist. Please try again.',
@@ -678,20 +754,28 @@ const ProductGrid = () => {
         className="py-24 px-6 relative overflow-hidden" 
         id="collections"
       >
-        {/* Optimized Animated Background */}
-        <FloatingParticles count={15} />
+        {/* Debug Wishlist State - Remove in production */}
+        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+          <h3 className="font-bold text-yellow-800">Debug: Wishlist State</h3>
+          <p className="text-sm text-yellow-700">Items: {wishlistItems.length}</p>
+          <p className="text-sm text-yellow-700">IDs: {wishlistItems.map(item => item.id).join(', ')}</p>
+          <p className="text-sm text-yellow-700">User: {user?.id || 'No user'}</p>
+        </div>
         
-        {/* Simplified gradient orbs for performance */}
+        {/* Ultra-optimized Animated Background */}
+        <FloatingParticles count={8} performanceMode={performanceMode} />
+        
+        {/* Ultra-optimized gradient orbs - static in performance mode */}
         <motion.div
           className="absolute top-1/4 left-1/6 w-48 h-48 bg-gradient-to-br from-blue-500/8 to-cyan-500/4 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.3, 0.6, 0.3],
-            x: [0, 25, 0],
-            y: [0, -15, 0],
+          animate={performanceMode ? {} : {
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+            x: [0, 20, 0],
+            y: [0, -10, 0],
           }}
-          transition={{
-            duration: 18,
+          transition={performanceMode ? {} : {
+            duration: 20,
             repeat: Infinity,
             ease: "easeInOut"
           }}
@@ -699,17 +783,17 @@ const ProductGrid = () => {
         
         <motion.div
           className="absolute bottom-1/3 right-1/4 w-36 h-36 bg-gradient-to-br from-purple-500/8 to-pink-500/4 rounded-full blur-2xl"
-          animate={{
-            scale: [1.1, 1, 1.1],
-            opacity: [0.4, 0.7, 0.4],
-            x: [0, -20, 0],
-            y: [0, 20, 0],
+          animate={performanceMode ? {} : {
+            scale: [1, 1.1, 1],
+            opacity: [0.4, 0.6, 0.4],
+            x: [0, -15, 0],
+            y: [0, 15, 0],
           }}
-          transition={{
-            duration: 15,
+          transition={performanceMode ? {} : {
+            duration: 18,
             repeat: Infinity,
             ease: "easeInOut",
-            delay: 3
+            delay: 4
           }}
         />
 
@@ -951,13 +1035,13 @@ const ProductGrid = () => {
             >
               {enhancedProducts.map((product, index) => (
                 <ProductCard
-                  key={product.id}
+                  key={`${product.id}-${wishlistRefreshKey}`}
                   product={product}
                   index={index}
                   onAddToCart={handleAddToCart}
                   onToggleWishlist={handleToggleWishlist}
                   onNavigate={handleNavigate}
-                  wishlist={wishlistItems.map(item => String(item.id))}
+                  isInWishlist={isInWishlist}
                   isInView={isInView}
                 />
               ))}

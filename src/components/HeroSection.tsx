@@ -3,16 +3,36 @@ import { motion, useMotionValue, useTransform, useInView } from 'framer-motion';
 import { ShoppingBag, Play, ArrowRight, Sparkles, Star, Heart, Zap } from 'lucide-react';
 import { WatermarkLogo, HeroLogo } from './VlancoLogo';
 
-// Optimized Smoky Word Animation Component with mobile performance
-const AnimatedText = ({ text, className, delay = 0, duration = 1.2, isInView, isMobile = false }: {
+// Ultra-optimized Text Animation Component with performance mode
+const AnimatedText = ({ text, className, delay = 0, duration = 1.2, isInView, isMobile = false, performanceMode = false }: {
   text: string;
   className?: string;
   delay?: number;
   duration?: number;
   isInView: boolean;
   isMobile?: boolean;
+  performanceMode?: boolean;
 }) => {
   const words = useMemo(() => text.split(' '), [text]);
+  
+  // Skip complex animations in performance mode
+  if (performanceMode) {
+    return (
+      <span className={className}>
+        {words.map((word, index) => (
+          <motion.span
+            key={index}
+            className="inline-block mr-2"
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.3, delay: delay + index * 0.05 }}
+          >
+            {word}
+          </motion.span>
+        ))}
+      </span>
+    );
+  }
   
   return (
     <span className={className}>
@@ -22,9 +42,9 @@ const AnimatedText = ({ text, className, delay = 0, duration = 1.2, isInView, is
           className="inline-block mr-2 relative"
           initial={{ 
             opacity: 0, 
-            y: 30, 
-            scale: 0.8,
-            filter: "blur(8px)"
+            y: isMobile ? 15 : 30, 
+            scale: 0.9,
+            filter: isMobile ? "blur(4px)" : "blur(8px)"
           }}
           animate={isInView ? { 
             opacity: 1, 
@@ -33,21 +53,9 @@ const AnimatedText = ({ text, className, delay = 0, duration = 1.2, isInView, is
             filter: "blur(0px)"
           } : {}}
           transition={{
-            duration: isMobile ? duration * 0.7 : duration,
-            delay: isMobile ? delay + index * 0.08 : delay + index * 0.15,
-            ease: [0.25, 0.46, 0.45, 0.94], // Custom easing for smooth smoke effect
-            opacity: {
-              duration: isMobile ? duration * 0.6 : duration * 0.8,
-              ease: "easeOut"
-            },
-            y: {
-              duration: isMobile ? duration * 0.8 : duration * 1.2,
-              ease: [0.25, 0.46, 0.45, 0.94]
-            },
-            scale: {
-              duration: isMobile ? duration * 0.6 : duration * 0.9,
-              ease: "easeOut"
-            },
+            duration: isMobile ? duration * 0.5 : duration * 0.8,
+            delay: isMobile ? delay + index * 0.05 : delay + index * 0.1,
+            ease: "easeOut",
             filter: {
               duration: isMobile ? duration * 0.8 : duration * 1.1,
               ease: "easeOut"
@@ -344,26 +352,25 @@ const HeroSection = () => {
           }}
         />
 
-        {/* Optimized Floating Particles for Mobile Performance */}
-        {!performanceMode && !isMobile && [...Array(4)].map((_, i) => (
+        {/* Ultra-optimized Floating Particles - reduced count and complexity */}
+        {!performanceMode && !isMobile && [...Array(2)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1.5 h-1.5 bg-gradient-to-br from-cyan-400/40 to-blue-500/20 rounded-full"
+            className="absolute w-1 h-1 bg-gradient-to-br from-cyan-400/30 to-blue-500/15 rounded-full"
             style={{
-              left: `${20 + (i * 15)}%`,
-              top: `${30 + (i * 12)}%`,
+              left: `${25 + (i * 30)}%`,
+              top: `${35 + (i * 20)}%`,
             }}
             animate={{
-              y: [0, -30, 0],
-              x: [0, 15, 0],
-              scale: [0, 1, 0.8, 1, 0],
-              opacity: [0, 0.6, 0.4, 0.2, 0],
-              rotate: [0, 180, 360],
+              y: [0, -20, 0],
+              x: [0, 10, 0],
+              scale: [0, 1, 0],
+              opacity: [0, 0.4, 0],
             }}
             transition={{
-              duration: 6 + i,
+              duration: 8 + i * 2,
               repeat: Infinity,
-              delay: i * 0.8,
+              delay: i * 1.5,
               ease: "easeInOut",
             }}
           />
@@ -945,24 +952,24 @@ const HeroSection = () => {
                />
              </motion.div>
 
-             {/* Optimized Floating Particles */}
-             {[...Array(3)].map((_, i) => (
+             {/* Ultra-optimized Floating Particles - disabled in performance mode */}
+             {!performanceMode && !isMobile && [...Array(2)].map((_, i) => (
                <motion.div
                  key={i}
                  className="absolute w-1 h-1 bg-cyan-400 rounded-full"
                  style={{
-                   left: `${50 + Math.cos(i * Math.PI / 1.5) * 25}%`,
-                   top: `${50 + Math.sin(i * Math.PI / 1.5) * 25}%`,
+                   left: `${50 + Math.cos(i * Math.PI) * 20}%`,
+                   top: `${50 + Math.sin(i * Math.PI) * 20}%`,
                  }}
                  animate={{
                    scale: [0, 1, 0],
-                   opacity: [0, 1, 0],
-                   y: [0, -15, 0]
+                   opacity: [0, 0.8, 0],
+                   y: [0, -10, 0]
                  }}
                  transition={{
-                   duration: 2.5,
+                   duration: 3,
                    repeat: Infinity,
-                   delay: i * 0.5,
+                   delay: i * 0.8,
                    ease: "easeOut"
                  }}
                />

@@ -1,13 +1,13 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState, useCallback, useMemo } from "react";
-import { ArrowRight, Shirt, Shield, Watch, Sparkles, Eye, ShoppingCart, Heart, Zap, Star, Timer, TrendingUp, Users, Package } from 'lucide-react';
+import { ArrowRight, Sparkles, Eye, ShoppingCart, Heart, Zap, Star, Timer, TrendingUp, Users, Package, Lock, Bell, Clock, Gift, X } from 'lucide-react';
 import MagneticButton from '@/components/ui/MagneticButton';
 import ParallaxHeading from '@/components/ui/ParallaxHeading';
 
 // Import product photos from assets
-import product1Image from '@/assets/1.png';
-import product2Image from '@/assets/3.png';
+import product1Image from '@/assets/Gemini_Generated_Image_7c76vw7c76vw7c76.png';
+import product2Image from '@/assets/Gemini_Generated_Image_ug5h7fug5h7fug5h.png';
 import product3Image from '@/assets/4.png';
 
 // Performance detection hook
@@ -35,6 +35,7 @@ const CategorySections = () => {
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [activeFilter, setActiveFilter] = useState('all');
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [showComingSoonNotification, setShowComingSoonNotification] = useState(false);
   const performanceMode = usePerformanceMode();
 
   // Memoize categories to prevent unnecessary re-renders
@@ -44,14 +45,13 @@ const CategorySections = () => {
       title: 'Streetwear Collection',
       subtitle: 'Racing-Inspired Apparel',
       description: 'Premium racing-inspired streetwear including tank tops, I-shirts, pants, and shorts. Each piece embodies the spirit of speed and urban culture.',
-      image: product1Image,
+      image: product2Image,
       route: '/tshirts',
       count: '4+',
       color: 'from-blue-600 to-purple-600',
       bgGradient: 'from-blue-900/20 to-purple-900/20',
       borderColor: 'border-blue-500/30',
       accentColor: 'text-blue-400',
-      icon: Shirt,
       featured: ['Racing Tank Tops', 'Street Pants', 'Gridlock Shorts'],
       stats: { items: '4+', newDrops: '2', trending: '4' },
       gradient: 'from-blue-500 to-purple-600'
@@ -61,14 +61,13 @@ const CategorySections = () => {
       title: 'Masks',
       subtitle: 'Style Meets Protection',
       description: 'Revolutionary protection meets uncompromising style in our designer mask collection. Where fashion meets function seamlessly.',
-      image: product2Image,
+      image: product1Image,
       route: '/masks',
       count: '15+',
       color: 'from-purple-600 to-pink-600',
       bgGradient: 'from-purple-900/20 to-pink-900/20',
       borderColor: 'border-purple-500/30',
       accentColor: 'text-purple-400',
-      icon: Shield,
       featured: ['Tech Masks', 'Designer Series', 'Custom Fit'],
       stats: { items: '15+', newDrops: '3', trending: '8' },
       gradient: 'from-purple-500 to-pink-600'
@@ -85,10 +84,11 @@ const CategorySections = () => {
       bgGradient: 'from-orange-900/20 to-red-900/20',
       borderColor: 'border-orange-500/30',
       accentColor: 'text-orange-400',
-      icon: Watch,
       featured: ['Watches', 'Chains', 'Caps & Beanies'],
       stats: { items: '30+', newDrops: '7', trending: '15' },
-      gradient: 'from-orange-500 to-red-600'
+      gradient: 'from-orange-500 to-red-600',
+      isComingSoon: true,
+      comingSoonDate: '2024-02-15'
     }
   ], []);
 
@@ -112,7 +112,13 @@ const CategorySections = () => {
     console.log('Added to cart:', productId);
   }, []);
 
-  const handleCategoryClick = useCallback((route: string) => {
+  const handleCategoryClick = useCallback((route: string, isComingSoon: boolean = false) => {
+    if (isComingSoon) {
+      setShowComingSoonNotification(true);
+      // Auto-hide notification after 4 seconds
+      setTimeout(() => setShowComingSoonNotification(false), 4000);
+      return;
+    }
     window.location.href = route;
   }, []);
 
@@ -223,7 +229,6 @@ const CategorySections = () => {
         {/* Redesigned Category Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10 lg:gap-12 mb-12 sm:mb-16">
           {categories.map((category, index) => {
-            const IconComponent = category.icon;
             const categoryProducts = getProductsByCategory(category.id);
             const isHovered = hoveredCategory === category.id;
             
@@ -250,7 +255,7 @@ const CategorySections = () => {
                   }}
                   onHoverStart={() => handleHoverStart(category.id)}
                   onHoverEnd={handleHoverEnd}
-                  onClick={() => handleCategoryClick(category.route)}
+                  onClick={() => handleCategoryClick(category.route, category.isComingSoon)}
                 >
                   {/* Enhanced Background Image Section (60% of card) */}
                   <div className="relative h-[240px] sm:h-[320px] lg:h-[360px] overflow-hidden">
@@ -266,6 +271,103 @@ const CategorySections = () => {
                     {/* Enhanced Gradient Overlay */}
                     <div className={`absolute inset-0 bg-gradient-to-t from-background/95 via-background/30 to-transparent`} />
                     
+                    {/* Coming Soon Overlay */}
+                    {category.isComingSoon && (
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-slate-900/95 backdrop-blur-sm flex flex-col items-center justify-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        {/* Lock Icon with Animation */}
+                        <motion.div
+                          className="relative mb-6"
+                          animate={{
+                            y: [0, -5, 0],
+                            rotate: [0, 5, -5, 0]
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeInOut"
+                          }}
+                        >
+                          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-full flex items-center justify-center shadow-2xl">
+                            <Lock className="w-8 h-8 text-white" />
+                          </div>
+                          
+                          {/* Pulsing Ring */}
+                          <motion.div
+                            className="absolute inset-0 border-2 border-orange-400 rounded-full"
+                            animate={{
+                              scale: [1, 1.2, 1],
+                              opacity: [0.5, 0, 0.5]
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                          />
+                        </motion.div>
+
+                        {/* Coming Soon Text */}
+                        <motion.div
+                          className="text-center mb-4"
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.3, duration: 0.6 }}
+                        >
+                          <h3 className="text-2xl font-bold text-white mb-2">
+                            Coming Soon
+                          </h3>
+                          <p className="text-orange-300 text-sm font-medium">
+                            Premium Accessories Collection
+                          </p>
+                        </motion.div>
+
+                        {/* Countdown Timer */}
+                        <motion.div
+                          className="flex items-center gap-2 text-orange-400"
+                          initial={{ y: 20, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          transition={{ delay: 0.5, duration: 0.6 }}
+                        >
+                          <Clock className="w-4 h-4" />
+                          <span className="text-sm font-medium">
+                            Launching Soon
+                          </span>
+                        </motion.div>
+
+                        {/* Floating Particles for Coming Soon */}
+                        {!performanceMode && (
+                          <div className="absolute inset-0 pointer-events-none">
+                            {[...Array(3)].map((_, i) => (
+                              <motion.div
+                                key={i}
+                                className="absolute w-1 h-1 bg-orange-400 rounded-full"
+                                style={{
+                                  left: `${20 + Math.random() * 60}%`,
+                                  top: `${20 + Math.random() * 60}%`,
+                                }}
+                                animate={{
+                                  y: [0, -20, 0],
+                                  opacity: [0, 1, 0],
+                                  scale: [0, 1, 0]
+                                }}
+                                transition={{
+                                  duration: 3,
+                                  repeat: Infinity,
+                                  delay: i * 0.5,
+                                  ease: "easeInOut"
+                                }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </motion.div>
+                    )}
+                    
                     {/* VLANCO Brand Watermark */}
                     <motion.div
                       className="absolute top-4 left-4 text-white/10 font-black text-2xl tracking-wider"
@@ -277,52 +379,53 @@ const CategorySections = () => {
                     
                     {/* Enhanced Stats Badge */}
                     <motion.div
-                      className="absolute top-6 left-6 flex items-center gap-2 px-4 py-2 bg-background/90 backdrop-blur-sm rounded-full border border-border/50 shadow-lg"
+                      className={`absolute top-6 left-6 flex items-center gap-2 px-4 py-2 backdrop-blur-sm rounded-full border shadow-lg ${
+                        category.isComingSoon 
+                          ? 'bg-orange-500/90 border-orange-400/50' 
+                          : 'bg-background/90 border-border/50'
+                      }`}
                       initial={{ opacity: 0, x: -20 }}
                       animate={isInView ? { opacity: 1, x: 0 } : {}}
                       transition={{ delay: index * 0.2 + 0.3 }} // Reduced delay
                     >
-                      <div className={`w-2 h-2 ${category.color.replace('from-', 'bg-').split(' ')[0]} rounded-full`} />
-                      <span className="text-sm font-bold">{category.count} Items</span>
+                      {category.isComingSoon ? (
+                        <>
+                          <Gift className="w-3 h-3 text-white" />
+                          <span className="text-sm font-bold text-white">Coming Soon</span>
+                        </>
+                      ) : (
+                        <>
+                          <div className={`w-2 h-2 ${category.color.replace('from-', 'bg-').split(' ')[0]} rounded-full`} />
+                          <span className="text-sm font-bold">{category.count} Items</span>
+                        </>
+                      )}
                     </motion.div>
 
-                    {/* Enhanced Floating Icon */}
-                    <motion.div
-                      className={`absolute top-4 right-4 sm:top-6 sm:right-6 p-3 sm:p-4 bg-background/90 backdrop-blur-sm rounded-2xl border-2 ${category.borderColor} shadow-lg`}
-                      animate={isHovered ? { 
-                        rotate: [0, 5, -5, 0], // Reduced rotation
-                        scale: [1, 1.1, 1], // Reduced scale
-                        y: [-2, 2, -2] // Reduced movement
-                      } : {}}
-                      transition={{ duration: 0.3 }} // Faster
-                    >
-                      <IconComponent className={`w-6 h-6 sm:w-8 sm:h-8 ${category.accentColor}`} />
-                    </motion.div>
 
-                    {/* Simplified Floating Elements - only 3 instead of 8, disabled on performance mode */}
+                    {/* Ultra-optimized Floating Elements - only 2, disabled on performance mode */}
                     {!performanceMode && (
                       <AnimatePresence>
                         {isHovered && (
                           <>
-                            {[...Array(3)].map((_, i) => ( // Reduced from 8 to 3
+                            {[...Array(2)].map((_, i) => ( // Reduced from 3 to 2
                               <motion.div
                                 key={i}
-                                className={`absolute w-1.5 h-1.5 bg-gradient-to-r ${category.color} rounded-full shadow-lg`} // Smaller size
+                                className={`absolute w-1 h-1 bg-gradient-to-r ${category.color} rounded-full shadow-lg`} // Even smaller size
                                 style={{
-                                  left: `${20 + Math.random() * 60}%`,
-                                  top: `${20 + Math.random() * 60}%`,
+                                  left: `${30 + Math.random() * 40}%`,
+                                  top: `${30 + Math.random() * 40}%`,
                                 }}
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{ 
-                                  scale: [0, 0.8, 0], // Reduced scale
-                                  opacity: [0, 0.6, 0], // Reduced opacity
-                                  y: [0, -20, -40], // Reduced movement
-                                  x: [0, Math.random() * 20 - 10, Math.random() * 40 - 20], // Reduced movement
+                                  scale: [0, 0.6, 0], // Further reduced scale
+                                  opacity: [0, 0.4, 0], // Further reduced opacity
+                                  y: [0, -15, -30], // Further reduced movement
+                                  x: [0, Math.random() * 10 - 5, Math.random() * 20 - 10], // Further reduced movement
                                 }}
                                 exit={{ scale: 0, opacity: 0 }}
                                 transition={{
-                                  duration: 1.5, // Faster
-                                  delay: i * 0.05, // Reduced delay
+                                  duration: 2, // Slower for smoother effect
+                                  delay: i * 0.1, // Increased delay
                                   ease: "easeOut"
                                 }}
                               />
@@ -464,6 +567,105 @@ const CategorySections = () => {
           </MagneticButton>
         </motion.div>
       </div>
+
+      {/* Coming Soon Notification */}
+      <AnimatePresence>
+        {showComingSoonNotification && (
+          <motion.div
+            className="fixed top-4 right-4 z-50 max-w-sm"
+            initial={{ opacity: 0, x: 100, scale: 0.8 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 100, scale: 0.8 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 300, 
+              damping: 30,
+              duration: 0.5 
+            }}
+          >
+            <div className="bg-gradient-to-br from-orange-500/95 to-red-600/95 backdrop-blur-xl border border-orange-400/50 rounded-2xl p-6 shadow-2xl">
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-4">
+                <motion.div
+                  className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
+                  animate={{
+                    rotate: [0, 10, -10, 0],
+                    scale: [1, 1.1, 1]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <Bell className="w-5 h-5 text-white" />
+                </motion.div>
+                <div>
+                  <h3 className="text-white font-bold text-lg">Coming Soon!</h3>
+                  <p className="text-orange-100 text-sm">Premium Accessories</p>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="mb-4">
+                <p className="text-white/90 text-sm leading-relaxed">
+                  We're crafting something extraordinary! Our premium accessories collection is launching soon with exclusive watches, chains, and streetwear essentials.
+                </p>
+              </div>
+
+              {/* Features Preview */}
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {['Watches', 'Chains', 'Caps'].map((item, index) => (
+                  <motion.div
+                    key={item}
+                    className="bg-white/10 rounded-lg p-2 text-center"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <div className="text-white text-xs font-medium">{item}</div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <motion.button
+                  className="flex-1 bg-white/20 hover:bg-white/30 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Notify Me
+                </motion.button>
+                <motion.button
+                  onClick={() => setShowComingSoonNotification(false)}
+                  className="px-4 py-2 text-white/70 hover:text-white transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <X className="w-4 h-4" />
+                </motion.button>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mt-4">
+                <div className="flex justify-between text-xs text-white/70 mb-1">
+                  <span>Launch Progress</span>
+                  <span>85%</span>
+                </div>
+                <div className="w-full bg-white/20 rounded-full h-1.5">
+                  <motion.div
+                    className="bg-gradient-to-r from-orange-400 to-red-500 h-1.5 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: "85%" }}
+                    transition={{ duration: 1, delay: 0.5 }}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
