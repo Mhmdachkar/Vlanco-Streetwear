@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
-import AuthModal from './AuthModal';
+import EnhancedAuthModal from './EnhancedAuthModal';
 import CartSidebar from './CartSidebar';
 import { HeaderLogo } from './VlancoLogo';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
@@ -553,10 +553,11 @@ const Navigation = () => {
         </div>
       </motion.nav>
 
-      {/* Auth Modal */}
-      <AuthModal
+      {/* Enhanced Auth Modal */}
+      <EnhancedAuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+        defaultMode="signin"
       />
 
       {/* Cart Sidebar */}

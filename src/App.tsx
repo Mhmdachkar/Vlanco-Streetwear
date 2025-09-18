@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { CartProvider } from "@/hooks/useCart";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
+import AuthDebugPanel from "@/components/AuthDebugPanel";
 import LandingPage from "./components/LandingPage";
 import SplashScreen from "./components/SplashScreen";
 import MaskCollection from './pages/MaskCollection';
@@ -81,6 +82,7 @@ const AppContent = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        <AuthDebugPanel />
       </AnalyticsTracker>
     </SmoothScrollProvider>
   );

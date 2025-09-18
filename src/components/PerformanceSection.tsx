@@ -26,7 +26,7 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
   performanceMode = false
 }) => {
   const shouldReduceMotion = useReducedMotion();
-  const { ref, isInView } = useLazyLoad({
+  const { elementRef, isInView } = useLazyLoad({
     threshold,
     rootMargin,
     triggerOnce: true
@@ -77,11 +77,11 @@ const PerformanceSection: React.FC<PerformanceSectionProps> = ({
 
   return (
     <motion.section
-      ref={ref}
+      ref={elementRef}
       id={id}
       className={className}
       initial="hidden"
-      animate={isInView ? "visible" : "hidden"}
+      animate="visible"
       variants={variants}
       transition={{
         duration: disableAnimations ? 0.1 : duration,

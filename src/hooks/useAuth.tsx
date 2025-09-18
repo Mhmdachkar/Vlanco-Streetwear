@@ -29,6 +29,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [lastSessionUpdate, setLastSessionUpdate] = useState<number>(0);
 
   useEffect(() => {
+    // Check if Supabase is configured before setting up auth
+    if (!supabase) {
+      console.warn('⚠️ useAuth: Supabase not configured, skipping auth setup');
+      setLoading(false);
+      return;
+    }
+
     const handleSession = async (session: Session | null, event?: string) => {
       const now = Date.now();
       
@@ -174,8 +181,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔄 useAuth: Starting sign up process...', { email, userData });
       
+      // Check if Supabase is configured
+      if (!supabase) {
+        throw new Error('Authentication service is not configured. Please check your environment variables.');
+      }
+      
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
@@ -206,8 +218,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔄 useAuth: Starting sign in process...', { email });
       
+      // Check if Supabase is configured
+      if (!supabase) {
+        throw new Error('Authentication service is not configured. Please check your environment variables.');
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 

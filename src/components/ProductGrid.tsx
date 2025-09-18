@@ -413,7 +413,6 @@ const ProductGrid = () => {
   useEffect(() => {
     console.log('🔍 ProductGrid - Current wishlist items:', wishlistItems);
     console.log('🔍 ProductGrid - Wishlist items count:', wishlistItems.length);
-    console.log('🔍 ProductGrid - Wishlist items IDs:', wishlistItems.map(item => item.id));
   }, [wishlistItems]);
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
@@ -754,14 +753,6 @@ const ProductGrid = () => {
         className="py-24 px-6 relative overflow-hidden" 
         id="collections"
       >
-        {/* Debug Wishlist State - Remove in production */}
-        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
-          <h3 className="font-bold text-yellow-800">Debug: Wishlist State</h3>
-          <p className="text-sm text-yellow-700">Items: {wishlistItems.length}</p>
-          <p className="text-sm text-yellow-700">IDs: {wishlistItems.map(item => item.id).join(', ')}</p>
-          <p className="text-sm text-yellow-700">User: {user?.id || 'No user'}</p>
-        </div>
-        
         {/* Ultra-optimized Animated Background */}
         <FloatingParticles count={8} performanceMode={performanceMode} />
         

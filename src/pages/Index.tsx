@@ -34,8 +34,8 @@ const AnimatedBackground = ({ opacity }) => {
       className="fixed inset-0 pointer-events-none z-0"
       style={{ opacity }}
     >
-      {/* Minimal gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/3 via-cyan-900/2 to-pink-900/3" />
+      {/* Enhanced gradient overlay with better contrast */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-800/90 via-purple-900/40 to-slate-800/90" />
       
       {/* Static particles - no animation */}
       {staticParticles.map(particle => (
@@ -79,12 +79,14 @@ const usePerformanceMode = () => {
     try {
       const dm = (navigator as any).deviceMemory;
       const hc = (navigator as any).hardwareConcurrency;
-      const lowMem = typeof dm === 'number' && dm <= 4;
-      const lowCpu = typeof hc === 'number' && hc <= 4;
-      const isLowEnd = navigator.hardwareConcurrency <= 4 || 
-                       window.devicePixelRatio > 2 ||
-                       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      return lowMem || lowCpu || isLowEnd;
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      // More conservative performance mode detection
+      const lowMem = typeof dm === 'number' && dm <= 2; // Only very low memory
+      const lowCpu = typeof hc === 'number' && hc <= 2; // Only very low CPU cores
+      
+      // Only enable performance mode for very low-end devices or mobile
+      return (lowMem || lowCpu) && isMobile;
     } catch {
       return false;
     }
@@ -172,7 +174,13 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 relative overflow-x-hidden" style={{
+      background: `
+        linear-gradient(135deg, #1e293b 0%, #7c3aed 50%, #1e293b 100%),
+        radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.1) 0%, transparent 50%)
+      `
+    }}>
       {/* Simplified Scroll Progress Bar */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-cyan-500 to-pink-500 origin-left z-[60]"
@@ -183,6 +191,9 @@ const Index = () => {
       
       {/* Background - simplified on mobile for performance */}
       <AnimatedBackground opacity={backgroundOpacity} />
+      
+      {/* Fallback background to ensure visibility */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 z-[-1]" />
       
       {/* Cursor effect - disabled on mobile and performance mode */}
       {!isMobile && !performanceMode && <NeuralCursor mouseX={mouseX} mouseY={mouseY} />}

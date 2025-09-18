@@ -16,12 +16,14 @@ const usePerformanceMode = () => {
     try {
       const dm = (navigator as any).deviceMemory;
       const hc = (navigator as any).hardwareConcurrency;
-      const lowMem = typeof dm === 'number' && dm <= 4;
-      const lowCpu = typeof hc === 'number' && hc <= 4;
-      const isLowEnd = navigator.hardwareConcurrency <= 4 || 
-                       window.devicePixelRatio > 2 ||
-                       /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      return lowMem || lowCpu || isLowEnd;
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      // More conservative performance mode detection
+      const lowMem = typeof dm === 'number' && dm <= 2; // Only very low memory
+      const lowCpu = typeof hc === 'number' && hc <= 2; // Only very low CPU cores
+      
+      // Only enable performance mode for very low-end devices or mobile
+      return (lowMem || lowCpu) && isMobile;
     } catch {
       return false;
     }

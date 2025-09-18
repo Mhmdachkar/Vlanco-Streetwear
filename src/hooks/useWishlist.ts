@@ -48,20 +48,14 @@ export function useWishlist() {
 
   // Fetch wishlist items from Supabase
   const fetchWishlistItems = useCallback(async () => {
-    console.log('🔍 useWishlist - fetchWishlistItems called');
-    console.log('🔍 useWishlist - User:', user?.id || 'No user');
-    
     if (!user) {
-      const localWishlist = getLocalWishlist();
-      console.log('🔍 useWishlist - No user, using local wishlist:', localWishlist);
-      setItems(localWishlist);
+      setItems(getLocalWishlist());
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-      console.log('🔍 useWishlist - Fetching from Supabase for user:', user.id);
       
       const { data, error: fetchError } = await supabase
         .from('wishlist_items')
@@ -98,8 +92,6 @@ export function useWishlist() {
         sizes: item.product?.size_options || ['S', 'M', 'L', 'XL']
       }));
 
-      console.log('🔍 useWishlist - fetchWishlistItems - Raw Supabase data:', data);
-      console.log('🔍 useWishlist - fetchWishlistItems - Transformed items:', transformedItems);
       setItems(transformedItems);
     } catch (error) {
       console.error('Exception fetching wishlist items:', error);
@@ -169,31 +161,6 @@ export function useWishlist() {
       
       console.log('🔍 useWishlist - Supabase insert successful');
       
-      // Update local state immediately for better UX
-      const newItem = {
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        compare_price: item.compare_price,
-        image: item.image,
-        images: item.images,
-        category: item.category,
-        addedAt: new Date().toISOString(),
-        description: item.description,
-        rating: item.rating,
-        reviews: item.reviews,
-        isLimited: item.isLimited,
-        isNew: item.isNew,
-        colors: item.colors,
-        sizes: item.sizes
-      };
-      
-      setItems(prevItems => {
-        const updatedItems = [...prevItems, newItem];
-        console.log('🔍 useWishlist - Updated items state:', updatedItems);
-        return updatedItems;
-      });
-      
       console.log('🔍 useWishlist - Fetching wishlist items...');
       await fetchWishlistItems();
       
@@ -258,13 +225,6 @@ export function useWishlist() {
         .eq('user_id', user.id);
 
       if (deleteError) throw deleteError;
-      
-      // Update local state immediately for better UX
-      setItems(prevItems => {
-        const updatedItems = prevItems.filter(item => item.id !== itemId);
-        console.log('🔍 useWishlist - Removed item, updated items state:', updatedItems);
-        return updatedItems;
-      });
       
       await fetchWishlistItems();
       

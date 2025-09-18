@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { checkAuthConfig } from '@/utils/authConfig';
 import { X, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 
 interface AuthModalProps {
@@ -44,11 +45,43 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
     
     if (isSubmitting) return; // Prevent double submission
     
-    // Basic validation
+    // Check authentication configuration
+    const authConfig = checkAuthConfig();
+    if (!authConfig.isConfigured) {
+      toast({
+        title: "⚠️ Configuration Error",
+        description: "Authentication service is not properly configured. Please contact support.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Enhanced validation
     if (!formData.email || !formData.password) {
       toast({
         title: "⚠️ Missing Information",
         description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast({
+        title: "⚠️ Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Password validation
+    if (formData.password.length < 6) {
+      toast({
+        title: "⚠️ Weak Password",
+        description: "Password must be at least 6 characters long.",
         variant: "destructive",
       });
       return;
@@ -93,9 +126,27 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'signin' }: A
       
     } catch (error: any) {
       console.error('❌ AuthModal: Authentication failed:', error);
+      
+      // Enhanced error handling
+      let errorMessage = "Something went wrong. Please try again.";
+      
+      if (error.message) {
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = "Invalid email or password. Please check your credentials.";
+        } else if (error.message.includes('User already registered')) {
+          errorMessage = "An account with this email already exists. Please sign in instead.";
+        } else if (error.message.includes('Password should be at least')) {
+          errorMessage = "Password must be at least 6 characters long.";
+        } else if (error.message.includes('Invalid email')) {
+          errorMessage = "Please enter a valid email address.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "❌ Authentication Failed",
-        description: error.message || "Something went wrong. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

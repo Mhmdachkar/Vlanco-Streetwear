@@ -16,7 +16,7 @@ const hasValidSupabaseConfig = SUPABASE_URL &&
   SUPABASE_PUBLISHABLE_KEY !== 'your_supabase_anon_key_here' &&
   SUPABASE_PUBLISHABLE_KEY !== 'your_actual_anon_key_here' &&
   SUPABASE_URL.startsWith('http') &&
-  SUPABASE_PUBLISHABLE_KEY.startsWith('eyJ');
+  (SUPABASE_PUBLISHABLE_KEY.startsWith('eyJ') || SUPABASE_PUBLISHABLE_KEY.length > 20);
 
 // Create mock client for development when Supabase is not configured
 const createMockQueryBuilder = () => {
