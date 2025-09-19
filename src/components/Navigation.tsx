@@ -11,6 +11,7 @@ import { HeaderLogo } from './VlancoLogo';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import MiniCartPopover from '@/components/ui/MiniCartPopover';
 import WishlistPopover from '@/components/ui/WishlistPopover';
+import { createScrollHandler, scrollToElement } from '@/utils/scrollPerformance';
 
 const Navigation = () => {
   const { user, signOut } = useAuth();
@@ -43,14 +44,15 @@ const Navigation = () => {
     return () => window.removeEventListener('wishlistUpdated', handleWishlistUpdate);
   }, []);
 
-  // Smooth scrolling functionality
+  // Ultra-optimized smooth scrolling functionality
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const scrollHandler = createScrollHandler(
+      (scrollY) => setIsScrolled(scrollY > 20),
+      { useRAF: true, passive: true }
+    );
+    
+    scrollHandler.addListener();
+    return scrollHandler.removeListener;
   }, []);
 
   // Reset signing out state when user changes
@@ -62,26 +64,14 @@ const Navigation = () => {
     }
   }, [user]);
 
-  // Enhanced smooth scroll function with Lenis integration
+  // Ultra-optimized smooth scroll function
   const smoothScrollTo = (elementId: string) => {
     const element = document.getElementById(elementId);
     if (element) {
-      // Try to use Lenis if available
-      const lenis = (window as any).lenis;
-      if (lenis) {
-        lenis.scrollTo(element, {
-          offset: -80, // Account for fixed header
-          duration: 1.5,
-          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
-        });
-      } else {
-        // Fallback to native smooth scroll
-        element.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-          inline: 'nearest'
-        });
-      }
+      scrollToElement(element, {
+        offset: 80, // Account for fixed header
+        duration: 1.2
+      });
     }
   };
 
@@ -90,7 +80,7 @@ const Navigation = () => {
     { name: 'T-Shirts', href: '/tshirt-collection', scrollTo: 'collections' },
     { name: 'Masks', href: '/masks', scrollTo: 'collections' },
     { name: 'Accessories', href: '/accessories', scrollTo: 'collections' },
-    { name: 'About Us', href: '/about', scrollTo: 'about' },
+    { name: 'About Us', href: '/about', scrollTo: null },
   ];
 
   return (
@@ -173,10 +163,19 @@ const Navigation = () => {
             <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
               {/* Enhanced Search */}
               <motion.button 
+                onClick={() => {
+                  // Simple search functionality - scroll to collections section on homepage
+                  if (window.location.pathname === '/') {
+                    smoothScrollTo('collections');
+                  } else {
+                    // Navigate to homepage and scroll to collections
+                    window.location.href = '/#collections';
+                  }
+                }}
                 className="relative p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.95 }}
-                title="Search"
+                title="Search Products"
               >
                 <motion.div
                   animate={{ rotate: 360 }}

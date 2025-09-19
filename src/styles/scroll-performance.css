@@ -1,0 +1,108 @@
+/* Scroll Performance Optimizations */
+
+/* Force hardware acceleration for scroll containers */
+.scroll-optimized {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: scroll-position;
+  contain: layout style paint;
+}
+
+/* Optimize scroll containers */
+.scroll-container {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  contain: layout style paint;
+}
+
+/* Reduce paint complexity during scroll */
+.scroll-reduce-paint {
+  will-change: auto;
+  contain: layout style paint;
+}
+
+/* Optimize motion components for scroll */
+.motion-optimized {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout style paint;
+}
+
+/* Disable heavy effects during scroll */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Optimize scroll performance on mobile */
+@media (max-width: 768px) {
+  .mobile-scroll-optimized {
+    will-change: auto;
+    contain: layout style paint;
+    transform: none;
+    backface-visibility: visible;
+  }
+  
+  .mobile-scroll-optimized * {
+    will-change: auto;
+    contain: layout style paint;
+  }
+}
+
+/* Reduce scroll lag on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .touch-scroll-optimized {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+}
+
+/* Optimize scroll performance for low-end devices */
+@media (max-width: 1024px) {
+  .scroll-optimized {
+    will-change: auto;
+    contain: layout style paint;
+  }
+}
+
+/* Disable complex animations during scroll */
+.scroll-active * {
+  animation-play-state: paused !important;
+  transition-duration: 0.1s !important;
+}
+
+/* Optimize text rendering for scroll */
+* {
+  text-rendering: optimizeSpeed;
+  font-smooth: never;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+/* Ultra-lightweight scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 2px;
+}
+
+/* Disable hover effects during scroll for better performance */
+.scroll-active *:hover {
+  transform: none !important;
+  scale: none !important;
+  rotate: none !important;
+}

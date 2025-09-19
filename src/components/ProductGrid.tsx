@@ -409,11 +409,7 @@ const ProductGrid = () => {
   const { items: wishlistItems, addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const { user } = useAuth();
   
-  // Debug wishlist items
-  useEffect(() => {
-    console.log('🔍 ProductGrid - Current wishlist items:', wishlistItems);
-    console.log('🔍 ProductGrid - Wishlist items count:', wishlistItems.length);
-  }, [wishlistItems]);
+  // Removed debug logging for better performance
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const performanceMode = usePerformanceMode();
@@ -425,7 +421,6 @@ const ProductGrid = () => {
   // Listen for wishlist updates to force re-render
   useEffect(() => {
     const handleWishlistUpdate = () => {
-      console.log('🔍 ProductGrid - Wishlist updated, forcing re-render');
       setWishlistRefreshKey(prev => prev + 1);
     };
 
@@ -435,7 +430,6 @@ const ProductGrid = () => {
 
   // Memoized handlers for better performance
   const handleAddToCart = useCallback(async (e: React.MouseEvent, product: any) => {
-    console.log('🛒 ProductGrid handleAddToCart called with product:', product);
     
     if (!user) {
       setShowAuthModal(true);

@@ -10,49 +10,19 @@ import Footer from '@/components/Footer';
 import PerformanceSection from '@/components/PerformanceSection';
 import { usePageAnalytics } from '@/hooks/useAnalytics';
 import { ArrowUp, Sparkles, Star, Zap } from 'lucide-react';
+import { createScrollHandler, scrollToElement, isLowEndDevice, prefersReducedMotion } from '@/utils/scrollPerformance';
 
-// --- Ultra-Optimized Static Background Component ---
-// Completely static for maximum performance
+// --- Ultra-Lightweight Background Component ---
+// Completely static for maximum scroll performance
 const AnimatedBackground = ({ opacity }) => {
-  const shouldReduceMotion = useReducedMotion();
-
-  // Use CSS-only static particles for zero JS overhead
-  const staticParticles = useMemo(() => {
-    if (shouldReduceMotion) return [];
-    
-    return Array.from({ length: 8 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 1 + 0.5,
-      color: ['#8B5CF6', '#06B6D4', '#EC4899'][i % 3],
-    }));
-  }, [shouldReduceMotion]);
-
   return (
-    <motion.div 
+    <div 
       className="fixed inset-0 pointer-events-none z-0"
       style={{ opacity }}
     >
-      {/* Enhanced gradient overlay with better contrast */}
+      {/* Simple gradient overlay - no particles for better performance */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-800/90 via-purple-900/40 to-slate-800/90" />
-      
-      {/* Static particles - no animation */}
-      {staticParticles.map(particle => (
-        <div
-          key={particle.id}
-          className="absolute rounded-full"
-          style={{
-            left: `${particle.x}%`,
-            top: `${particle.y}%`,
-            width: `${particle.size}px`,
-            height: `${particle.size}px`,
-            backgroundColor: particle.color,
-            opacity: 0.2,
-          }}
-        />
-      ))}
-    </motion.div>
+    </div>
   );
 };
 
@@ -108,14 +78,13 @@ const Index = () => {
     sections: ['hero', 'categories', 'drops', 'features', 'community']
   });
   
-  // Use MotionValues for smooth, performant tracking
+  // Simplified scroll tracking for better performance
   const { scrollYProgress } = useScroll();
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
 
-  // Animate background opacity based on scroll position
-  // It will be invisible (0) at the top and fully visible (1) after scrolling down 15% of the viewport height.
-  const backgroundOpacity = useTransform(scrollYProgress, [0, 0.15], [0, 1]);
+  // Static background opacity to reduce scroll calculations
+  const backgroundOpacity = useTransform(scrollYProgress, [0, 0.15], [0, 0.8]);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)');
@@ -128,33 +97,27 @@ const Index = () => {
       mq.addListener(onChange);
     }
 
-    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    // Ultra-optimized scroll handler
+    const scrollHandler = createScrollHandler(
+      (scrollY) => setShowScrollTop(scrollY > 400),
+      { useRAF: true, passive: true }
+    );
     
-    // Ultra-throttled mouse tracking - disabled on mobile for performance
-    let frameCount = 0;
-    let rafId: number | null = null;
-    let lastEvent: MouseEvent | null = null;
-    const updateMouse = () => {
-      frameCount++;
-      const skipFrames = performanceMode ? 5 : 3; // Skip more frames on low-end devices
-      if (frameCount % skipFrames === 0 && lastEvent) {
-        mouseX.set(lastEvent.clientX);
-        mouseY.set(lastEvent.clientY);
-      }
-      rafId = requestAnimationFrame(updateMouse);
-    };
-    const handleMouseMove = (e: MouseEvent) => {
-      if (performanceMode || isMobile) return; // Skip mouse tracking on low-end devices and mobile
-      lastEvent = e;
-      if (rafId == null) rafId = requestAnimationFrame(updateMouse);
-    };
+    // Disable heavy mouse tracking for better scroll performance
+    // const handleMouseMove = (e: MouseEvent) => {
+    //   if (performanceMode || isMobile) return;
+    //   mouseX.set(e.clientX);
+    //   mouseY.set(e.clientY);
+    // };
 
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('mousemove', handleMouseMove);
+    // Add optimized scroll listener
+    scrollHandler.addListener();
+    // window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    
     return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('mousemove', handleMouseMove);
-      if (rafId) cancelAnimationFrame(rafId);
+      scrollHandler.removeListener();
+      // window.removeEventListener('mousemove', handleMouseMove);
+      // if (rafId) cancelAnimationFrame(rafId);
       if (mq.removeEventListener) {
         mq.removeEventListener('change', onChange);
       } else {
@@ -162,19 +125,17 @@ const Index = () => {
         mq.removeListener(onChange);
       }
     };
-  }, [mouseX, mouseY]);
+  }, [mouseX, mouseY, performanceMode, isMobile]);
 
   const scrollToTop = () => {
-    const lenis = (window as any).lenis;
-    if (lenis) {
-      lenis.scrollTo(0, { duration: 1.2 });
-    } else {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    scrollToElement(document.body, {
+      offset: 0,
+      duration: 1.2
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 relative overflow-x-hidden" style={{
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/30 to-slate-900 relative overflow-x-hidden scroll-optimized" style={{
       background: `
         linear-gradient(135deg, #1e293b 0%, #7c3aed 50%, #1e293b 100%),
         radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
@@ -195,48 +156,16 @@ const Index = () => {
       {/* Fallback background to ensure visibility */}
       <div className="fixed inset-0 bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 z-[-1]" />
       
-      {/* Cursor effect - disabled on mobile and performance mode */}
-      {!isMobile && !performanceMode && <NeuralCursor mouseX={mouseX} mouseY={mouseY} />}
+      {/* Disabled cursor effect for better scroll performance */}
       
-      {/* Ultra-simplified Section Indicator - only on desktop and high-end devices */}
-      {!isMobile && !performanceMode && (
-      <motion.div
-          className="fixed right-3 top-1/2 transform -translate-y-1/2 z-40"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-        >
-          <div className="flex flex-col space-y-1.5">
-          {['Hero', 'Categories', 'Drops', 'Features', 'Community'].map((section, index) => (
-            <div
-              key={section}
-                className="w-1.5 h-1.5 rounded-full bg-purple-500/20 cursor-pointer hover:bg-purple-500/40 transition-colors duration-150"
-              onClick={() => {
-                const sections = document.querySelectorAll('main > div');
-                if (sections[index]) {
-                    const lenis = (window as any).lenis;
-                    if (lenis) {
-                      lenis.scrollTo(sections[index], { 
-                        offset: -80, 
-                        duration: 1.2 
-                      });
-                    } else {
-                  sections[index].scrollIntoView({ behavior: 'smooth' });
-                    }
-                }
-              }}
-            />
-          ))}
-        </div>
-      </motion.div>
-      )}
+      {/* Disabled section indicator for better scroll performance */}
       
       {/* --- Main Page Content --- */}
       <div className="relative z-20">
         <Navigation />
       </div>
 
-      <main className="relative z-10">
+      <main className="relative z-10 scroll-optimized">
         {/* Hero: Ultra-optimized entrance */}
         <PerformanceSection
           data-section="hero"

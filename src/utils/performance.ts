@@ -65,16 +65,10 @@ export const rafThrottle = <T extends (...args: any[]) => any>(
   };
 };
 
-// Performance monitoring
+// Performance monitoring - disabled console logging for better performance
 export const measurePerformance = (name: string, fn: () => void) => {
-  if (process.env.NODE_ENV === 'development') {
-    const start = performance.now();
-    fn();
-    const end = performance.now();
-    console.log(`${name} took ${end - start} milliseconds`);
-  } else {
-    fn();
-  }
+  // Disabled console logging to prevent performance issues
+  fn();
 };
 
 // Memory usage monitoring

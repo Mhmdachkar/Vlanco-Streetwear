@@ -7,6 +7,36 @@
   perspective: 1000px;
 }
 
+/* Ultra-optimized scroll performance */
+.scroll-optimized {
+  will-change: scroll-position;
+  contain: layout style paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize scroll containers */
+.scroll-container {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  contain: layout style paint;
+}
+
+/* Reduce paint complexity during scroll */
+.scroll-reduce-paint {
+  will-change: auto;
+  contain: layout style paint;
+}
+
+/* Optimize motion components for scroll */
+.motion-optimized {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout style paint;
+}
+
 /* Optimize animations for better performance */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -92,6 +122,57 @@ img {
 }
 
 /* Performance mode text optimization */
+.performance-mode-text {
+  text-rendering: optimizeSpeed;
+  font-smooth: never;
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+}
+
+/* Ultra-optimized scroll performance for low-end devices */
+@media (max-width: 768px) {
+  .mobile-scroll-optimized {
+    will-change: auto;
+    contain: layout style paint;
+    transform: none;
+    backface-visibility: visible;
+  }
+  
+  .mobile-scroll-optimized * {
+    will-change: auto;
+    contain: layout style paint;
+  }
+}
+
+/* Optimize scroll performance for high DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-scroll-optimized {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Reduce scroll lag on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .touch-scroll-optimized {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+}
+
+/* Optimize scroll performance for reduced motion users */
+@media (prefers-reduced-motion: reduce) {
+  .reduced-motion-scroll {
+    scroll-behavior: auto;
+    -webkit-overflow-scrolling: auto;
+  }
+  
+  .reduced-motion-scroll * {
+    will-change: auto;
+    contain: none;
+  }
+}
 .performance-mode .text-optimized {
   text-rendering: optimizeSpeed;
   font-smooth: never;

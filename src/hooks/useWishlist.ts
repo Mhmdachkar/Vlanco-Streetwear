@@ -300,10 +300,8 @@ export function useWishlist() {
 
   // Check if product is in wishlist
   const isInWishlist = useCallback((productId: string) => {
-    console.log('🔍 isInWishlist called with productId:', productId, 'type:', typeof productId);
-    console.log('🔍 Current wishlist items:', items.map(item => ({ id: item.id, type: typeof item.id })));
+    // Removed excessive logging for better performance
     const result = items.some(item => String(item.id) === String(productId));
-    console.log('🔍 isInWishlist result:', result);
     return result;
   }, [items]);
 

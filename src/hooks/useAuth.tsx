@@ -41,24 +41,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Debounce rapid session changes (prevent multiple updates within 200ms)
       if (now - lastSessionUpdate < 200 && event !== 'INITIAL_SESSION') {
-        console.log('🔄 useAuth: Debouncing rapid session change');
         return;
       }
       
       setLastSessionUpdate(now);
       
-      // Only log significant events, not every session check
-      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-        console.log('🔄 useAuth: handleSession called', { 
-          hasSession: !!session, 
-          event, 
-          explicitSignOut 
-        });
-      }
+      // Removed excessive logging for better performance
       
       // If user explicitly signed out, don't restore session on page refresh
       if (explicitSignOut && event === 'INITIAL_SESSION') {
-        console.log('🚫 useAuth: Ignoring initial session due to explicit sign out');
         setSession(null);
         setUser(null);
         setProfile(null);
@@ -68,7 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Reset explicit sign out flag when user signs in
       if (session?.user && explicitSignOut) {
-        console.log('🔄 useAuth: Resetting explicit sign out flag');
         setExplicitSignOut(false);
       }
       
@@ -109,19 +99,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching profile:', error);
+        // Removed console.error for better performance
         return;
       }
 
       setProfile(data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      // Removed console.error for better performance
     }
   };
 
   const ensureUserProfile = async (user: User, userData?: Partial<UserProfile>) => {
     try {
-      console.log('🔍 Ensuring user profile exists for:', user.email);
+      // Removed console.log for better performance
       
       // First check if profile already exists
       const { data: existingProfile, error: fetchError } = await supabase
@@ -131,17 +121,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (fetchError && fetchError.code !== 'PGRST116') {
-        console.error('❌ Error checking existing profile:', fetchError);
+        // Removed console.error for better performance
         return;
       }
 
       if (existingProfile) {
-        console.log('✅ User profile already exists');
+        // Removed console.log for better performance
         return;
       }
 
       // Create new profile
-      console.log('📝 Creating new user profile...');
+      // Removed console.log for better performance
       const { error: profileError } = await supabase
         .from('users')
         .insert({
@@ -166,20 +156,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
 
       if (profileError) {
-        console.error('❌ Error creating user profile:', profileError);
+        // Removed console.error for better performance
         throw profileError;
       } else {
-        console.log('✅ User profile created successfully');
+        // Removed console.log for better performance
       }
     } catch (error) {
-      console.error('❌ Failed to ensure user profile:', error);
+      // Removed console.error for better performance
       // Don't throw error to prevent auth failure
     }
   };
 
   const signUp = async (email: string, password: string, userData?: Partial<UserProfile>) => {
     try {
-      console.log('🔄 useAuth: Starting sign up process...', { email, userData });
+      // Removed console.log for better performance
       
       // Check if Supabase is configured
       if (!supabase) {
@@ -192,11 +182,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) {
-        console.error('❌ useAuth: Sign up error:', error);
+        // Removed console.error for better performance
         throw error;
       }
 
-      console.log('✅ useAuth: Sign up successful, creating user profile...');
+      // Removed console.log for better performance
 
       // Reset explicit sign out flag
       setExplicitSignOut(false);

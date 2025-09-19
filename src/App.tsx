@@ -19,6 +19,7 @@ const Index = lazy(() => import("./pages/Index"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const TShirtCollection = lazy(() => import("./pages/TShirtCollection-backup"));
+const About = lazy(() => import("./pages/About"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Orders = lazy(() => import("./pages/Orders"));
@@ -73,6 +74,7 @@ const AppContent = () => {
             <Route path="/tshirt-collection" element={<TShirtCollection />} />
             <Route path="/masks" element={<MaskCollection />} />
             <Route path="/accessories" element={<AccessoriesCollection />} />
+            <Route path="/about" element={<About />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/checkout/success" element={<CheckoutSuccess />} />

@@ -23,8 +23,7 @@ export async function createDirectStripeCheckout(
   customerEmail?: string
 ): Promise<{ url: string; sessionId: string }> {
   try {
-    console.log('🔄 Creating direct Stripe checkout session...');
-    console.log('📦 Cart items:', cartItems);
+    // Removed console logging for better performance
 
     if (!cartItems || cartItems.length === 0) {
       throw new Error('Cart is empty');
@@ -48,12 +47,7 @@ export async function createDirectStripeCheckout(
     const taxAmount = subtotal * 0.08; // 8% tax
     const total = subtotal + shippingCost + taxAmount;
 
-    console.log('💰 Calculated totals:', {
-      subtotal: subtotal.toFixed(2),
-      shipping: shippingCost.toFixed(2),
-      tax: taxAmount.toFixed(2),
-      total: total.toFixed(2)
-    });
+    // Removed console logging for better performance
 
     // Create checkout session using Supabase function
     const response = await fetch(`${supabaseUrl}/functions/v1/checkout-local-session`, {
