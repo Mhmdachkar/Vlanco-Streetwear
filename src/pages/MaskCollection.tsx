@@ -103,6 +103,9 @@ import premiumMask2Image1 from '@/assets/premium_mask2/Screenshot 2025-09-20 180
 // Import premium mask 3 media files (TATTO Mask)
 import premiumMask3Image1 from '@/assets/premium_mask3/Screenshot 2025-09-20 180839.png';
 
+// Import services
+import { toggleWishlistItem } from '@/services/wishlistService';
+
 // 3D Floating Mask Component - Optimized
 const FloatingMask = ({ position, rotation, scale, color }) => {
   const meshRef = useRef<THREE.Mesh>(null);
@@ -1856,78 +1859,50 @@ const MaskCollection = () => {
     }
     
     try {
-      if (isInWishlistCustom(String(product.id))) {
-        await removeFromWishlistCustom(String(product.id));
-      } else {
-        // Trigger blow-up animation
+      // Create comprehensive wishlist item with all product information
+      const wishlistItem = {
+        id: product.id.toString(),
+        name: product.name,
+        price: product.price,
+        compare_price: product.originalPrice,
+        image: product.image,
+        images: product.gallery?.map((item: any) => item.src) || [product.image],
+        category: product.category || 'Masks',
+        description: product.description,
+        rating: product.rating,
+        reviews: product.reviews,
+        isLimited: product.isLimited || false,
+        isNew: product.isNew || false,
+        isBestseller: product.isBestseller || false,
+        colors: product.colors?.map((c: any) => c.name || c) || ['Default'],
+        sizes: product.sizes || ['One Size'],
+        material: product.material || 'Premium Materials',
+        protection: product.protection,
+        washable: product.washable,
+        availability: product.availability,
+        shipping: product.shipping,
+        brand: product.brand || 'VLANCO',
+        collection: product.collection || 'Mask Collection',
+        modelNumber: product.modelNumber || `MASK-${product.id}`,
+        placeOfOrigin: product.placeOfOrigin,
+        applicableScenes: product.applicableScenes,
+        gender: product.gender,
+        ageGroup: product.ageGroup,
+        moq: product.moq,
+        sampleTime: product.sampleTime,
+        packaging: product.packaging,
+        singlePackageSize: product.singlePackageSize,
+        singleGrossWeight: product.singleGrossWeight,
+        features: product.features || [],
+        tags: product.tags || ['streetwear', 'mask', 'protection']
+      };
+      
+      // Use unified wishlist service
+      const success = await toggleWishlistItem(wishlistItem, user?.id);
+      
+      if (success && !isInWishlistCustom(String(product.id))) {
+        // Trigger blow-up animation only when adding (not removing)
         setWishlistAnimating(product.id);
-        
-        // Create comprehensive wishlist item with all product information
-        const wishlistItem = {
-          id: product.id.toString(),
-          name: product.name,
-          price: product.price,
-          compare_price: product.originalPrice,
-          image: product.image,
-          images: product.gallery?.map((item: any) => item.src) || [product.image],
-          category: product.category || 'Masks',
-          description: product.description,
-          rating: product.rating,
-          reviews: product.reviews,
-          isLimited: product.isLimited || false,
-          isNew: product.isNew || false,
-          isBestseller: product.isBestseller || false,
-          colors: product.colors?.map((c: any) => c.name || c) || ['Default'],
-          sizes: product.sizes || ['One Size'],
-          material: product.material || 'Premium Materials',
-          protection: product.protection,
-          washable: product.washable,
-          availability: product.availability,
-          shipping: product.shipping,
-          brand: product.brand || 'VLANCO',
-          collection: product.collection || 'Mask Collection',
-          modelNumber: product.modelNumber || `MASK-${product.id}`,
-          placeOfOrigin: product.placeOfOrigin,
-          applicableScenes: product.applicableScenes,
-          gender: product.gender,
-          ageGroup: product.ageGroup,
-          moq: product.moq,
-          sampleTime: product.sampleTime,
-          packaging: product.packaging,
-          singlePackageSize: product.singlePackageSize,
-          singleGrossWeight: product.singleGrossWeight,
-          features: product.features || [],
-          tags: product.tags || ['streetwear', 'mask', 'protection'],
-          addedAt: new Date().toISOString()
-        };
-        
-        // Add to wishlist using the hook (Supabase + localStorage)
-        await addToWishlist(wishlistItem);
-        
-        // Also save to the main localStorage key that the wishlist page reads from
-        const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
-        const updatedWishlist = [wishlistItem, ...existingWishlist.filter((item: any) => item.id !== product.id.toString())];
-        localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
-        
-        // Save to guest wishlist key (used by useWishlist hook for guests)
-        const guestWishlist = JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]');
-        const updatedGuestWishlist = [wishlistItem, ...guestWishlist.filter((item: any) => item.id !== product.id.toString())];
-        localStorage.setItem('vlanco_guest_wishlist', JSON.stringify(updatedGuestWishlist));
-        
-        // Save to hardcoded wishlist as backup
-        const hardcodedWishlist = JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]');
-        const updatedHardcodedWishlist = [wishlistItem, ...hardcodedWishlist.filter((item: any) => item.id !== product.id.toString())];
-        localStorage.setItem('vlanco_hardcoded_wishlist', JSON.stringify(updatedHardcodedWishlist));
-        
-        // Dispatch custom event to notify components about wishlist update
-        window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { updatedWishlist } }));
-        
-        // Enhanced success feedback
-        toast({
-          title: "💖 SAVED TO VAULT!",
-          description: `${product.name} has been added to your wishlist`,
-          duration: 3000
-        });
         
         // Clear animation after delay
         setTimeout(() => setWishlistAnimating(null), 1000);
@@ -2472,14 +2447,14 @@ const MaskCollection = () => {
                 </p>
               </motion.div>
 
-                             {/* Professional Filter Buttons */}
-               <div className="flex flex-wrap justify-center gap-4">
+                             {/* Professional Filter Buttons - Enhanced Mobile Responsiveness */}
+               <div className="flex flex-wrap justify-center gap-2 sm:gap-3 lg:gap-4 px-4 sm:px-6 lg:px-8">
                  {[
-                   { id: 'all', label: 'All Masks', color: 'cyan', icon: <Sparkles className="w-4 h-4" /> },
-                   { id: 'standard', label: 'Standard', color: 'blue', icon: <Shield className="w-4 h-4" /> },
-                   { id: 'premium', label: 'Premium', color: 'purple', icon: <Crown className="w-4 h-4" /> },
-                   { id: 'limited', label: 'Limited', color: 'yellow', icon: <Flame className="w-4 h-4" /> },
-                   { id: 'exclusive', label: 'Exclusive', color: 'green', icon: <Award className="w-4 h-4" /> }
+                   { id: 'all', label: 'All Masks', color: 'cyan', icon: <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" /> },
+                   { id: 'standard', label: 'Standard', color: 'blue', icon: <Shield className="w-3 h-3 sm:w-4 sm:h-4" /> },
+                   { id: 'premium', label: 'Premium', color: 'purple', icon: <Crown className="w-3 h-3 sm:w-4 sm:h-4" /> },
+                   { id: 'limited', label: 'Limited', color: 'yellow', icon: <Flame className="w-3 h-3 sm:w-4 sm:h-4" /> },
+                   { id: 'exclusive', label: 'Exclusive', color: 'green', icon: <Award className="w-3 h-3 sm:w-4 sm:h-4" /> }
                  ].map((section, index) => (
                    <motion.div
                      key={section.id}
@@ -2490,7 +2465,7 @@ const MaskCollection = () => {
                    >
                      <motion.button
                        onClick={() => setActiveSection(section.id)}
-                       className={`relative px-8 py-4 rounded-2xl font-semibold transition-all duration-500 overflow-hidden group backdrop-blur-sm ${
+                       className={`relative px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold transition-all duration-500 overflow-hidden group backdrop-blur-sm text-sm sm:text-base lg:text-lg ${
                          activeSection === section.id
                            ? `bg-gradient-to-r from-${section.color}-500 to-${section.color}-600 text-white shadow-2xl border-2 border-${section.color}-400/50`
                            : 'bg-white/5 text-white/70 hover:bg-white/10 border-2 border-white/10 hover:border-white/20 hover:text-white/90'
@@ -2518,7 +2493,7 @@ const MaskCollection = () => {
                        />
 
                        {/* Professional Icon and Text */}
-                       <div className="relative z-10 flex items-center gap-3">
+                       <div className="relative z-10 flex items-center gap-2 sm:gap-3">
                          <motion.div
                            className={`${activeSection === section.id ? 'text-white' : 'text-white/60 group-hover:text-white/90'}`}
                            animate={activeSection === section.id ? {
@@ -2625,9 +2600,9 @@ const MaskCollection = () => {
               </motion.div>
             </motion.div>
 
-            {/* Product Grid */}
+            {/* Product Grid - Enhanced Mobile Responsiveness */}
             <motion.div
-              className={`grid gap-6 sm:gap-8 lg:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`}
+              className={`grid gap-4 sm:gap-6 lg:gap-8 xl:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 px-4 sm:px-6 lg:px-8`}
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -2673,7 +2648,7 @@ const MaskCollection = () => {
                     <motion.div
                       ref={cardRef}
                       key={product.id}
-                      className="group relative rounded-3xl overflow-hidden h-[650px]"
+                      className="group relative rounded-2xl sm:rounded-3xl overflow-hidden h-[500px] sm:h-[600px] lg:h-[650px]"
                       style={{ transformStyle: 'preserve-3d' }}
                       initial={{ 
                         opacity: 0, 

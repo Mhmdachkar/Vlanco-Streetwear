@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingCart, User, Menu, X, Heart, Sparkles, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCart } from '@/hooks/useCart';
 import { useWishlist } from '@/hooks/useWishlist';
@@ -14,6 +15,7 @@ import WishlistPopover from '@/components/ui/WishlistPopover';
 import { createScrollHandler, scrollToElement } from '@/utils/scrollPerformance';
 
 const Navigation = () => {
+  const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { itemCount } = useCart();
   const { itemCount: wishlistCount, items: wishlistItems } = useWishlist();
@@ -86,7 +88,7 @@ const Navigation = () => {
   return (
     <>
       <motion.nav 
-        className={`fixed top-0 left-0 right-0 z-40 backdrop-blur-md border-b transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-[100] backdrop-blur-md border-b transition-all duration-300 ${
           isScrolled 
             ? 'bg-background/95 border-cyan-400/20 shadow-lg shadow-cyan-400/10' 
             : 'bg-background/80 border-border'
@@ -194,9 +196,17 @@ const Navigation = () => {
               <HoverCard openDelay={150} closeDelay={100}>
                 <HoverCardTrigger asChild>
                   <motion.button 
-                    onClick={() => window.location.href = '/wishlist'}
+                    onClick={() => {
+                      console.log('🔧 Wishlist button clicked:', { user: !!user });
+                      if (user) {
+                        navigate('/wishlist');
+                      } else {
+                        console.log('🔧 User not authenticated, opening auth modal...');
+                        setShowAuthModal(true);
+                      }
+                    }}
                     className="relative p-1.5 sm:p-2 hover:bg-red-400/10 rounded-full transition-all duration-300 group"
-                    title="Wishlist"
+                    title={user ? "Wishlist" : "Sign In to View Wishlist"}
                     whileHover={{ scale: 1.1, rotate: -5 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -244,11 +254,17 @@ const Navigation = () => {
                   <motion.button 
                     id="cart-icon"
                     data-cart-icon="true"
-                    onClick={() => setShowCartSidebar(true)}
+                    onClick={() => {
+                      if (!user) {
+                        setShowAuthModal(true);
+                      } else {
+                        setShowCartSidebar(true);
+                      }
+                    }}
                     className="relative p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     whileTap={{ scale: 0.95 }}
-                    title="Shopping Cart"
+                    title={user ? "Shopping Cart" : "Sign In to View Cart"}
                   >
                     <motion.div
                       animate={{ y: [0, -2, 0] }}
@@ -286,11 +302,31 @@ const Navigation = () => {
               {/* Enhanced User Menu */}
               <div className="relative">
                 <motion.button 
-                  onClick={() => user ? setShowUserMenu(!showUserMenu) : setShowAuthModal(true)}
+                  onClick={() => {
+                    console.log('🔧 Profile icon clicked on HOME PAGE:', { 
+                      user: !!user, 
+                      showUserMenu, 
+                      showAuthModal,
+                      currentPage: window.location.pathname,
+                      timestamp: new Date().toISOString()
+                    });
+                    if (user) {
+                      setShowUserMenu(!showUserMenu);
+                    } else {
+                      console.log('🔧 Opening auth modal from HOME PAGE...');
+                      setShowAuthModal(true);
+                    }
+                  }}
                   className="relative p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                   whileHover={{ scale: 1.1, rotate: -5 }}
                   whileTap={{ scale: 0.95 }}
                   title={user ? "User Menu" : "Sign In"}
+                  style={{ 
+                    zIndex: 101,
+                    position: 'relative',
+                    pointerEvents: 'auto',
+                    cursor: 'pointer'
+                  }}
                 >
                   <motion.div
                     animate={{ 
@@ -555,7 +591,10 @@ const Navigation = () => {
       {/* Enhanced Auth Modal */}
       <EnhancedAuthModal
         isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        onClose={() => {
+          console.log('🔧 Closing auth modal');
+          setShowAuthModal(false);
+        }}
         defaultMode="signin"
       />
 

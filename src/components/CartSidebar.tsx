@@ -503,7 +503,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
       await removeFromCart(itemId);
       
       // Start undo system with proper re-add functionality
-      startUndo(item, async () => {
+      startUndo(item as any, async () => {
         try {
           console.log('🔄 CartSidebar: Restoring item to cart', { item });
           // Re-add the item with its original details
@@ -668,7 +668,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[200]"
             variants={backdropVariants}
             initial="closed"
             animate="open"
@@ -682,16 +682,16 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed right-0 top-0 h-full w-full max-w-sm sm:max-w-md bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-2xl z-50 overflow-hidden cart-sidebar"
+            className="fixed right-0 top-0 h-full w-full max-w-sm sm:max-w-md lg:max-w-lg bg-gradient-to-b from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl shadow-2xl z-[250] overflow-hidden cart-sidebar border-l border-slate-700/50"
             variants={sidebarVariants}
             initial="closed"
             animate="open"
             exit="closed"
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            {/* Header - Mobile Optimized */}
+            {/* Header - Enhanced Mobile & Desktop Styling */}
             <motion.div 
-              className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-700/50 bg-slate-800/50 backdrop-blur-xl"
+              className="flex items-center justify-between p-4 sm:p-6 lg:p-8 border-b border-slate-700/50 bg-gradient-to-r from-slate-800/80 via-slate-700/80 to-slate-800/80 backdrop-blur-xl relative z-[260]"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
@@ -720,8 +720,8 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                   <div className="flex items-center space-x-2">
                     <InlineLogo size="sm" className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8" />
                     <div className="min-w-0 flex-1">
-                      <h2 className="text-lg sm:text-xl font-bold text-white truncate">Your Vault</h2>
-                      <p className="text-slate-400 text-xs sm:text-sm truncate">
+                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-white via-cyan-300 to-white bg-clip-text text-transparent truncate">Your Vault</h2>
+                      <p className="text-slate-400 text-xs sm:text-sm lg:text-base truncate">
                         {itemCount} item{itemCount !== 1 ? 's' : ''} • ${subtotal.toFixed(2)}
                       </p>
                     </div>
@@ -815,7 +815,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                     <AnimatePresence mode="popLayout">
                       {items.map((item, index) => (
                         <motion.div
-                          key={getItemKey(item)}
+                          key={getItemKey(item as any)}
                           initial={{ opacity: 0, y: 20, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -20, scale: 0.95 }}
@@ -828,11 +828,11 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                           className="relative"
                         >
                           {/* Enhanced Cart Item with Direct Button Controls - Mobile Optimized */}
-                          <div className="relative bg-gradient-to-br from-slate-900/90 via-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-xl sm:rounded-2xl p-3 sm:p-4 overflow-hidden">
+                          <div className="relative bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
                             {/* Item Header - Mobile Optimized */}
                             <div className="flex items-start justify-between mb-3 sm:mb-4">
                               <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg sm:rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-18 lg:h-18 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg sm:rounded-xl lg:rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0 shadow-lg border border-slate-600/30">
                                   {(item.product as any)?.image ? (
                                     <img 
                                       src={(item.product as any).image} 
@@ -847,7 +847,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                                 </div>
                                 
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="text-sm sm:text-lg font-bold text-white mb-1 truncate">
+                                  <h3 className="text-sm sm:text-lg lg:text-xl font-bold text-white mb-1 truncate">
                                     {item.product?.name || 'Product Name'}
                                   </h3>
                                   <div className="flex items-center space-x-1 sm:space-x-2 mb-1 sm:mb-2">
@@ -956,9 +956,9 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                                   )}
                                 </motion.button>
                                 
-                                {/* Quantity Display - Mobile Optimized */}
+                                {/* Quantity Display - Enhanced Mobile & Desktop */}
                                 <motion.div
-                                  className="w-12 sm:w-16 text-center text-white font-bold text-sm sm:text-lg min-w-[44px] flex items-center justify-center"
+                                  className="w-12 sm:w-16 lg:w-18 text-center text-white font-bold text-sm sm:text-lg lg:text-xl min-w-[44px] flex items-center justify-center bg-slate-700/50 rounded-lg border border-slate-600/30"
                                   key={item.quantity}
                                   initial={{ scale: 1.2 }}
                                   animate={{ scale: 1 }}
@@ -1142,8 +1142,8 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                     )}
                   </div>
 
-                  {/* Cart Summary - Mobile Optimized */}
-                  <div className="flex-shrink-0 p-3 sm:p-6 border-t border-slate-700/50 bg-slate-800/30 cart-checkout-section" style={{ position: 'sticky', bottom: 0, zIndex: 20 }}>
+                  {/* Cart Summary - Enhanced Mobile & Desktop */}
+                  <div className="flex-shrink-0 p-4 sm:p-6 lg:p-8 border-t border-slate-700/50 bg-gradient-to-r from-slate-800/90 via-slate-700/90 to-slate-800/90 backdrop-blur-xl cart-checkout-section relative z-[260]" style={{ position: 'sticky', bottom: 0 }}>
                     {/* Checkout section indicator - Mobile Optimized */}
                     <motion.div 
                       className="text-center mb-3 sm:mb-4"
@@ -1176,8 +1176,8 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                             <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h2 className="text-lg sm:text-xl font-bold text-white truncate">Vault Summary</h2>
-                            <p className="text-slate-400 text-xs sm:text-sm truncate">Secure checkout process</p>
+                            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-white via-cyan-300 to-white bg-clip-text text-transparent truncate">Vault Summary</h2>
+                            <p className="text-slate-400 text-xs sm:text-sm lg:text-base truncate">Secure checkout process</p>
                           </div>
                         </div>
                         
@@ -1231,10 +1231,10 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                           await handleCheckout();
                         }}
                         disabled={items.length === 0 || loading}
-                        className={`group relative w-full font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-lg sm:rounded-xl transition-all duration-300 overflow-hidden ${
+                        className={`group relative w-full font-bold py-4 sm:py-5 lg:py-6 px-6 sm:px-8 lg:px-10 rounded-xl sm:rounded-2xl transition-all duration-300 overflow-hidden ${
                           items.length === 0 || loading
                             ? 'bg-slate-600 cursor-not-allowed text-slate-400'
-                            : 'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white shadow-lg'
+                            : 'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white shadow-xl hover:shadow-2xl border border-cyan-400/30 hover:border-cyan-400/60'
                         }`}
                         whileHover={!loading && items.length > 0 ? { 
                           scale: 1.02,

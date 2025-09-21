@@ -20,6 +20,7 @@ import { toast } from '@/hooks/use-toast';
 import { validateQuantity, logSecurityEvent } from '@/utils/security';
 import AuthModal from '@/components/AuthModal';
 import AnimatedCartButton from '@/components/AnimatedCartButton';
+import { toggleWishlistItem } from '@/services/wishlistService';
 
 // Local product images from assets folder
 // Guard against early references during build-time evaluation
@@ -1309,88 +1310,43 @@ const VlancoProductPage = () => {
 
     try {
       const productId = String(product.id);
-      const isCurrentlyInWishlist = isInWishlist(productId);
       
-      if (isCurrentlyInWishlist) {
-        await removeFromWishlist(productId);
-        
-        // Also remove from localStorage keys for consistency
-        const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
-        const updatedWishlist = existingWishlist.filter((item: any) => item.id !== productId);
-        localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
-        
-        const guestWishlist = JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]');
-        const updatedGuestWishlist = guestWishlist.filter((item: any) => item.id !== productId);
-        localStorage.setItem('vlanco_guest_wishlist', JSON.stringify(updatedGuestWishlist));
-        
-        const hardcodedWishlist = JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]');
-        const updatedHardcodedWishlist = hardcodedWishlist.filter((item: any) => item.id !== productId);
-        localStorage.setItem('vlanco_hardcoded_wishlist', JSON.stringify(updatedHardcodedWishlist));
-        
-        setIsWishlisted(false);
-        
-        // Dispatch event to update navigation counter
-        window.dispatchEvent(new CustomEvent('wishlistUpdated'));
-        
-        toast({ 
-          title: 'Removed from Wishlist', 
-          description: `${product.name} removed from wishlist`, 
-          duration: 2500 
-        });
-      } else {
-        // Track analytics for add to wishlist
-        try {
-          await trackAddToWishlist(productId);
-        } catch (analyticsError) {
-          console.error('❌ Wishlist analytics tracking failed:', analyticsError);
-        }
-        
-        // Create comprehensive wishlist item with complete product information
-        const wishlistItem = {
-          id: productId,
-          name: product.name,
-          price: Number(product.base_price || product.price) || 0,
-          compare_price: Number(product.compare_price) || null,
-          image: product.gallery?.[0] || product.images?.[0] || '/src/assets/1.png',
-          images: product.gallery || product.images || [product.gallery?.[0] || product.images?.[0] || '/src/assets/1.png'],
-          category: product.category || 'Product',
-          description: product.description,
-          rating: product.reviews?.average || 4.5,
-          reviews: product.reviews?.total || 0,
-          isLimited: false,
-          isNew: product.isNew || false,
-          colors: product.color_options?.map(c => c.name) || ['Black', 'White'],
-          sizes: product.size_options || ['S', 'M', 'L', 'XL'],
-          material: product.material,
-          features: product.features?.map(f => f.text) || [],
-          brand: 'VLANCO',
-          collection: product.collection || 'Streetwear Collection',
-          modelNumber: product.sku || `PROD-${productId}`,
-          addedAt: new Date().toISOString()
-        };
-        
-        // Add to wishlist using the hook (Supabase + localStorage) - non-blocking
-        addToWishlist(wishlistItem).then(() => {
-          console.log('✅ ProductDetail - Added to wishlist via hook');
-        }).catch((hookError) => {
-          console.error('❌ ProductDetail - addToWishlist hook error:', hookError);
-        });
-        
-        // Also save to the main localStorage key that the wishlist page reads from
-        const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
-        const updatedWishlist = [wishlistItem, ...existingWishlist.filter((item: any) => item.id !== productId)];
-        localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
-        
-        setIsWishlisted(true);
-        
-        // Dispatch event to update navigation counter
-        window.dispatchEvent(new CustomEvent('wishlistUpdated'));
-        
-        toast({ 
-          title: 'Added to Wishlist', 
-          description: `${product.name} added to wishlist`, 
-          duration: 2500 
-        });
+      // Track analytics for wishlist action
+      try {
+        await trackAddToWishlist(productId);
+      } catch (analyticsError) {
+        console.error('❌ Wishlist analytics tracking failed:', analyticsError);
+      }
+      
+      // Create comprehensive wishlist item with complete product information
+      const wishlistItem = {
+        id: productId,
+        name: product.name,
+        price: Number(product.base_price || product.price) || 0,
+        compare_price: Number(product.compare_price) || null,
+        image: product.gallery?.[0] || product.images?.[0] || '/src/assets/1.png',
+        images: product.gallery || product.images || [product.gallery?.[0] || product.images?.[0] || '/src/assets/1.png'],
+        category: product.category || 'Product',
+        description: product.description,
+        rating: product.reviews?.average || 4.5,
+        reviews: product.reviews?.total || 0,
+        isLimited: false,
+        isNew: product.isNew || false,
+        colors: product.color_options?.map(c => c.name) || ['Black', 'White'],
+        sizes: product.size_options || ['S', 'M', 'L', 'XL'],
+        material: product.material,
+        features: product.features?.map(f => f.text) || [],
+        brand: 'VLANCO',
+        collection: product.collection || 'Streetwear Collection',
+        modelNumber: product.sku || `PROD-${productId}`
+      };
+      
+      // Use unified wishlist service
+      const success = await toggleWishlistItem(wishlistItem, user?.id);
+      
+      if (success) {
+        const isCurrentlyInWishlist = isInWishlist(productId);
+        setIsWishlisted(isCurrentlyInWishlist);
       }
     } catch (error) {
       console.error('❌ Error in handleToggleWishlist:', error);

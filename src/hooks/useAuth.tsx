@@ -13,7 +13,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signUp: (email: string, password: string, userData?: Partial<UserProfile>) => Promise<any>;
-  signIn: (email: string, password: string) => Promise<any>;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<any>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
 }
@@ -46,19 +46,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setLastSessionUpdate(now);
       
-      // Removed excessive logging for better performance
+      console.log('🔄 useAuth: Handling session change', { event, hasSession: !!session, hasUser: !!session?.user });
       
       // If user explicitly signed out, don't restore session on page refresh
-      if (explicitSignOut && event === 'INITIAL_SESSION') {
+      // unless they have "remember me" enabled
+      const hasRememberMe = localStorage.getItem('vlanco_remember_me') === 'true';
+      if (explicitSignOut && event === 'INITIAL_SESSION' && !hasRememberMe) {
+        console.log('🚪 useAuth: User explicitly signed out and no remember me, not restoring session');
         setSession(null);
         setUser(null);
         setProfile(null);
         setLoading(false);
+        // Clear any stored session data
+        localStorage.removeItem('vlanco_auth_session');
+        sessionStorage.removeItem('vlanco_auth_session');
         return;
+      }
+      
+      // If user has remember me enabled, reset explicit sign out flag
+      if (hasRememberMe && explicitSignOut && event === 'INITIAL_SESSION') {
+        console.log('💾 useAuth: Remember me enabled, restoring session despite explicit sign out');
+        setExplicitSignOut(false);
       }
       
       // Reset explicit sign out flag when user signs in
       if (session?.user && explicitSignOut) {
+        console.log('✅ useAuth: User signed in, resetting explicit sign out flag');
         setExplicitSignOut(false);
       }
       
@@ -66,24 +79,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        console.log('👤 useAuth: User session found, fetching profile');
+        // Store session data for persistence
+        try {
+          const sessionData = {
+            user: session.user,
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            expires_at: session.expires_at,
+            timestamp: Date.now()
+          };
+          localStorage.setItem('vlanco_auth_session', JSON.stringify(sessionData));
+          sessionStorage.setItem('vlanco_auth_session', JSON.stringify(sessionData));
+        } catch (error) {
+          console.warn('⚠️ useAuth: Failed to store session data:', error);
+        }
+        
         // Ensure user profile exists before fetching
         await ensureUserProfile(session.user);
         await fetchProfile(session.user.id);
       } else {
+        console.log('👤 useAuth: No user session');
         setProfile(null);
+        // Clear stored session data
+        localStorage.removeItem('vlanco_auth_session');
+        sessionStorage.removeItem('vlanco_auth_session');
       }
       setLoading(false);
     };
 
+    // Check for stored session data first
+    const checkStoredSession = async () => {
+      try {
+        const storedSession = localStorage.getItem('vlanco_auth_session');
+        if (storedSession) {
+          const sessionData = JSON.parse(storedSession);
+          const timeSinceLastUpdate = Date.now() - (sessionData.timestamp || 0);
+          
+          // If session data is less than 24 hours old, try to restore it
+          if (timeSinceLastUpdate < 24 * 60 * 60 * 1000) {
+            console.log('🔄 useAuth: Found stored session data, attempting restoration');
+          }
+        }
+      } catch (error) {
+        console.warn('⚠️ useAuth: Failed to check stored session:', error);
+      }
+    };
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      handleSession(session, 'INITIAL_SESSION');
-    });
+    const initializeAuth = async () => {
+      await checkStoredSession();
+      
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('❌ useAuth: Error getting initial session:', error);
+        setLoading(false);
+        return;
+      }
+      
+      await handleSession(session, 'INITIAL_SESSION');
+    };
+
+    initializeAuth();
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 useAuth: Auth state changed', { event });
       await handleSession(session, event);
     });
 
@@ -204,9 +267,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
     try {
-      console.log('🔄 useAuth: Starting sign in process...', { email });
+      console.log('🔄 useAuth: Starting sign in process...', { email, rememberMe });
       
       // Check if Supabase is configured
       if (!supabase) {
@@ -227,6 +290,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Reset explicit sign out flag
       setExplicitSignOut(false);
+      
+      // Store remember me preference
+      if (rememberMe) {
+        try {
+          localStorage.setItem('vlanco_remember_me', 'true');
+          console.log('💾 useAuth: Remember me preference saved');
+        } catch (error) {
+          console.warn('⚠️ useAuth: Failed to save remember me preference:', error);
+        }
+      } else {
+        localStorage.removeItem('vlanco_remember_me');
+      }
       
       // Ensure user profile exists in database
       if (data.user) {
@@ -258,16 +333,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('sb-' + supabase.supabaseUrl.split('//')[1].split('.')[0] + '-auth-token');
       sessionStorage.removeItem('sb-' + supabase.supabaseUrl.split('//')[1].split('.')[0] + '-auth-token');
       
+      // Clear our custom session storage
+      localStorage.removeItem('vlanco_auth_session');
+      sessionStorage.removeItem('vlanco_auth_session');
+      
       // Clear all localStorage items that might contain auth data
       Object.keys(localStorage).forEach(key => {
-        if (key.includes('supabase') || key.includes('auth')) {
+        if (key.includes('supabase') || key.includes('auth') || key.includes('vlanco_auth')) {
           localStorage.removeItem(key);
         }
       });
       
       // Clear all sessionStorage items that might contain auth data
       Object.keys(sessionStorage).forEach(key => {
-        if (key.includes('supabase') || key.includes('auth')) {
+        if (key.includes('supabase') || key.includes('auth') || key.includes('vlanco_auth')) {
           sessionStorage.removeItem(key);
         }
       });

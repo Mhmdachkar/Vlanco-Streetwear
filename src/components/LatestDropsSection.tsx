@@ -6,6 +6,7 @@ import { useWishlist } from '@/hooks/useWishlist';
 import { useAuth } from '@/hooks/useAuth';
 import { ShoppingCart, Heart, Eye, Zap, Star } from 'lucide-react';
 import AuthModal from './AuthModal';
+import { toggleWishlistItem } from '@/services/wishlistService';
 
 interface LatestDropsSectionProps {
   currentProductId?: string;
@@ -75,57 +76,34 @@ const LatestDropsSection = ({ currentProductId }: LatestDropsSectionProps) => {
     }
 
     try {
-      if (isInWishlist(product.id)) {
-        await removeFromWishlist(product.id);
-      } else {
-        // Create comprehensive wishlist item with complete product information
-        const wishlistItem = {
-          id: product.id,
-          name: product.name,
-          price: product.base_price || product.price || 0,
-          compare_price: product.compare_price || null,
-          image: product.image_url || product.image,
-          images: product.product_images?.map(img => img.image_url) || [product.image_url || product.image],
-          category: product.category?.name || 'Latest Drops',
-          description: product.description || `${product.name} - Premium streetwear collection from VLANCO`,
-          rating: product.rating_average || 4.5,
-          reviews: product.rating_count || 0,
-          isLimited: product.is_limited_edition || false,
-          isNew: product.is_new_arrival || true,
-          isBestseller: product.is_bestseller || false,
-          colors: product.color_options || ['Black', 'White'],
-          sizes: product.size_options || ['S', 'M', 'L', 'XL'],
-          material: product.material || 'Premium Materials',
-          brand: product.brand || 'VLANCO',
-          collection: product.collection || 'Latest Drops',
-          tags: product.tags || ['streetwear', 'latest', 'new'],
-          features: product.features || [],
-          availability: product.availability || 'In Stock',
-          shipping: product.shipping || 'Standard Shipping',
-          addedAt: new Date().toISOString()
-        };
-        
-        // Add to wishlist using the hook (Supabase + localStorage)
-        await addToWishlist(wishlistItem);
-        
-        // Also save to the main localStorage key that the wishlist page reads from
-        const existingWishlist = JSON.parse(localStorage.getItem('vlanco_wishlist') || '[]');
-        const updatedWishlist = [wishlistItem, ...existingWishlist.filter((item: any) => item.id !== product.id)];
-        localStorage.setItem('vlanco_wishlist', JSON.stringify(updatedWishlist));
-        
-        // Save to guest wishlist key (used by useWishlist hook for guests)
-        const guestWishlist = JSON.parse(localStorage.getItem('vlanco_guest_wishlist') || '[]');
-        const updatedGuestWishlist = [wishlistItem, ...guestWishlist.filter((item: any) => item.id !== product.id)];
-        localStorage.setItem('vlanco_guest_wishlist', JSON.stringify(updatedGuestWishlist));
-        
-        // Save to hardcoded wishlist as backup
-        const hardcodedWishlist = JSON.parse(localStorage.getItem('vlanco_hardcoded_wishlist') || '[]');
-        const updatedHardcodedWishlist = [wishlistItem, ...hardcodedWishlist.filter((item: any) => item.id !== product.id)];
-        localStorage.setItem('vlanco_hardcoded_wishlist', JSON.stringify(updatedHardcodedWishlist));
-        
-        // Dispatch custom event to notify components about wishlist update
-        window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { updatedWishlist } }));
-      }
+      // Create comprehensive wishlist item with complete product information
+      const wishlistItem = {
+        id: product.id,
+        name: product.name,
+        price: product.base_price || product.price || 0,
+        compare_price: product.compare_price || null,
+        image: product.image_url || product.image,
+        images: product.product_images?.map(img => img.image_url) || [product.image_url || product.image],
+        category: product.category?.name || 'Latest Drops',
+        description: product.description || `${product.name} - Premium streetwear collection from VLANCO`,
+        rating: product.rating_average || 4.5,
+        reviews: product.rating_count || 0,
+        isLimited: product.is_limited_edition || false,
+        isNew: product.is_new_arrival || true,
+        isBestseller: product.is_bestseller || false,
+        colors: product.color_options || ['Black', 'White'],
+        sizes: product.size_options || ['S', 'M', 'L', 'XL'],
+        material: product.material || 'Premium Materials',
+        brand: product.brand || 'VLANCO',
+        collection: product.collection || 'Latest Drops',
+        tags: product.tags || ['streetwear', 'latest', 'new'],
+        features: product.features || [],
+        availability: product.availability || 'In Stock',
+        shipping: product.shipping || 'Standard Shipping'
+      };
+      
+      // Use unified wishlist service
+      await toggleWishlistItem(wishlistItem, user?.id);
     } catch (error) {
       console.error('Error updating wishlist:', error);
     }

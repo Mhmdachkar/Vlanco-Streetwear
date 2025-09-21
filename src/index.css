@@ -87,6 +87,66 @@
     perspective: 1000px;
   }
   
+  /* Auth Modal Override - Ensure modal is always visible */
+  .auth-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    isolation: isolate !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    pointer-events: auto !important;
+  }
+
+  /* Auth Modal Content - Ensure content is always visible */
+  .auth-modal-content {
+    position: relative !important;
+    z-index: 1000000 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    background-color: #1e293b !important;
+    border-radius: 16px !important;
+    padding: 24px !important;
+    min-width: 400px !important;
+    max-width: 500px !important;
+    width: 100% !important;
+    border: 2px solid #334155 !important;
+    isolation: isolate !important;
+    transform: translateZ(0) !important;
+    backface-visibility: hidden !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8) !important;
+    margin: 20px !important;
+    max-height: 90vh !important;
+    overflow: auto !important;
+    pointer-events: auto !important;
+  }
+
+  /* Force modal to be visible on home page */
+  body .auth-modal-overlay,
+  html .auth-modal-overlay,
+  #root .auth-modal-overlay {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  body .auth-modal-content,
+  html .auth-modal-content,
+  #root .auth-modal-content {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
   /* Reduce motion for users who prefer it */
   @media (prefers-reduced-motion: reduce) {
     * {

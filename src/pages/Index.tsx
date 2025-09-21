@@ -287,13 +287,13 @@ const Index = () => {
         {showScrollTop && (
           <motion.button
             onClick={scrollToTop}
-            className="fixed bottom-6 right-6 md:bottom-8 md:right-8 p-2 md:p-3 bg-gradient-to-br from-purple-600 to-cyan-600 text-white rounded-full shadow-lg z-50 hover:scale-105 transition-transform duration-200"
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 p-3 sm:p-3 md:p-4 bg-gradient-to-br from-purple-600 to-cyan-600 text-white rounded-full shadow-xl z-50 hover:scale-105 transition-transform duration-200 min-w-[48px] min-h-[48px] flex items-center justify-center"
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0 }}
             transition={{ duration: shouldReduceMotion ? 0.2 : 0.3 }}
           >
-            <ArrowUp className="w-5 h-5 md:w-6 md:h-6" />
+            <ArrowUp className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
           </motion.button>
         )}
       </AnimatePresence>
