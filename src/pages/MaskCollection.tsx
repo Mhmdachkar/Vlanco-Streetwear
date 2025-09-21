@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, Suspense, useMemo } from 'react';
+import React, { useState, useRef, useEffect, Suspense, useMemo, useCallback } from 'react';
 import { motion, useInView, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { WatermarkLogo, InlineLogo } from '@/components/VlancoLogo';
@@ -87,6 +87,21 @@ import mask4Image6 from '@/assets/mask_photos4/Screenshot 2025-09-02 013614.png'
 // Import mask 5 media files
 import mask5Image1 from '@/assets/mask_photos5/Screenshot 2025-09-02 134038.png';
 import mask5Image2 from '@/assets/mask_photos5/Screenshot 2025-09-02 134045.png';
+
+// Import premium mask 1 media files (Le Angelo Balaclava)
+import premiumMask1Image1 from '@/assets/premium_mask1/Screenshot 2025-09-20 160225.png';
+import premiumMask1Image2 from '@/assets/premium_mask1/Screenshot 2025-09-20 160235.png';
+import premiumMask1Image3 from '@/assets/premium_mask1/Screenshot 2025-09-20 160245.png';
+import premiumMask1Image4 from '@/assets/premium_mask1/Screenshot 2025-09-20 160252.png';
+import premiumMask1Image5 from '@/assets/premium_mask1/Screenshot 2025-09-20 160301.png';
+import premiumMask1Image6 from '@/assets/premium_mask1/Screenshot 2025-09-20 160310.png';
+import premiumMask1Image7 from '@/assets/premium_mask1/Screenshot 2025-09-20 160318.png';
+
+// Import premium mask 2 media files (TRUST Ski Mask)
+import premiumMask2Image1 from '@/assets/premium_mask2/Screenshot 2025-09-20 180641.png';
+
+// Import premium mask 3 media files (TATTO Mask)
+import premiumMask3Image1 from '@/assets/premium_mask3/Screenshot 2025-09-20 180839.png';
 
 // 3D Floating Mask Component - Optimized
 const FloatingMask = ({ position, rotation, scale, color }) => {
@@ -185,7 +200,7 @@ const MaskScene = ({ performanceMode = false }) => {
         <MaskPortal />
         
         {/* Animated Particles */}
-        <AnimatedParticles count={performanceMode ? 80 : 200} />
+        <AnimatedParticles count={performanceMode ? 0 : 0} />
         <MaskWave />
         
         {/* Floating Masks */}
@@ -669,20 +684,61 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
     onQuickAdd(product);
   };
 
+  const isInView = useInView(cardRef, { once: false, margin: "-100px" });
+
   return (
     <motion.div
       ref={cardRef}
       data-product-id={product.id}
       className="group relative h-[650px] rounded-3xl overflow-hidden bg-gradient-to-br from-background via-muted/20 to-background border border-border/50 shadow-2xl cursor-pointer"
-      style={{ y, scale }}
-      initial={{ opacity: 0, y: 50, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.6, delay: index * 0.1 }}
-      whileHover={{ y: -12, scale: 1.02 }}
+      style={{ y, scale, transformStyle: 'preserve-3d' }}
+      initial={{ 
+        opacity: 0, 
+        y: 100, 
+        scale: 0.8,
+        rotateY: index % 2 === 0 ? -15 : 15,
+        rotateX: -20
+      }}
+      animate={isInView ? { 
+        opacity: 1, 
+        y: 0, 
+        scale: 1,
+        rotateY: 0,
+        rotateX: 0
+      } : { 
+        opacity: 0, 
+        y: 100, 
+        scale: 0.8,
+        rotateY: index % 2 === 0 ? -15 : 15,
+        rotateX: -20
+      }}
+      transition={{ 
+        duration: 1.2, 
+        delay: index * 0.1,
+        ease: [0.25, 0.46, 0.45, 0.94]
+      }}
+      whileHover={{ 
+        scale: 1.02,
+        transition: { duration: 0.2, ease: "easeOut" }
+      }}
       onHoverStart={handleHoverStart}
       onHoverEnd={handleHoverEnd}
       onClick={handleCardClick}
     >
+      {/* Morphing Border Effect */}
+      <motion.div
+        className="absolute inset-0 rounded-3xl pointer-events-none z-5"
+        style={{
+          background: `linear-gradient(${isHovered ? '315deg' : '45deg'}, 
+            rgba(0, 212, 255, 0.2), rgba(59, 130, 246, 0.1), rgba(0, 212, 255, 0.2))`
+        }}
+        animate={{
+          background: `linear-gradient(${isHovered ? '315deg' : '45deg'}, 
+            rgba(0, 212, 255, 0.2), rgba(59, 130, 246, 0.1), rgba(0, 212, 255, 0.2))`
+        }}
+        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+      />
+
       {/* Spotlight glow (match T-Shirt cards) */}
       <motion.div
         className="absolute inset-0 pointer-events-none z-10"
@@ -693,29 +749,155 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
         }}
       />
 
-      {/* Neon border (match T-Shirt cards) */}
+      {/* Enhanced Neon border with pulse effect */}
       <motion.div
         className="absolute inset-0 rounded-2xl border-2 border-primary/40 pointer-events-none z-20"
         animate={isHovered ? {
           boxShadow: '0 0 30px 4px rgba(0, 212, 255, 0.3)',
           borderColor: 'rgba(0, 212, 255, 0.8)',
-          opacity: 1
+          opacity: 1,
+          scale: [1, 1.02, 1]
         } : {
           boxShadow: '0 0 0px 0px rgba(0, 212, 255, 0)',
           borderColor: 'rgba(0, 212, 255, 0.2)',
-          opacity: 0.3
+          opacity: 0.3,
+          scale: 1
         }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        transition={{ 
+          duration: 0.5, 
+          ease: 'easeOut',
+          scale: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+        }}
+      />
+
+      {/* Particle Burst Effect on Entrance */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none z-15"
+        initial={{ opacity: 0 }}
+        animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 0.5, delay: index * 0.1 }}
+      >
+        {[...Array(12)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-1 h-1 rounded-full bg-cyan-400"
+            style={{
+              left: '50%',
+              top: '50%',
+              transformOrigin: '0 0'
+            }}
+            initial={{ 
+              scale: 0, 
+              x: 0, 
+              y: 0, 
+              opacity: 0 
+            }}
+            animate={isInView ? {
+              scale: [0, 1, 0],
+              x: Math.cos((i * 30) * Math.PI / 180) * 100,
+              y: Math.sin((i * 30) * Math.PI / 180) * 100,
+              opacity: [0, 1, 0]
+            } : {}}
+            transition={{
+              duration: 1.5,
+              delay: index * 0.1 + 0.3,
+              ease: "easeOut"
+            }}
+          />
+        ))}
+      </motion.div>
+
+      {/* Dynamic Light Sweep Effect */}
+      <motion.div
+        className="absolute inset-0 pointer-events-none z-12"
+        style={{
+          background: `linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(0, 212, 255, 0.2) 50%, 
+            transparent 100%)`,
+          transform: 'translateX(-100%)'
+        }}
+        animate={isHovered ? {
+          x: ['-100%', '100%']
+        } : {}}
+        transition={{
+          duration: 1.5,
+          ease: "easeInOut",
+          repeat: isHovered ? Infinity : 0,
+          repeatDelay: 2
+        }}
       />
       
       {/* Product Image with Effects */}
       <div className="relative h-3/5 overflow-hidden">
+        {/* Base Image with Enhanced Styling */}
+        <motion.img
+          src={product.image}
+          alt={product.name}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            imageRendering: 'auto',
+            filter: 'brightness(1.1) contrast(1.1) saturate(1.05)'
+          }}
+          initial={{ 
+            scale: 0.3, 
+            rotate: index % 2 === 0 ? -180 : 180,
+            x: index % 3 === 0 ? -200 : index % 3 === 1 ? 200 : 0,
+            y: index % 4 === 0 ? -150 : index % 4 === 1 ? 150 : index % 4 === 2 ? -100 : 100,
+            opacity: 0,
+            filter: 'blur(10px) brightness(0.5)'
+          }}
+          animate={isInView ? {
+            scale: 1,
+            rotate: 0,
+            x: 0,
+            y: 0,
+            opacity: 1,
+            filter: 'brightness(1.1) contrast(1.1) saturate(1.05) blur(0px)'
+          } : {}}
+          transition={{
+            duration: 1.2,
+            delay: index * 0.15,
+            ease: [0.25, 0.46, 0.45, 0.94]
+          }}
+        />
+
+        {/* Hover Image with 3D Flip Effect */}
         <motion.img
           src={(isHovered && product.gallery && product.gallery[1] && product.gallery[1].type === 'image') ? product.gallery[1].src : product.image}
           alt={product.name}
-          className="w-full h-full object-cover"
-          animate={isHovered ? { scale: 1.05 } : { scale: 1 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{
+            imageRendering: 'auto',
+            filter: 'brightness(1.1) contrast(1.1) saturate(1.05)',
+            transformStyle: 'preserve-3d'
+          }}
+          initial={{ 
+            opacity: 0, 
+            scale: 1.02, 
+            rotateY: 90,
+            z: -50
+          }}
+          animate={isHovered ? {
+            opacity: 1,
+            scale: 1.1,
+            rotateY: 0,
+            z: 0,
+            filter: 'brightness(1.2) contrast(1.2) saturate(1.1) blur(0px)'
+          } : {
+            opacity: 0,
+            scale: 1.02,
+            rotateY: 90,
+            z: -50,
+            filter: 'brightness(1.1) contrast(1.1) saturate(1.05)'
+          }}
+          transition={{
+            duration: 0.8,
+            ease: [0.25, 0.46, 0.45, 0.94],
+            opacity: { duration: 0.5, ease: "easeInOut" },
+            scale: { duration: 0.8, ease: "easeOut" },
+            rotateY: { duration: 0.8, ease: "easeOut" }
+          }}
         />
         
         {/* Gradient Overlay for Better Text Readability */}
@@ -1020,7 +1202,7 @@ const MaskCollection = () => {
   const { user } = useAuth();
   const { trackProduct, trackAddToCart } = useAnalytics();
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const isInView = useInView(containerRef, { once: false, margin: "-100px" });
   
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
   const [activeSection, setActiveSection] = useState('all');
@@ -1031,6 +1213,31 @@ const MaskCollection = () => {
   const [selectedColor, setSelectedColor] = useState<Record<number, number>>({});
   const [selectedSize, setSelectedSize] = useState<Record<number, string>>({});
   const imageRefs = useRef<Record<number, HTMLImageElement | null>>({});
+  
+  // Memoized hover handlers to prevent re-renders
+  const handleHoverStart = useCallback((productId: number) => {
+    setHoveredProduct(productId);
+  }, []);
+  
+  const handleHoverEnd = useCallback(() => {
+    setHoveredProduct(null);
+  }, []);
+  
+  // Memoized image component to prevent reloading
+  const MemoizedImage = React.memo(React.forwardRef<HTMLImageElement, any>(({ src, alt, className, style, animate, transition, initial }, ref) => (
+    <motion.img
+      ref={ref}
+      src={src}
+      alt={alt}
+      className={className}
+      style={style}
+      animate={animate}
+      transition={transition}
+      initial={initial}
+      loading="lazy"
+      decoding="async"
+    />
+  )));
   
   // Fly to cart animation function (fixed selector)
   const flyToCart = (productId: number) => {
@@ -1116,46 +1323,54 @@ const MaskCollection = () => {
   const mockMasks = [
     {
       id: 1,
-      name: 'Full Ski Mask Hand Knitted Bear Balaclava Facemask with Chains',
-      price: 7.55,
-      originalPrice: null,
-      image: s9775MaskImage2,
+      name: 'Le Angelo Balaclava Mask - Handmade Ski Mask',
+      price: 890.00,
+      originalPrice: 1275.00,
+      discount: 30,
+      image: premiumMask1Image1,
       gallery: [
-        { type: 'image', src: s9775MaskImage1, alt: 'S9775 Mask Front View' },
-        { type: 'image', src: s9775MaskImage2, alt: 'S9775 Mask Side View' },
-        { type: 'image', src: s9775MaskImage3, alt: 'S9775 Mask Detail View' },
-        { type: 'video', src: s9775MaskVideo, alt: 'S9775 Mask Product Video' }
+        { type: 'image', src: premiumMask1Image1, alt: 'Le Angelo Balaclava Front View' },
+        { type: 'image', src: premiumMask1Image2, alt: 'Le Angelo Balaclava Side View' },
+        { type: 'image', src: premiumMask1Image3, alt: 'Le Angelo Balaclava Detail View' },
+        { type: 'image', src: premiumMask1Image4, alt: 'Le Angelo Balaclava Profile View' },
+        { type: 'image', src: premiumMask1Image5, alt: 'Le Angelo Balaclava Close-up' },
+        { type: 'image', src: premiumMask1Image6, alt: 'Le Angelo Balaclava Wearing View' },
+        { type: 'image', src: premiumMask1Image7, alt: 'Le Angelo Balaclava Lifestyle' }
       ],
-      rating: 4.1,
-      reviews: 98,
+      rating: 4.9,
+      reviews: 156,
       isNew: true,
-      isBestseller: false,
+      isBestseller: true,
+      isPremium: true,
       colors: [
-        { name: 'Black', value: '#000000' },
-        { name: 'Brown', value: '#8B4513' }
+        { name: 'White', value: '#FFFFFF' }
       ],
-      sizes: ['Adult Size'],
-      category: 'Character',
-      section: 'standard',
-      features: ['Eco-friendly', 'Hand Knitted', 'Warm', 'Full Face Coverage', 'Custom Logo Available'],
-      description: 'S9775 New 2023 Custom Christmas Hat Caps. Winter warm crochet full ski mask hand knitted bear balaclava facemask with chains. Perfect for outdoor activities, skiing, cycling, and daily use. Made from 100% acrylic material with character style design. Model: S9775, Brand: Sunland, Origin: Jiangsu, China.',
-      material: '100% Acrylic',
-      protection: 'Full Face Coverage',
+      sizes: ['One Size Fits All'],
+      category: 'Premium',
+      section: 'premium',
+      features: ['Handmade', 'Limited Edition', 'Natural Fibers', 'Anatomical Cut', 'Elegant Design', 'Street Style'],
+      description: 'The Le Angelo Balaclava Mask is designed entirely by hand, with the meticulous craftsmanship of our masters. Knitted from soft, breathable, and durable natural fibers, this mask provides maximum protection in cold weather. Its anatomical cut adapts perfectly to facial contours, while its unique design adds an elegant and distinctive touch to street style. It\'s the first choice for those seeking an accessory that\'s both functional and aesthetically pleasing.',
+      material: 'Soft, breathable, and durable natural fibers',
+      protection: 'Maximum Cold Weather Protection',
       washable: 'Hand Wash Recommended',
       availability: 'In Stock',
-      shipping: 'Standard Shipping',
-      brand: 'Sunland',
-      collection: 'Winter Essentials',
-      modelNumber: 'S9775',
-      placeOfOrigin: 'Jiangsu, China',
-      applicableScenes: ['Beach', 'Casual', 'Outdoor', 'Travel', 'Sports', 'Cycling', 'Shopping', 'Party', 'Business', 'Fishing', 'SKI', 'Home Use', 'Daily'],
+      shipping: 'Free Shipping | 1-7 Business Days',
+      brand: 'VLANCO',
+      collection: 'Premium Collection',
+      modelNumber: 'LA-BAL-001',
+      placeOfOrigin: 'Handcrafted',
+      applicableScenes: ['Winter Sports', 'Street Style', 'Outdoor Activities', 'Fashion', 'Cold Weather'],
       gender: 'Unisex',
       ageGroup: 'Adults',
-      moq: '100 pieces',
-      sampleTime: '5-7 days',
-      packaging: 'One piece/OPP bag and 100pcs/ctn',
-      singlePackageSize: '25X15X2 cm',
-      singleGrossWeight: '0.150 kg'
+      moq: 'Limited Edition',
+      sampleTime: '1-7 Business Days',
+      packaging: 'Premium Gift Box',
+      singlePackageSize: 'Premium Packaging',
+      singleGrossWeight: 'Lightweight',
+      discountText: '30% OFF',
+      shippingInfo: 'Free Shipping | 1-7 Business Days',
+      limitedEdition: true,
+      handmade: true
     },
     {
       id: 2,
@@ -1492,6 +1707,100 @@ const MaskCollection = () => {
         { rating: 5, title: 'Beautiful colors, fast delivery', content: 'Beautiful colors and good quality. Great customer service. Fast delivery.', author: 'U***e (US)', verified: true },
         { rating: 5, title: 'Excellent communication', content: 'Great communication, sample is great quality and design is well done.', author: 'A***o (CR)', verified: true }
       ]
+    },
+    {
+      id: 2,
+      name: 'TRUST Ski Mask',
+      price: 590.00,
+      originalPrice: 850.00,
+      discount: 30,
+      image: premiumMask2Image1,
+      gallery: [
+        { type: 'image', src: premiumMask2Image1, alt: 'TRUST Ski Mask Front View' }
+      ],
+      rating: 4.8,
+      reviews: 89,
+      isNew: true,
+      isBestseller: false,
+      isPremium: true,
+      colors: [
+        { name: 'Black', value: '#000000' }
+      ],
+      sizes: ['One Size'],
+      category: 'Ski Mask',
+      features: [
+        'Thick Soft Texture',
+        'Stealthy Silhouette',
+        'Relaxed Fit',
+        'All-Day Comfort'
+      ],
+      description: 'The TRUST Ski Mask is made for those who never compromise on style, from city streets to slippery slopes. Its thick, soft texture keeps you warm while giving you a stealthy silhouette. Its stitching details stand out and its relaxed fit offers all-day comfort. Are you ready to reflect street culture on your face?',
+      material: 'High-Quality Fabric',
+      protection: 'Cold Weather Protection',
+      washable: true,
+      availability: 'In Stock',
+      shipping: 'Free Shipping',
+      shippingInfo: 'Free Shipping | 1-7 Business Days',
+      brand: 'VLANCO',
+      collection: 'Premium Collection',
+      modelNumber: 'MASK-PREMIUM-002',
+      placeOfOrigin: 'Turkey',
+      applicableScenes: 'Winter Sports, Street Style, Outdoor Activities',
+      gender: 'Unisex',
+      ageGroup: 'Adult',
+      moq: 1,
+      sampleTime: '3-5 days',
+      packaging: 'Premium Gift Box',
+      singlePackageSize: '25cm x 20cm x 5cm',
+      singleGrossWeight: '200g',
+      section: 'premium'
+    },
+    {
+      id: 3,
+      name: 'TATTO Mask',
+      price: 590.00,
+      originalPrice: 850.00,
+      discount: 30,
+      image: premiumMask3Image1,
+      gallery: [
+        { type: 'image', src: premiumMask3Image1, alt: 'TATTO Mask Front View' }
+      ],
+      rating: 4.7,
+      reviews: 67,
+      isNew: true,
+      isBestseller: false,
+      isPremium: true,
+      colors: [
+        { name: 'Black', value: '#000000' }
+      ],
+      sizes: ['One Size'],
+      category: 'Street Mask',
+      features: [
+        'High-Quality Breathable Fabric',
+        'Flexible & Durable',
+        'Anatomical Cut',
+        'Perfect Fit'
+      ],
+      description: 'The TATTO Mask offers all-day comfort with its high-quality, breathable, and flexible fabric. Its thin yet durable construction offers protection in cold weather while also being the boldest way to express yourself with style. Its meticulously crafted details and anatomical cut ensure a perfect fit for your facial features. Designed for those who value both street style and functionality, its durable fabric stands up to washing and extended wear. It\'s not just a mask; it\'s an essential accessory for your style.',
+      material: 'High-Quality Breathable Fabric',
+      protection: 'Cold Weather Protection',
+      washable: true,
+      availability: 'In Stock',
+      shipping: 'Free Shipping',
+      shippingInfo: 'Free Shipping | 1-7 Business Days',
+      brand: 'VLANCO',
+      collection: 'Premium Collection',
+      modelNumber: 'MASK-PREMIUM-003',
+      placeOfOrigin: 'Turkey',
+      applicableScenes: 'Street Style, Daily Wear, Fashion',
+      gender: 'Unisex',
+      ageGroup: 'Adult',
+      moq: 1,
+      sampleTime: '3-5 days',
+      packaging: 'Premium Gift Box',
+      singlePackageSize: '25cm x 20cm x 5cm',
+      singleGrossWeight: '150g',
+      section: 'premium'
     },
   ];
 
@@ -2330,20 +2639,61 @@ const MaskCollection = () => {
                 const size = selectedSize[product.id];
                 const canAdd = colorOptions.length > 0 ? colorIdx !== undefined : true;
                 const canAddSize = sizeOptions.length > 0 ? !!size : true;
+                
+                // Individual card ref and inView detection
+                const cardRef = useRef(null);
+                const cardInView = useInView(cardRef, { once: true, margin: "-50px" });
+                
+                // Memoize animation values to prevent re-triggering on hover
+                const entranceAnimation = useMemo(() => {
+                  if (!cardInView) return {};
+                  return {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                    rotateY: 0,
+                    rotateX: 0
+                  };
+                }, [cardInView]);
+                
+                const imageAnimation = useMemo(() => {
+                  if (!cardInView) return {};
+                  return {
+                    scale: 1,
+                    rotate: 0,
+                    x: 0,
+                    y: 0,
+                    opacity: 1,
+                    filter: 'brightness(1.1) contrast(1.1) saturate(1.05)'
+                  };
+                }, [cardInView]);
+                
+                
                 return (
-                  <motion.div
-                    key={product.id}
-                    className="group relative rounded-3xl overflow-hidden h-[650px]"
-                    initial={{ opacity: 0, y: 40, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    <motion.div
+                      ref={cardRef}
+                      key={product.id}
+                      className="group relative rounded-3xl overflow-hidden h-[650px]"
+                      style={{ transformStyle: 'preserve-3d' }}
+                      initial={{ 
+                        opacity: 0, 
+                        y: 100, 
+                        scale: 0.8,
+                        rotateY: index % 2 === 0 ? -15 : 15,
+                        rotateX: -20
+                      }}
+                      animate={entranceAnimation}
+                      transition={{ 
+                        duration: 0.8, 
+                        delay: index * 0.05,
+                        ease: [0.25, 0.46, 0.45, 0.94]
+                      }}
                     whileHover={{
-                      y: -16,
-                      scale: 1.03,
-                      transition: { duration: 0.4, ease: "easeOut" }
+                      scale: 1.02,
+                      transition: { duration: 0.2, ease: "easeOut" }
                     }}
-                    onHoverStart={() => setHoveredProduct(product.id)}
-                    onHoverEnd={() => setHoveredProduct(null)}
+                    onHoverStart={() => handleHoverStart(product.id)}
+                    onHoverEnd={handleHoverEnd}
                     onClick={async () => {
                       const colorIdx = selectedColor[product.id];
                       const size = selectedSize[product.id] || '';
@@ -2437,382 +2787,612 @@ const MaskCollection = () => {
                       });
                     }}
                   >
-                    {/* Enhanced Card Container */}
+                    {/* Elegant Card Container with Modern Layout */}
                     <motion.div 
                       data-product-id={product.id}
-                      className="relative bg-gradient-to-br from-background via-muted/20 to-background rounded-3xl overflow-hidden shadow-2xl border border-border/50 transition-all duration-500 group-hover:shadow-3xl group-hover:border-primary/30 h-full"
+                      className={`relative rounded-2xl overflow-hidden shadow-xl border transition-all duration-500 group-hover:shadow-2xl h-full flex flex-col ${
+                        product.isPremium 
+                          ? 'bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 border-purple-500/30 group-hover:border-purple-400/60' 
+                          : 'bg-gradient-to-br from-slate-900/95 via-slate-800/20 to-slate-900/95 border-slate-700/30 group-hover:border-slate-600/50'
+                      }`}
                       style={{ transformStyle: 'preserve-3d' }}
+                      initial={{ 
+                        opacity: 0, 
+                        y: 100, 
+                        scale: 0.8,
+                        rotateY: index % 2 === 0 ? -15 : 15,
+                        rotateX: -20
+                      }}
+                      animate={isInView ? { 
+                        opacity: 1, 
+                        y: 0, 
+                        scale: 1,
+                        rotateY: 0,
+                        rotateX: 0
+                      } : {}}
+                      transition={{ 
+                        duration: 1.2, 
+                        delay: index * 0.1,
+                        ease: [0.25, 0.46, 0.45, 0.94]
+                      }}
+                      whileHover={{ 
+                        scale: 1.05, 
+                        rotateY: 5,
+                        rotateX: 2,
+                        y: -20,
+                        z: 50
+                      }}
+                      onMouseEnter={() => setHoveredProduct(product.id)}
+                      onMouseLeave={() => setHoveredProduct(null)}
                     >
-                      {/* Enhanced Dynamic Spotlight Glow */}
+                      {/* Subtle Border Effect */}
+                      <motion.div
+                        className="absolute inset-0 rounded-2xl pointer-events-none z-5"
+                        style={{
+                          background: `linear-gradient(45deg, 
+                            ${product.isPremium 
+                              ? 'rgba(168, 85, 247, 0.15), rgba(236, 72, 153, 0.1), rgba(168, 85, 247, 0.15)' 
+                              : 'rgba(0, 212, 255, 0.1), rgba(59, 130, 246, 0.05), rgba(0, 212, 255, 0.1)'
+                            })`
+                        }}
+                        animate={hoveredProduct === product.id ? {
+                          opacity: 0.8
+                        } : {
+                          opacity: 0.4
+                        }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                      />
+
+                      {/* Subtle Spotlight Glow */}
                       <motion.div
                         className="absolute inset-0 pointer-events-none z-10"
-                        animate={hoveredProduct === product.id ? { opacity: 1 } : { opacity: 0 }}
+                        animate={hoveredProduct === product.id ? { opacity: 0.3 } : { opacity: 0 }}
                         style={{
-                          background: 'radial-gradient(circle at 60% 40%, rgba(0, 212, 255, 0.15) 0%, transparent 70%)',
-                          transition: 'all 0.4s ease',
+                          background: product.isPremium 
+                            ? 'radial-gradient(circle at 60% 40%, rgba(168, 85, 247, 0.1) 0%, transparent 70%)'
+                            : 'radial-gradient(circle at 60% 40%, rgba(0, 212, 255, 0.08) 0%, transparent 70%)',
+                          transition: 'opacity 0.2s ease',
                         }}
                       />
                       
-                      {/* Enhanced Animated Neon Border */}
+                      {/* Subtle Border Highlight */}
                       <motion.div
-                        className="absolute inset-0 rounded-2xl border-2 border-primary/40 pointer-events-none z-20"
+                        className={`absolute inset-0 rounded-2xl border-2 pointer-events-none z-20 ${
+                          product.isPremium ? 'border-purple-500/40' : 'border-primary/40'
+                        }`}
                         animate={hoveredProduct === product.id ? {
-                          boxShadow: '0 0 30px 4px rgba(0, 212, 255, 0.3)',
-                          borderColor: 'rgba(0, 212, 255, 0.8)',
+                          borderColor: product.isPremium 
+                            ? 'rgba(168, 85, 247, 0.6)'
+                            : 'rgba(0, 212, 255, 0.5)',
                           opacity: 1
                         } : {
-                          boxShadow: '0 0 0px 0px rgba(0, 212, 255, 0)',
-                          borderColor: 'rgba(0, 212, 255, 0.2)',
+                          borderColor: product.isPremium 
+                            ? 'rgba(168, 85, 247, 0.3)'
+                            : 'rgba(0, 212, 255, 0.2)',
                           opacity: 0.3
                         }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        transition={{ 
+                          duration: 0.2, 
+                          ease: "easeOut"
+                        }}
                       />
+
+                      {/* Particle Burst Effect on Entrance */}
+                      <motion.div
+                        className="absolute inset-0 pointer-events-none z-15"
+                        initial={{ opacity: 0 }}
+                        animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                      >
+                        {[...Array(12)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            className={`absolute w-1 h-1 rounded-full ${
+                              product.isPremium ? 'bg-purple-400' : 'bg-cyan-400'
+                            }`}
+                            style={{
+                              left: '50%',
+                              top: '50%',
+                              transformOrigin: '0 0'
+                            }}
+                            initial={{ 
+                              scale: 0, 
+                              x: 0, 
+                              y: 0, 
+                              opacity: 0 
+                            }}
+                            animate={isInView ? {
+                              scale: [0, 1, 0],
+                              x: Math.cos((i * 30) * Math.PI / 180) * 100,
+                              y: Math.sin((i * 30) * Math.PI / 180) * 100,
+                              opacity: [0, 1, 0]
+                            } : {}}
+                            transition={{
+                              duration: 1.5,
+                              delay: index * 0.1 + 0.3,
+                              ease: "easeOut"
+                            }}
+                          />
+                        ))}
+                      </motion.div>
+
                       
-                      {/* Enhanced Product Image Container */}
-                      <div className={`relative overflow-hidden h-full`}> 
-                        {/* Base Image */}
+                      {/* Elegant Photo Section - Maximum Height */}
+                      <div className="relative h-96 overflow-hidden"> 
+                        {/* Base Image with Enhanced Styling */}
                         <motion.img
                           ref={el => (imageRefs.current[product.id] = el)}
                           src={product.image}
                           alt={product.name}
                           className="absolute inset-0 w-full h-full object-cover"
-                          style={{ imageRendering: 'auto' }}
-                          animate={hoveredProduct === product.id ? { 
-                            scale: 1.05,
-                            filter: 'blur(0px)'
-                          } : { 
-                            scale: 1,
-                            filter: 'blur(0px)'
+                          style={{
+                            imageRendering: 'auto',
+                            filter: 'brightness(1.1) contrast(1.1) saturate(1.05)'
                           }}
-                          transition={{ 
-                            duration: 0.8, 
-                            ease: "easeOut",
-                            filter: { duration: 0.4, ease: "easeInOut" }
+                          initial={{ 
+                            scale: 0.3, 
+                            rotate: index % 2 === 0 ? -180 : 180,
+                            x: index % 3 === 0 ? -200 : index % 3 === 1 ? 200 : 0,
+                            y: index % 4 === 0 ? -150 : index % 4 === 1 ? 150 : index % 4 === 2 ? -100 : 100,
+                            opacity: 0,
+                            filter: 'blur(10px) brightness(0.5)'
                           }}
+                          animate={imageAnimation}
+                          transition={{
+                            duration: 1.2,
+                            delay: index * 0.15,
+                            ease: [0.25, 0.46, 0.45, 0.94]
+                          }}
+                          loading="lazy"
+                          decoding="async"
                         />
                         
-                        {/* Hover Image with Cross-Fade */}
+                        {/* Hover Overlay for subtle blur effect */}
+                        <motion.div
+                          className="absolute inset-0 pointer-events-none"
+                          style={{
+                            backdropFilter: 'blur(0px)',
+                            transition: 'backdrop-filter 0.2s ease'
+                          }}
+                          animate={{
+                            backdropFilter: hoveredProduct === product.id ? 'blur(0.5px)' : 'blur(0px)'
+                          }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                        />
+                        
+                        {/* Hover Image with 3D Flip Effect */}
                         <motion.img
                           src={product.gallery?.[1]?.src || product.image}
                           alt={product.name}
                           className="absolute inset-0 w-full h-full object-cover"
-                          style={{ imageRendering: 'auto' }}
-                          initial={{ opacity: 0, scale: 1.02 }}
-                          animate={hoveredProduct === product.id ? { 
+                          style={{
+                            imageRendering: 'auto',
+                            filter: 'brightness(1.1) contrast(1.1) saturate(1.05)',
+                            transformStyle: 'preserve-3d'
+                          }}
+                          initial={{ 
+                            opacity: 0, 
+                            scale: 1.02, 
+                            rotateY: 90,
+                            z: -50
+                          }}
+                          animate={hoveredProduct === product.id ? {
                             opacity: 1,
-                            scale: 1.05,
-                            filter: 'blur(0px)'
-                          } : { 
+                            scale: 1.08,
+                            rotateY: 0,
+                            z: 0
+                          } : {
                             opacity: 0,
                             scale: 1.02,
-                            filter: 'blur(1px)'
+                            rotateY: 90,
+                            z: -50
                           }}
-                          transition={{ 
-                            duration: 0.8, 
-                            ease: "easeInOut",
-                            opacity: { duration: 0.7, ease: "easeInOut" },
+                          transition={{
+                            duration: 0.8,
+                            ease: [0.25, 0.46, 0.45, 0.94],
+                            opacity: { duration: 0.5, ease: "easeInOut" },
                             scale: { duration: 0.8, ease: "easeOut" },
-                            filter: { duration: 0.4, ease: "easeInOut" }
+                            rotateY: { duration: 0.8, ease: "easeOut" }
                           }}
                         />
                         
-                        {/* Enhanced Gradient Overlay */}
+                        {/* Dynamic Gradient Overlay */}
                         <motion.div
-                          className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10"
-                          initial={{ opacity: 0.4 }}
-                          animate={hoveredProduct === product.id ? { opacity: 0.7 } : { opacity: 0.4 }}
-                          transition={{ duration: 0.6, ease: "easeInOut" }}
+                          className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent z-10"
+                          initial={{ opacity: 0.3 }}
+                          animate={hoveredProduct === product.id ? { 
+                            opacity: 0.5,
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 50%, transparent 100%)'
+                          } : { 
+                            opacity: 0.3,
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.2) 0%, transparent 50%, transparent 100%)'
+                          }}
+                          transition={{ duration: 0.4, ease: "easeInOut" }}
                         />
+
+                        {/* Floating Elements Effect */}
+                        <motion.div
+                          className="absolute inset-0 pointer-events-none z-15"
+                          animate={hoveredProduct === product.id ? { opacity: 1 } : { opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          {[...Array(6)].map((_, i) => (
+                            <motion.div
+                              key={i}
+                              className={`absolute w-2 h-2 rounded-full ${
+                                product.isPremium ? 'bg-purple-400/60' : 'bg-cyan-400/60'
+                              }`}
+                              style={{
+                                left: `${20 + (i * 15)}%`,
+                                top: `${30 + (i * 10)}%`,
+                              }}
+                              animate={hoveredProduct === product.id ? {
+                                y: [0, -20, 0],
+                                scale: [1, 1.5, 1],
+                                opacity: [0.6, 1, 0.6]
+                              } : {}}
+                              transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                delay: i * 0.2,
+                                ease: "easeInOut"
+                              }}
+                            />
+                          ))}
+                        </motion.div>
                         
-                        {/* Transition Glow Effect */}
+                        {/* Enhanced Transition Glow Effect */}
                         <motion.div
                           className="absolute inset-0 bg-gradient-to-br from-cyan-400/20 via-transparent to-purple-500/20 z-5 pointer-events-none"
                           initial={{ opacity: 0 }}
-                          animate={hoveredProduct === product.id ? { 
+                          animate={hoveredProduct === product.id ? {
                             opacity: 1,
-                            scale: 1.1
-                          } : { 
+                            scale: 1.1,
+                            rotate: 5
+                          } : {
                             opacity: 0,
-                            scale: 1
+                            scale: 1,
+                            rotate: 0
                           }}
-                          transition={{ 
-                            duration: 0.8, 
+                          transition={{
+                            duration: 0.8,
                             ease: "easeInOut",
                             opacity: { duration: 0.6, ease: "easeInOut" },
-                            scale: { duration: 0.8, ease: "easeOut" }
+                            scale: { duration: 0.8, ease: "easeOut" },
+                            rotate: { duration: 1.2, ease: "easeInOut" }
                           }}
                         />
+
+                        {/* Card Flip Effect on Hover */}
+                        <motion.div
+                          className="absolute inset-0 pointer-events-none z-25"
+                          style={{ transformStyle: 'preserve-3d' }}
+                          animate={hoveredProduct === product.id ? {
+                            rotateY: 2,
+                            rotateX: 1,
+                            perspective: 1000
+                          } : {
+                            rotateY: 0,
+                            rotateX: 0,
+                            perspective: 1000
+                          }}
+                          transition={{ duration: 0.6, ease: "easeOut" }}
+                        />
                         
-                        {/* Enhanced Floating Hologram Badges */}
-                        <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
-                          {product.isNew && (
+                        {/* Elegant Floating Badges */}
+                        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-20">
+                          {product.isPremium && (
                             <motion.span 
-                              className="px-3 py-1.5 bg-gradient-to-r from-cyan-500 via-blue-500 to-cyan-400 text-white text-xs font-bold rounded-full shadow-lg"
+                              className="px-2.5 py-1 bg-gradient-to-r from-purple-600/90 via-pink-500/90 to-purple-400/90 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm border border-purple-300/30"
+                              initial={{ scale: 0, rotate: -180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ delay: 0.1 + index * 0.1, type: "spring", stiffness: 200 }}
+                              whileHover={{ scale: 1.05, rotate: 2 }}
+                            >
+                              <Crown className="w-3 h-3 inline mr-1" />
+                              PREMIUM
+                            </motion.span>
+                          )}
+                          {product.discount && (
+                            <motion.span 
+                              className="px-2.5 py-1 bg-gradient-to-r from-red-500/90 via-orange-500/90 to-yellow-500/90 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm border border-red-300/30"
+                              initial={{ scale: 0, rotate: 180 }}
+                              animate={{ scale: 1, rotate: 0 }}
+                              transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
+                              whileHover={{ scale: 1.05, rotate: -2 }}
+                            >
+                              {product.discount}% OFF
+                            </motion.span>
+                          )}
+                          {product.isNew && !product.isPremium && (
+                            <motion.span 
+                              className="px-2.5 py-1 bg-gradient-to-r from-cyan-500/90 via-blue-500/90 to-cyan-400/90 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm"
                               initial={{ scale: 0, rotate: -180 }}
                               animate={{ scale: 1, rotate: 0 }}
                               transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
-                              whileHover={{ scale: 1.1, rotate: 5 }}
+                              whileHover={{ scale: 1.05, rotate: 2 }}
                             >
                               NEW
                             </motion.span>
                           )}
-                          {product.isBestseller && (
+                          {product.isBestseller && !product.isPremium && (
                             <motion.span 
-                              className="px-3 py-1.5 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white text-xs font-bold rounded-full shadow-lg"
+                              className="px-2.5 py-1 bg-gradient-to-r from-yellow-500/90 via-orange-500/90 to-red-500/90 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm"
                               initial={{ scale: 0, rotate: 180 }}
                               animate={{ scale: 1, rotate: 0 }}
                               transition={{ delay: 0.3 + index * 0.1, type: "spring", stiffness: 200 }}
-                              whileHover={{ scale: 1.1, rotate: -5 }}
+                              whileHover={{ scale: 1.05, rotate: -2 }}
                             >
                               BESTSELLER
                             </motion.span>
                           )}
                         </div>
                         
-                        {/* Enhanced Rating Badge */}
+                        {/* Elegant Rating Badge */}
                         <motion.div
-                          className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-2 bg-black/80 backdrop-blur-md rounded-full border border-white/20 z-20"
+                          className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 bg-black/70 backdrop-blur-sm rounded-lg border border-white/10 z-20"
                           initial={{ opacity: 0, x: 20, scale: 0.8 }}
                           animate={isInView ? { opacity: 1, x: 0, scale: 1 } : {}}
                           transition={{ delay: index * 0.2 + 0.5, type: "spring", stiffness: 200 }}
                           whileHover={{ scale: 1.05 }}
                         >
-                          <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                          <span className="text-sm font-semibold text-white">{product.rating}</span>
+                          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                          <span className="text-xs font-semibold text-white">{product.rating}</span>
                         </motion.div>
                       </div>
                       
-                      {/* Enhanced Product Info with Optimized Layout */}
-                      <div className="absolute bottom-0 left-0 right-0 z-30 p-6 flex flex-col gap-3">
-                        {/* Enhanced Category and Reviews */}
-                        <div className="flex items-center justify-between mb-1">
-                          <motion.span 
-                            className="text-xs font-bold text-cyan-400 bg-cyan-400/20 px-3 py-1.5 rounded-full border border-cyan-400/40 shadow-lg"
-                            whileHover={{ scale: 1.05 }}
-                          >
-                            {product.category}
-                          </motion.span>
-                          <div className="flex items-center gap-1.5 text-xs text-white/90">
-                            <Users className="w-3 h-3" />
-                            <span className="font-semibold">{product.reviews}</span>
+                      {/* Elegant Info Section - 3D Enhanced */}
+                      <div className="flex-1 p-4 flex flex-col justify-between relative overflow-hidden" style={{ transformStyle: 'preserve-3d' }}>
+        {/* 3D Background Effect */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-slate-800/20 via-transparent to-slate-900/30 pointer-events-none"
+          initial={{ opacity: 0, rotateX: 90 }}
+          animate={isInView ? { opacity: 1, rotateX: 0 } : { opacity: 0, rotateX: 90 }}
+          transition={{ duration: 0.6, delay: index * 0.05 + 0.2 }}
+        />
+
+                        {/* Header Section - 3D Enhanced */}
+                        <div className="space-y-2 relative z-10">
+                          {/* Category and Reviews */}
+                          <div className="flex items-center justify-between">
+                            <motion.span 
+                              className={`text-xs font-medium px-3 py-1.5 rounded-lg backdrop-blur-sm border ${
+                                product.isPremium 
+                                  ? 'text-purple-200 bg-purple-500/30 border-purple-400/50'
+                                  : 'text-cyan-300 bg-cyan-500/30 border-cyan-400/50'
+                              }`}
+                              initial={{ opacity: 0, y: 20, rotateX: -45 }}
+                              animate={isInView ? { opacity: 1, y: 0, rotateX: 0 } : { opacity: 0, y: 20, rotateX: -45 }}
+                              transition={{ duration: 0.5, delay: index * 0.05 + 0.3 }}
+                              whileHover={{ 
+                                scale: 1.02, 
+                                rotateY: 1,
+                                boxShadow: product.isPremium 
+                                  ? '0 2px 10px rgba(168, 85, 247, 0.1)'
+                                  : '0 2px 10px rgba(0, 212, 255, 0.1)'
+                              }}
+                              style={{ transformStyle: 'preserve-3d' }}
+                            >
+                              {product.category}
+                            </motion.span>
+                            <motion.div 
+                              className="flex items-center gap-1 text-xs text-slate-400"
+                              initial={{ opacity: 0, x: 20, rotateY: 45 }}
+                              animate={isInView ? { opacity: 1, x: 0, rotateY: 0 } : { opacity: 0, x: 20, rotateY: 45 }}
+                              transition={{ duration: 0.5, delay: index * 0.05 + 0.4 }}
+                              whileHover={{ scale: 1.01, rotateY: -1 }}
+                              style={{ transformStyle: 'preserve-3d' }}
+                            >
+                              <Users className="w-3 h-3" />
+                              <span className="font-medium">{product.reviews}</span>
+                            </motion.div>
                           </div>
-                        </div>
                         
-                        {/* Enhanced Product Title */}
-                        <h3 className="text-lg font-black text-white drop-shadow-lg group-hover:text-cyan-300 transition-colors duration-300 mb-2 leading-tight line-clamp-2">
-                          {product.name}
-                        </h3>
+                          {/* Product Title - 3D Enhanced */}
+                          <motion.h3 
+                            className={`text-lg font-bold leading-tight line-clamp-2 transition-colors duration-300 ${
+                              product.isPremium 
+                                ? 'text-white group-hover:text-purple-200'
+                                : 'text-white group-hover:text-cyan-300'
+                            }`}
+                            initial={{ opacity: 0, y: 30, rotateX: -60, scale: 0.8 }}
+                            animate={isInView ? { opacity: 1, y: 0, rotateX: 0, scale: 1 } : { opacity: 0, y: 30, rotateX: -60, scale: 0.8 }}
+                            transition={{ duration: 0.6, delay: index * 0.05 + 0.5, ease: "easeOut" }}
+                            whileHover={{ 
+                              scale: 1.005, 
+                              rotateY: 0.5,
+                              textShadow: product.isPremium 
+                                ? '0 0 10px rgba(168, 85, 247, 0.2)'
+                                : '0 0 10px rgba(0, 212, 255, 0.2)'
+                            }}
+                            style={{ transformStyle: 'preserve-3d' }}
+                          >
+                            {product.name}
+                          </motion.h3>
                         
-                        {/* Product Features and Material */}
-                        <div className="mb-2">
+                          {/* Features - 3D Enhanced */}
                           <div className="flex flex-wrap gap-1">
                             {product.features?.slice(0, 2).map((feature, idx) => (
                               <motion.span
                                 key={idx}
-                                className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded-md border border-white/20"
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.1 + idx * 0.1 }}
+                                className={`text-xs px-2.5 py-1.5 rounded-lg font-medium backdrop-blur-sm border ${
+                                  product.isPremium 
+                                    ? 'text-purple-200 bg-purple-500/30 border-purple-400/50'
+                                    : 'text-cyan-200 bg-cyan-500/30 border-cyan-400/50'
+                                }`}
+                                initial={{ opacity: 0, scale: 0.5, rotateX: -90, y: 20 }}
+                                animate={isInView ? { opacity: 1, scale: 1, rotateX: 0, y: 0 } : { opacity: 0, scale: 0.5, rotateX: -90, y: 20 }}
+                                transition={{ 
+                                  duration: 0.5, 
+                                  delay: index * 0.05 + 0.6 + idx * 0.05,
+                                  ease: "easeOut"
+                                }}
+                                whileHover={{ 
+                                  scale: 1.02, 
+                                  rotateY: 2,
+                                  rotateX: 1,
+                                  boxShadow: product.isPremium 
+                                    ? '0 2px 8px rgba(168, 85, 247, 0.2)'
+                                    : '0 2px 8px rgba(0, 212, 255, 0.2)'
+                                }}
+                                style={{ transformStyle: 'preserve-3d' }}
                               >
                                 {feature}
                               </motion.span>
                             ))}
-                            {product.material && (
-                              <motion.span
-                                className="text-xs text-cyan-300 bg-cyan-400/20 px-2 py-1 rounded-md border border-cyan-400/30"
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.2 }}
+                            {product.features?.length > 2 && (
+                              <motion.span 
+                                className="text-xs px-2.5 py-1.5 rounded-lg font-medium text-slate-400 bg-slate-700/40 border border-slate-600/50 backdrop-blur-sm"
+                                initial={{ opacity: 0, scale: 0.5, rotateX: -90, y: 20 }}
+                                animate={isInView ? { opacity: 1, scale: 1, rotateX: 0, y: 0 } : { opacity: 0, scale: 0.5, rotateX: -90, y: 20 }}
+                                transition={{ 
+                                  duration: 0.6, 
+                                  delay: index * 0.1 + 0.9,
+                                  ease: "easeOut"
+                                }}
+                                whileHover={{ 
+                                  scale: 1.1, 
+                                  rotateY: -10,
+                                  rotateX: 5
+                                }}
+                                style={{ transformStyle: 'preserve-3d' }}
                               >
-                                {product.material}
+                                +{product.features.length - 2} more
                               </motion.span>
                             )}
-                            {product.features?.length > 2 && (
-                              <span className="text-xs text-white/60 px-2 py-1 bg-white/5 rounded-md">
-                                +{product.features.length - 2} more
-                              </span>
-                            )}
                           </div>
                         </div>
                         
-                        {/* Brand and Collection Info */}
-                        <div className="mb-2">
-                          <div className="flex items-center gap-2 text-xs text-white/80">
-                            {product.brand && (
-                              <span className="font-semibold text-cyan-300">{product.brand}</span>
-                            )}
-                            {product.collection && (
-                              <span className="text-white/60">• {product.collection}</span>
-                            )}
-                            {product.modelNumber && (
-                              <span className="text-white/50">• {product.modelNumber}</span>
-                            )}
-                          </div>
-                          {/* Availability and Shipping Info */}
-                          <div className="flex items-center gap-2 mt-1">
-                            {product.availability && (
-                              <span className="text-xs text-green-400 bg-green-400/20 px-2 py-0.5 rounded-md">
-                                {product.availability}
-                              </span>
-                            )}
-                            {product.shipping && (
-                              <span className="text-xs text-blue-400 bg-blue-400/20 px-2 py-0.5 rounded-md">
-                                {product.shipping}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Available Options Info - No Selectors */}
-                        <div className="mb-3 flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <div className="text-xs text-white/70">Colors:</div>
-                            <div className="flex items-center gap-1">
-                              {product.colors.slice(0, 3).map((color, colorIndex) => (
-                                <div
-                                  key={colorIndex}
-                                  className="w-3 h-3 rounded-full border border-white/30"
-                                  style={{ backgroundColor: color.value }}
-                                  title={color.name}
-                                />
-                              ))}
-                              {product.colors.length > 3 && (
-                                <span className="text-xs text-white/60 ml-1">+{product.colors.length - 3}</span>
+                        {/* Footer Section - 3D Enhanced */}
+                        <div className="space-y-2 relative z-10">
+                          {/* Price Section */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-col">
+                              <div className="flex items-baseline gap-2">
+                                <motion.span
+                                  className={`text-2xl font-bold ${
+                                    product.isPremium ? 'text-purple-200' : 'text-white'
+                                  }`}
+                                  initial={{ opacity: 0, y: 20, rotateX: -45, scale: 0.8 }}
+                                  animate={isInView ? { opacity: 1, y: 0, rotateX: 0, scale: 1 } : { opacity: 0, y: 20, rotateX: -45, scale: 0.8 }}
+                                  transition={{ duration: 0.6, delay: index * 0.05 + 0.8 }}
+                                  whileHover={{ 
+                                    scale: 1.01, 
+                                    rotateY: 1,
+                                    textShadow: product.isPremium 
+                                      ? '0 0 10px rgba(168, 85, 247, 0.2)'
+                                      : '0 0 10px rgba(0, 212, 255, 0.2)'
+                                  }}
+                                  style={{ transformStyle: 'preserve-3d' }}
+                                >
+                                  {product.isPremium ? `${product.price} TL` : `$${product.price}`}
+                                </motion.span>
+                                {product.originalPrice && (
+                                  <motion.span 
+                                    className={`text-sm line-through font-medium ${
+                                      product.isPremium ? 'text-slate-400' : 'text-slate-500'
+                                    }`}
+                                    initial={{ opacity: 0, x: -20, rotateY: -45 }}
+                                    animate={isInView ? { opacity: 1, x: 0, rotateY: 0 } : { opacity: 0, x: -20, rotateY: -45 }}
+                                    transition={{ duration: 0.5, delay: index * 0.05 + 0.9 }}
+                                    whileHover={{ scale: 1.01, rotateY: 1 }}
+                                    style={{ transformStyle: 'preserve-3d' }}
+                                  >
+                                    {product.isPremium ? `${product.originalPrice} TL` : `$${product.originalPrice}`}
+                                  </motion.span>
+                                )}
+                              </div>
+                              {product.discount && (
+                                <motion.div
+                                  className="flex items-center gap-1.5 mt-2"
+                                  initial={{ opacity: 0, y: 15, rotateX: -30 }}
+                                  animate={isInView ? { opacity: 1, y: 0, rotateX: 0 } : { opacity: 0, y: 15, rotateX: -30 }}
+                                  transition={{ duration: 0.5, delay: index * 0.05 + 1.0 }}
+                                >
+                                  <motion.span 
+                                    className="text-xs text-green-400 bg-green-500/30 px-2.5 py-1.5 rounded-lg border border-green-400/50 backdrop-blur-sm"
+                                    whileHover={{ 
+                                      scale: 1.02, 
+                                      rotateY: 2,
+                                      boxShadow: '0 2px 8px rgba(34, 197, 94, 0.2)'
+                                    }}
+                                    style={{ transformStyle: 'preserve-3d' }}
+                                  >
+                                    Save {product.originalPrice - product.price} TL
+                                  </motion.span>
+                                  {product.shippingInfo && (
+                                    <motion.span 
+                                      className="text-xs text-blue-400 bg-blue-500/30 px-2.5 py-1.5 rounded-lg border border-blue-400/50 backdrop-blur-sm"
+                                      whileHover={{ 
+                                        scale: 1.02, 
+                                        rotateY: -2,
+                                        boxShadow: '0 2px 8px rgba(59, 130, 246, 0.2)'
+                                      }}
+                                      style={{ transformStyle: 'preserve-3d' }}
+                                    >
+                                      {product.shippingInfo}
+                                    </motion.span>
+                                  )}
+                                </motion.div>
                               )}
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="text-xs text-white/70">Sizes:</div>
-                            <div className="text-xs text-white/90 font-medium">
-                              {product.sizes.slice(0, 2).join(', ')}
-                              {product.sizes.length > 2 && ` +${product.sizes.length - 2} more`}
-                            </div>
-                          </div>
-                        </div>
                         
-                        {/* Enhanced Price and Add to Cart */}
-                        <div className="flex items-center justify-between mt-3">
-                          <div className="flex items-baseline gap-4">
-                            <motion.span 
-                              className="text-3xl font-black text-white drop-shadow-lg"
-                              whileHover={{ scale: 1.05 }}
-                            >
-                              ${product.price}
-                            </motion.span>
-                            {product.originalPrice && (
-                              <span className="text-lg text-white/60 line-through font-bold">
-                                ${product.originalPrice}
-                              </span>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            {/* Enhanced Add to Cart Button - Cart Icon Only */}
-                            <motion.button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleQuickAdd(product);
-                              }}
-                              className="group relative p-4 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-cyan-400 text-white shadow-xl border-2 border-cyan-400/60 hover:from-blue-600 hover:to-cyan-500 transition-all duration-300 hover:shadow-cyan-400/50 hover:shadow-2xl"
-                              whileHover={{ 
-                                scale: 1.1,
-                                rotate: [0, -5, 5, 0],
-                                transition: { duration: 0.3 }
-                              }}
-                              whileTap={{ scale: 0.95 }}
-                              title="Add to Cart"
-                            >
-                              <ShoppingCart className="w-6 h-6" />
-                              
-                              {/* Pulse animation on hover */}
-                              <motion.div
-                                className="absolute inset-0 rounded-full bg-cyan-400/30"
-                                initial={{ scale: 0, opacity: 0 }}
+                            {/* Action Buttons - 3D Enhanced */}
+                            <div className="flex items-center gap-2">
+                              {/* Add to Cart Button */}
+                              <motion.button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleQuickAdd(product);
+                                }}
+                                className={`group relative p-3 rounded-lg text-white shadow-lg border transition-all duration-300 hover:shadow-xl ${
+                                  product.isPremium 
+                                    ? 'bg-gradient-to-r from-purple-600 to-pink-500 border-purple-400/50 hover:from-purple-700 hover:to-pink-600'
+                                    : 'bg-gradient-to-r from-cyan-500 to-blue-500 border-cyan-400/50 hover:from-cyan-600 hover:to-blue-600'
+                                }`}
+                                initial={{ opacity: 0, scale: 0.5, rotateX: -90, y: 20 }}
+                                animate={isInView ? { opacity: 1, scale: 1, rotateX: 0, y: 0 } : { opacity: 0, scale: 0.5, rotateX: -90, y: 20 }}
+                                transition={{ duration: 0.6, delay: index * 0.05 + 1.1 }}
                                 whileHover={{ 
-                                  scale: 1.4, 
-                                  opacity: [0, 0.5, 0],
-                                  transition: { duration: 0.6, repeat: Infinity }
+                                  scale: 1.02, 
+                                  rotateY: 2,
+                                  rotateX: 1,
+                                  boxShadow: product.isPremium 
+                                    ? '0 3px 15px rgba(168, 85, 247, 0.2)'
+                                    : '0 3px 15px rgba(0, 212, 255, 0.2)'
                                 }}
-                              />
-                            </motion.button>
-                            {/* Enhanced Wishlist Button with Blow-up Animation */}
-                            <motion.button
-                              onClick={(e) => handleToggleWishlist(product, e)}
-                              className={`p-4 rounded-full shadow-xl border-2 transition-all duration-300 ${
-                                isInWishlistCustom(String(product.id))
-                                  ? 'bg-red-500/20 text-red-500 border-red-500/60 hover:bg-red-500/30'
-                                  : 'bg-white/15 text-white hover:bg-white/25 border-white/30'
-                              }`}
-                              whileHover={{ 
-                                scale: 1.15,
-                                boxShadow: isInWishlistCustom(String(product.id)) 
-                                  ? '0 0 25px rgba(239, 68, 68, 0.6)' 
-                                  : '0 0 25px rgba(255, 255, 255, 0.3)'
-                              }}
-                              whileTap={{ 
-                                scale: 0.9,
-                                transition: { duration: 0.1 }
-                              }}
-                              animate={wishlistAnimating === product.id ? {
-                                scale: [1, 1.4, 1],
-                                boxShadow: [
-                                  '0 0 0px rgba(239, 68, 68, 0)',
-                                  '0 0 40px rgba(239, 68, 68, 1)',
-                                  '0 0 0px rgba(239, 68, 68, 0)'
-                                ]
-                              } : {}}
-                              transition={{
-                                scale: { duration: 0.3, ease: "easeOut" },
-                                boxShadow: { duration: 0.3, ease: "easeOut" }
-                              }}
-                              title={isInWishlistCustom(String(product.id)) ? 'Remove from Wishlist' : 'Add to Wishlist'}
-                            >
-                              <motion.div
-                                animate={wishlistAnimating === product.id ? {
-                                  scale: [1, 1.3, 1],
-                                  rotate: [0, 15, -15, 0]
-                                } : {}}
-                                transition={{
-                                  duration: 0.5,
-                                  ease: "easeOut"
-                                }}
+                                whileTap={{ scale: 0.98, rotateY: -1 }}
+                                style={{ transformStyle: 'preserve-3d' }}
+                                title="Add to Cart"
                               >
-                                <Heart className={`w-5 h-5 transition-all duration-300 ${
-                                  isInWishlistCustom(String(product.id)) 
-                                    ? 'text-red-500 fill-red-500' 
-                                    : 'text-white'
-                                }`} />
-                              </motion.div>
-                              
-                              {/* Blow-up Effect Overlay */}
-                              <motion.div
-                                className="absolute inset-0 rounded-full bg-red-500/40"
-                                initial={{ scale: 0, opacity: 0 }}
-                                animate={wishlistAnimating === product.id ? {
-                                  scale: [0, 2.5, 0],
-                                  opacity: [0, 1, 0]
-                                } : {}}
-                                transition={{
-                                  duration: 0.8,
-                                  ease: "easeOut"
+                                <ShoppingCart className="w-5 h-5" />
+                              </motion.button>
+                              {/* Wishlist Button */}
+                              <motion.button
+                                onClick={(e) => handleToggleWishlist(product, e)}
+                                className={`p-3 rounded-lg shadow-lg border transition-all duration-300 ${
+                                  isInWishlistCustom(String(product.id))
+                                    ? 'bg-red-500/20 border-red-400/50 text-red-400 hover:bg-red-500/30'
+                                    : 'bg-slate-700/50 border-slate-600/50 text-slate-400 hover:bg-slate-600/50 hover:text-white'
+                                }`}
+                                initial={{ opacity: 0, scale: 0.5, rotateX: -90, y: 20 }}
+                                animate={isInView ? { opacity: 1, scale: 1, rotateX: 0, y: 0 } : { opacity: 0, scale: 0.5, rotateX: -90, y: 20 }}
+                                transition={{ duration: 0.6, delay: index * 0.05 + 1.2 }}
+                                whileHover={{ 
+                                  scale: 1.02, 
+                                  rotateY: -2,
+                                  rotateX: 1,
+                                  boxShadow: isInWishlistCustom(String(product.id))
+                                    ? '0 3px 15px rgba(239, 68, 68, 0.2)'
+                                    : '0 3px 15px rgba(71, 85, 105, 0.2)'
                                 }}
-                              />
-                              
-                              {/* Pulse Effect */}
-                              <motion.div
-                                className="absolute inset-0 rounded-full border-2 border-red-500/70"
-                                initial={{ scale: 1, opacity: 0 }}
-                                animate={wishlistAnimating === product.id ? {
-                                  scale: [1, 2, 1],
-                                  opacity: [0, 0.8, 0]
-                                } : {}}
-                                transition={{
-                                  duration: 1,
-                                  ease: "easeOut",
-                                  delay: 0.1
-                                }}
-                              />
-                            </motion.button>
+                                whileTap={{ scale: 0.98, rotateY: 1 }}
+                                style={{ transformStyle: 'preserve-3d' }}
+                                title={isInWishlistCustom(String(product.id)) ? "Remove from Wishlist" : "Add to Wishlist"}
+                              >
+                                <Heart className={`w-5 h-5 ${isInWishlistCustom(String(product.id)) ? 'fill-current' : ''}`} />
+                              </motion.button>
+                            </div>
                           </div>
                         </div>
                       </div>
