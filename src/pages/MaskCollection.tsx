@@ -1064,7 +1064,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
 
         {/* Enhanced Product Title with Better Readability */}
         <motion.h3
-          className="text-xl font-black text-white mb-3 leading-tight relative"
+          className="text-lg sm:text-xl lg:text-2xl font-black text-white mb-2 sm:mb-3 leading-tight relative line-clamp-2"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -2047,7 +2047,7 @@ const MaskCollection = () => {
                   </Canvas>
                 </div>
                 <motion.h2 
-                  className="text-2xl font-bold text-white mb-4"
+                  className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-3 sm:mb-4 px-2"
                   animate={{ opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
@@ -2155,7 +2155,7 @@ const MaskCollection = () => {
 
                   {/* Main Title */}
                   <motion.h1 
-                    className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-white via-cyan-300 to-white bg-clip-text text-transparent relative"
+                    className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-white via-cyan-300 to-white bg-clip-text text-transparent relative px-2"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.5 }}
@@ -2215,7 +2215,7 @@ const MaskCollection = () => {
                 transition={{ duration: 1, delay: 0.7 }}
               >
                 <motion.p 
-                  className="text-xl md:text-2xl text-white/90 max-w-4xl mx-auto leading-relaxed font-light"
+                  className="text-base xs:text-lg sm:text-xl md:text-2xl text-white/90 max-w-xs xs:max-w-sm sm:max-w-2xl md:max-w-4xl mx-auto leading-relaxed font-light px-3 sm:px-4"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 1, delay: 0.8 }}
@@ -2439,16 +2439,16 @@ const MaskCollection = () => {
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 px-2">
                   Explore Our Collections
                 </h2>
-                <p className="text-white/60 text-sm">
+                <p className="text-white/60 text-xs sm:text-sm px-2 mx-auto max-w-md sm:max-w-lg">
                   Choose your preferred category to discover the perfect mask
                 </p>
               </motion.div>
 
                              {/* Professional Filter Buttons - Enhanced Mobile Responsiveness */}
-               <div className="flex flex-wrap justify-center gap-2 sm:gap-3 lg:gap-4 px-4 sm:px-6 lg:px-8">
+               <div className="flex flex-wrap justify-center gap-1.5 xs:gap-2 sm:gap-3 lg:gap-4 p-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
                  {[
                    { id: 'all', label: 'All Masks', color: 'cyan', icon: <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" /> },
                    { id: 'standard', label: 'Standard', color: 'blue', icon: <Shield className="w-3 h-3 sm:w-4 sm:h-4" /> },
@@ -2465,7 +2465,7 @@ const MaskCollection = () => {
                    >
                      <motion.button
                        onClick={() => setActiveSection(section.id)}
-                       className={`relative px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold transition-all duration-500 overflow-hidden group backdrop-blur-sm text-sm sm:text-base lg:text-lg ${
+                       className={`relative px-3 xs:px-4 sm:px-6 lg:px-8 py-2 xs:py-3 sm:py-4 rounded-lg sm:rounded-xl lg:rounded-2xl font-semibold transition-all duration-500 overflow-hidden group backdrop-blur-sm text-xs xs:text-sm sm:text-base lg:text-lg ${
                          activeSection === section.id
                            ? `bg-gradient-to-r from-${section.color}-500 to-${section.color}-600 text-white shadow-2xl border-2 border-${section.color}-400/50`
                            : 'bg-white/5 text-white/70 hover:bg-white/10 border-2 border-white/10 hover:border-white/20 hover:text-white/90'
@@ -2602,7 +2602,7 @@ const MaskCollection = () => {
 
             {/* Product Grid - Enhanced Mobile Responsiveness */}
             <motion.div
-              className={`grid gap-4 sm:gap-6 lg:gap-8 xl:gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 px-4 sm:px-6 lg:px-8`}
+              className={`grid gap-4 sm:gap-6 lg:gap-8 xl:gap-10 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 p-2 sm:px-4 md:px-6 lg:px-8`}
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
@@ -2648,7 +2648,7 @@ const MaskCollection = () => {
                     <motion.div
                       ref={cardRef}
                       key={product.id}
-                      className="group relative rounded-2xl sm:rounded-3xl overflow-hidden h-[500px] sm:h-[600px] lg:h-[650px]"
+                      className="group relative rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden h-[400px] sm:h-[500px] md:h-[550px] lg:h-[650px]"
                       style={{ transformStyle: 'preserve-3d' }}
                       initial={{ 
                         opacity: 0, 
@@ -2892,8 +2892,8 @@ const MaskCollection = () => {
                       </motion.div>
 
                       
-                      {/* Elegant Photo Section - Maximum Height */}
-                      <div className="relative h-96 overflow-hidden"> 
+                      {/* Elegant Photo Section - Responsive Height */}
+                      <div className="relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden"> 
                         {/* Base Image with Enhanced Styling */}
                         <motion.img
                           ref={el => (imageRefs.current[product.id] = el)}

@@ -101,7 +101,7 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
           
           {/* Main Card */}
           <motion.div
-            className="relative bg-gradient-to-br from-slate-900/90 via-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-6 overflow-hidden"
+            className="relative bg-gradient-to-br from-slate-900/90 via-slate-800/90 to-slate-900/90 backdrop-blur-xl border border-slate-700/50 rounded-xl sm:rounded-2xl p-3 sm:p-6 overflow-hidden"
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
@@ -113,11 +113,11 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
             
             {/* Header Section */}
             <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-3">
                 <div className="relative">
                   {/* Product Image */}
                   <motion.div
-                    className="w-16 h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-xl overflow-hidden"
+                    className="w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-cyan-400 to-purple-500 rounded-lg sm:rounded-xl overflow-hidden"
                     whileHover={{ rotate: 5, scale: 1.1 }}
                     transition={{ duration: 0.2 }}
                   >
@@ -126,15 +126,17 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
                         src={(item.product as any).image} 
                         alt={item.product.name || 'Product'}
                         className="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Package className="w-8 h-8 text-white" />
+                        <Package className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                       </div>
                     )}
                   </motion.div>
                   <motion.div
-                    className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-xs text-white font-bold"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 sm:w-6 sm:h-6 bg-red-500 rounded-full flex items-center justify-center text-2xs sm:text-xs text-white font-bold"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
@@ -143,42 +145,42 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
                   </motion.div>
                 </div>
                 
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <motion.h3 
-                    className="text-lg font-bold text-white mb-1"
+                    className="text-base sm:text-lg font-bold text-white mb-1 truncate"
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 }}
                   >
                     {item.product?.name || 'Product Name'}
                   </motion.h3>
-                  <div className="flex items-center space-x-2 mb-2">
+                  <div className="flex flex-wrap gap-2 mb-1.5 sm:mb-2">
                     {/* Color Swatch */}
                     {(item.variant as any)?.color_value && (
                       <div className="flex items-center space-x-1">
                         <div 
-                          className="w-4 h-4 rounded-full border border-slate-600"
+                          className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border border-slate-600"
                           style={{ backgroundColor: (item.variant as any).color_value }}
                         />
-                        <span className="text-sm text-slate-400">
+                        <span className="text-2xs sm:text-sm text-slate-400">
                           {item.variant.color}
                         </span>
                       </div>
                     )}
                     {/* Size */}
                     {item.variant?.size && (
-                      <span className="text-sm text-slate-400">
+                      <span className="text-2xs sm:text-sm text-slate-400">
                         Size {item.variant.size}
                       </span>
                     )}
                   </div>
                   {/* Price per unit */}
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-slate-400">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-2xs sm:text-sm text-slate-400">
                       ${getItemPrice().toFixed(2)} each
                     </span>
                     {item.product?.compare_price && item.product.compare_price > getItemPrice() && (
-                      <span className="text-sm text-green-400 line-through">
+                      <span className="text-2xs sm:text-sm text-green-400 line-through">
                         ${item.product.compare_price.toFixed(2)}
                       </span>
                     )}
@@ -187,16 +189,17 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
               </div>
               
               {/* Action Buttons */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <motion.button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setShowDetails(!showDetails);
                   }}
-                  className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-colors"
+                  className="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
+                  aria-label={showDetails ? "Hide details" : "Show details"}
                 >
                   <Eye className="w-4 h-4" />
                 </motion.button>
@@ -207,7 +210,7 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
                     e.stopPropagation();
                     handleRemove();
                   }}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-2 rounded-lg transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center ${
                     isRemoving 
                       ? 'bg-red-500/10 text-red-500/50 cursor-not-allowed' 
                       : 'bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300'
@@ -215,6 +218,7 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
                   whileHover={!isRemoving ? { scale: 1.1 } : {}}
                   whileTap={!isRemoving ? { scale: 0.95 } : {}}
                   disabled={isRemoving}
+                  aria-label="Remove item"
                 >
                   {isRemoving ? (
                     <motion.div
@@ -255,7 +259,7 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
               </div>
               
               {/* Quantity Controls */}
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5 sm:space-x-2 bg-slate-800/50 rounded-lg p-1">
                 <motion.button
                   onClick={(e) => {
                     e.preventDefault();
@@ -264,26 +268,27 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
                     handleQuantityChange(item.quantity - 1);
                   }}
                   disabled={item.quantity <= 1}
-                  className={`w-8 h-8 rounded-lg transition-colors flex items-center justify-center ${
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg transition-colors flex items-center justify-center min-w-[44px] min-h-[44px] ${
                     item.quantity <= 1 
                       ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed' 
                       : 'bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white'
                   }`}
-                  whileHover={item.quantity > 1 ? { scale: 1.1 } : {}}
+                  whileHover={item.quantity > 1 ? { scale: 1.05 } : {}}
                   whileTap={item.quantity > 1 ? { scale: 0.95 } : {}}
+                  aria-label="Decrease quantity"
                 >
-                  <Minus className="w-4 h-4" />
+                  <Minus className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.button>
                 
-                <motion.span
-                  className="w-12 text-center text-white font-bold"
+                <motion.div
+                  className="w-10 sm:w-12 text-center py-2 bg-slate-700/50 rounded-lg border border-slate-600/30"
                   key={item.quantity}
-                  initial={{ scale: 1.2 }}
+                  initial={{ scale: 1.1 }}
                   animate={{ scale: 1 }}
                   transition={{ duration: 0.2 }}
                 >
-                  {item.quantity}
-                </motion.span>
+                  <span className="text-sm sm:text-base text-white font-bold">{item.quantity}</span>
+                </motion.div>
                 
                 <motion.button
                   onClick={(e) => {
@@ -293,15 +298,16 @@ const CartItemCard = React.forwardRef<HTMLDivElement, CartItemCardProps>(({ item
                     handleQuantityChange(item.quantity + 1);
                   }}
                   disabled={item.quantity >= 99}
-                  className={`w-8 h-8 rounded-lg transition-colors flex items-center justify-center ${
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg transition-colors flex items-center justify-center min-w-[44px] min-h-[44px] ${
                     item.quantity >= 99
                       ? 'bg-slate-800/50 text-slate-500 cursor-not-allowed'
                       : 'bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white'
                   }`}
-                  whileHover={item.quantity < 99 ? { scale: 1.1 } : {}}
+                  whileHover={item.quantity < 99 ? { scale: 1.05 } : {}}
                   whileTap={item.quantity < 99 ? { scale: 0.95 } : {}}
+                  aria-label="Increase quantity"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.button>
               </div>
             </div>

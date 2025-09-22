@@ -23,20 +23,23 @@ const useCartHeight = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   
-  // Calculate available height for cart items
+  // Calculate available height for cart items with improved mobile responsiveness
   const getCartItemsHeight = useCallback(() => {
-    const headerHeight = 140; // Increased header height
-    const checkoutHeight = 250; // Increased checkout section height
-    const padding = 60; // Increased padding for safety
+    // Dynamic header height based on screen size
+    const headerHeight = windowHeight < 640 ? 100 : 120; // Smaller on mobile
+    // Dynamic checkout height based on screen size
+    const checkoutHeight = windowHeight < 640 ? 200 : 220; 
+    // Smaller padding on mobile
+    const padding = windowHeight < 640 ? 40 : 50;
+    
     const availableHeight = windowHeight - headerHeight - checkoutHeight - padding;
-    const calculatedHeight = Math.max(availableHeight, 150); // Reduced minimum height
     
-    // More conservative fallback
-    if (calculatedHeight < 150 || calculatedHeight > windowHeight * 0.7) {
-      return Math.min(windowHeight * 0.5, 350); // 50% of viewport or max 350px
-    }
+    // Ensure minimum height on small screens
+    const minHeight = windowHeight < 640 ? 200 : 250;
+    // Cap maximum height on larger screens
+    const maxHeight = windowHeight * 0.5;
     
-    return calculatedHeight;
+    return Math.min(Math.max(availableHeight, minHeight), maxHeight);
   }, [windowHeight]);
   
   return { windowHeight, getCartItemsHeight };
@@ -651,15 +654,31 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
     });
   }, [items.length, getCartItemsHeight]);
 
-  // Sidebar animation variants
+  // Sidebar animation variants optimized for mobile
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 640;
+  
   const sidebarVariants = {
-    closed: { x: "100%", opacity: 0 },
-    open: { x: 0, opacity: 1 }
+    closed: { 
+      x: "100%",
+      opacity: isDesktop ? 0 : 1 // Only fade on desktop for better performance
+    },
+    open: { 
+      x: 0,
+      opacity: 1
+    }
   };
 
   const backdropVariants = {
-    closed: { opacity: 0, pointerEvents: "none" },
-    open: { opacity: 1, pointerEvents: "auto" }
+    closed: { 
+      opacity: 0,
+      pointerEvents: "none",
+      transition: { duration: 0.2 }
+    },
+    open: { 
+      opacity: 1,
+      pointerEvents: "auto",
+      transition: { duration: 0.3 }
+    }
   };
 
   return (
@@ -687,7 +706,13 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
             initial="closed"
             animate="open"
             exit="closed"
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: isDesktop ? 300 : 400,
+              damping: isDesktop ? 30 : 40,
+              mass: 0.8 // Lighter mass for better mobile performance
+            }}
+            style={{ willChange: 'transform' }} // Optimize browser rendering
           >
             {/* Header - Enhanced Mobile & Desktop Styling */}
             <motion.div 
@@ -717,12 +742,14 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                 </motion.div>
                 
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center space-x-2">
-                    <InlineLogo size="sm" className="flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8" />
+                  <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <InlineLogo size="sm" className="flex-shrink-0 w-5 h-5 sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
                     <div className="min-w-0 flex-1">
-                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold bg-gradient-to-r from-white via-cyan-300 to-white bg-clip-text text-transparent truncate">Your Vault</h2>
-                      <p className="text-slate-400 text-xs sm:text-sm lg:text-base truncate">
-                        {itemCount} item{itemCount !== 1 ? 's' : ''} • ${subtotal.toFixed(2)}
+                      <h2 className="text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-white via-cyan-300 to-white bg-clip-text text-transparent truncate">Your Vault</h2>
+                      <p className="text-slate-400 text-2xs sm:text-sm lg:text-base truncate flex items-center space-x-1">
+                        <span>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+                        <span>•</span>
+                        <span className="font-medium">${subtotal.toFixed(2)}</span>
                       </p>
                     </div>
                   </div>
@@ -816,16 +843,18 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                       {items.map((item, index) => (
                         <motion.div
                           key={getItemKey(item as any)}
-                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
                           transition={{ 
-                            duration: 0.3, 
+                            duration: 0.2,
                             ease: "easeOut",
-                            delay: index * 0.1 
+                            delay: isDesktop ? index * 0.05 : 0 // Remove delay on mobile for better performance
                           }}
                           layout
+                          layoutDependency={item.quantity} // Only trigger layout animations when quantity changes
                           className="relative"
+                          style={{ willChange: 'transform, opacity' }}
                         >
                           {/* Enhanced Cart Item with Direct Button Controls - Mobile Optimized */}
                           <div className="relative bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl border border-slate-700/60 rounded-xl sm:rounded-2xl p-3 sm:p-4 lg:p-5 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">

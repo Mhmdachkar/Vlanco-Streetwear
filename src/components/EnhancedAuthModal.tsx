@@ -241,10 +241,11 @@ export default function EnhancedAuthModal({
         className="auth-modal-content"
         style={{
           backgroundColor: '#1e293b !important',
-          borderRadius: '20px !important',
-          padding: '32px !important',
-          minWidth: '420px !important',
-          maxWidth: '480px !important',
+          borderRadius: '16px !important',
+          padding: '24px !important',
+          width: '90% !important',
+          maxWidth: '420px !important',
+          minWidth: 'auto !important',
           width: '100% !important',
           border: '1px solid #475569 !important',
           position: 'relative !important',

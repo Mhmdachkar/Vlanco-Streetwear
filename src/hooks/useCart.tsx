@@ -71,28 +71,133 @@ function useProvideCart(): CartContextValue {
     return user ? `vlanco_cart_${user.id}` : 'vlanco_guest_cart';
   }, [user]);
 
-  // Load cart from localStorage
+  // Load cart from localStorage with validation and migration
   const loadCart = useCallback(() => {
     try {
       const cartKey = getCartKey();
       const savedCart = localStorage.getItem(cartKey);
-      if (savedCart) {
+      
+      if (!savedCart) {
+        if (user) {
+          // If authenticated but no cart exists, check for guest cart to migrate
+          const guestCartKey = 'vlanco_guest_cart';
+          const guestCart = localStorage.getItem(guestCartKey);
+          
+          if (guestCart) {
+            // Migrate guest cart to user cart
+            console.log('🔄 Migrating guest cart to user cart');
+            const parsedGuestCart = JSON.parse(guestCart);
+            
+            // Update cart items with user ID
+            const migratedCart = parsedGuestCart.map((item: CartItem) => ({
+              ...item,
+              user_id: user.id
+            }));
+            
+            setItems(migratedCart);
+            saveCart(migratedCart);
+            localStorage.removeItem(guestCartKey); // Clear guest cart
+            return;
+          }
+        }
+        setItems([]);
+        return;
+      }
+      
+      try {
         const parsedCart = JSON.parse(savedCart);
-        setItems(parsedCart);
-      } else {
+        
+        // Validate cart structure
+        if (!Array.isArray(parsedCart)) {
+          console.error('Invalid cart structure, resetting');
+          setItems([]);
+          return;
+        }
+        
+        // Validate and filter cart items
+        const validatedCart = parsedCart.filter((item: any) => {
+          // Ensure required fields exist
+          const hasRequiredFields = 
+            item &&
+            item.id &&
+            item.product_id &&
+            item.variant_id &&
+            typeof item.quantity === 'number' &&
+            item.product &&
+            item.variant;
+          
+          if (!hasRequiredFields) {
+            console.warn('Filtered out invalid cart item:', item);
+            return false;
+          }
+          
+          // Ensure correct user ownership
+          if (user && item.user_id !== user.id) {
+            console.warn('Filtered out item with mismatched user_id:', item);
+            return false;
+          }
+          
+          return true;
+        });
+        
+        if (validatedCart.length !== parsedCart.length) {
+          // Some items were filtered out, save the cleaned cart
+          saveCart(validatedCart);
+        }
+        
+        setItems(validatedCart);
+        
+      } catch (parseError) {
+        console.error('Failed to parse cart:', parseError);
         setItems([]);
       }
     } catch (error) {
+      console.error('Failed to load cart:', error);
       setItems([]);
     }
-  }, [getCartKey]);
+  }, [getCartKey, user, saveCart]);
 
-  // Save cart to localStorage
+  // Save cart to localStorage with retry mechanism and validation
   const saveCart = useCallback((cartItems: CartItem[]) => {
-    try {
-      const cartKey = getCartKey();
-      localStorage.setItem(cartKey, JSON.stringify(cartItems));
-    } catch (error) {
+    const maxRetries = 3;
+    let currentTry = 0;
+
+    const attemptSave = (): boolean => {
+      try {
+        const cartKey = getCartKey();
+        const serializedCart = JSON.stringify(cartItems);
+        
+        // Save the cart
+        localStorage.setItem(cartKey, serializedCart);
+        
+        // Verify the save was successful
+        const savedCart = localStorage.getItem(cartKey);
+        if (savedCart === serializedCart) {
+          return true; // Save successful
+        }
+        return false; // Save verification failed
+      } catch (error) {
+        console.error('Failed to save cart:', error);
+        return false;
+      }
+    };
+
+    // Retry logic with exponential backoff
+    const retryWithBackoff = () => {
+      if (currentTry < maxRetries) {
+        setTimeout(() => {
+          if (!attemptSave()) {
+            currentTry++;
+            retryWithBackoff();
+          }
+        }, Math.pow(2, currentTry) * 100); // Exponential backoff: 100ms, 200ms, 400ms
+      } else {
+        console.error('Failed to save cart after maximum retries');
+      }
+    };
+
+    if (!attemptSave()) {
+      retryWithBackoff();
     }
   }, [getCartKey]);
 
