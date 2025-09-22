@@ -1689,7 +1689,7 @@ const TShirtCollection = () => {
                 return (
                   <motion.div
                     key={product.id}
-                    className="group relative rounded-3xl overflow-hidden h-auto sm:h-[600px] md:h-[650px]"
+                    className="group relative rounded-3xl overflow-hidden h-[650px]"
                     initial={{ opacity: 0, y: 40, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -1802,7 +1802,7 @@ const TShirtCollection = () => {
                       />
                       
                       {/* Enhanced Product Image Container */}
-                      <div className={`relative overflow-hidden h-64 sm:h-80 md:h-full`}> 
+                      <div className={`relative overflow-hidden h-full`}> 
                         {/* Base Image */}
                         <motion.img
                           ref={el => (imageRefs.current[product.id] = el)}
