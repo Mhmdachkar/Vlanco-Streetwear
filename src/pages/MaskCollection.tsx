@@ -1853,11 +1853,6 @@ const MaskCollection = () => {
 
   const handleToggleWishlist = async (product: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!user) {
-      setShowAuthModal(true);
-      return;
-    }
-    
     try {
       // Create comprehensive wishlist item with all product information
       const wishlistItem = {
@@ -1897,7 +1892,7 @@ const MaskCollection = () => {
         tags: product.tags || ['streetwear', 'mask', 'protection']
       };
       
-      // Use unified wishlist service
+      // Use unified wishlist service (works for guests and authenticated users)
       const success = await toggleWishlistItem(wishlistItem, user?.id);
       
       if (success && !isInWishlistCustom(String(product.id))) {
@@ -2648,7 +2643,7 @@ const MaskCollection = () => {
                     <motion.div
                       ref={cardRef}
                       key={product.id}
-                      className="group relative rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden h-[400px] sm:h-[500px] md:h-[550px] lg:h-[650px]"
+                      className="group relative rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden h-auto sm:h-[500px] md:h-[550px] lg:h-[650px]"
                       style={{ transformStyle: 'preserve-3d' }}
                       initial={{ 
                         opacity: 0, 
