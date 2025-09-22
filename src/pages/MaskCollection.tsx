@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, Suspense, useMemo, useCallback } from 'react';
-import { motion, useInView, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, useInView, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { WatermarkLogo, InlineLogo } from '@/components/VlancoLogo';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
@@ -1043,7 +1043,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
       </div>
 
       {/* Enhanced Content Section with Better Typography */}
-      <div className="relative p-6 h-2/5 flex flex-col justify-between bg-gradient-to-b from-transparent to-black/20">
+      <div className="relative p-4 sm:p-6 flex flex-col justify-between bg-gradient-to-b from-transparent to-black/20 gap-3">
         {/* Brand & Collection with Enhanced Visibility */}
         <div className="flex items-center justify-between mb-3">
           <div className="flex gap-2">
@@ -1064,7 +1064,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
 
         {/* Enhanced Product Title with Better Readability */}
         <motion.h3
-          className="text-lg sm:text-xl lg:text-2xl font-black text-white mb-2 sm:mb-3 leading-tight relative line-clamp-2"
+          className="text-base xs:text-lg sm:text-xl lg:text-2xl font-black text-white mb-1.5 sm:mb-2 leading-tight relative line-clamp-2"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -1089,19 +1089,41 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
           />
         </motion.h3>
 
+        {/* Key stats row (rating • reviews • stock) */}
+        <div className="flex items-center flex-wrap gap-3 text-[11px] xs:text-xs sm:text-sm text-white/80">
+          {typeof product.rating === 'number' && (
+            <div className="flex items-center gap-1">
+              <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-300 fill-yellow-300" />
+              <span className="font-semibold text-white">{product.rating.toFixed(1)}</span>
+            </div>
+          )}
+          {typeof product.reviews === 'number' && (
+            <div className="flex items-center gap-1">
+              <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300" />
+              <span>{product.reviews}+ reviews</span>
+            </div>
+          )}
+          {(product.stock_quantity || product.stock) && (
+            <div className="flex items-center gap-1">
+              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300" />
+              <span>In stock</span>
+            </div>
+          )}
+        </div>
+
         {/* Enhanced Description with Better Readability */}
         <motion.p
-          className="text-sm text-white/80 mb-4 line-clamp-2 leading-relaxed"
+          className="hidden xs:block text-xs sm:text-sm text-white/80 mb-2 sm:mb-3 line-clamp-2 leading-relaxed"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          {product.description.substring(0, 100)}...
+          {(product.description || '').substring(0, 120)}...
         </motion.p>
 
         {/* Enhanced Color Swatches */}
         {Array.isArray(product.colors) && product.colors.length > 0 && (
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2 mb-2 sm:mb-3">
             <span className="text-xs text-white/70 font-medium">Colors:</span>
             {product.colors.slice(0, 4).map((c, i) => (
               <motion.div 
@@ -1120,7 +1142,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
 
         {/* Enhanced Key Features */}
         {Array.isArray(product.features) && product.features.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="hidden sm:flex flex-wrap gap-2 mb-3">
             {product.features.slice(0, 3).map((feature, idx) => (
               <motion.span
                 key={idx}
@@ -1136,10 +1158,10 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
         )}
 
         {/* Enhanced Price & Add to Cart Section */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-end justify-between gap-3 sm:gap-4">
           <div>
             <motion.div
-              className="text-2xl font-black text-white mb-1"
+              className="text-xl sm:text-2xl font-black text-white mb-0.5 sm:mb-1"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
@@ -1159,7 +1181,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
               e.stopPropagation();
               onQuickAdd(product);
             }}
-            className="group relative p-3 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-cyan-400 text-white shadow-lg border-2 border-cyan-400/60 hover:from-blue-600 hover:to-cyan-500 transition-all duration-300 hover:shadow-cyan-400/50"
+            className="group relative p-3 rounded-full bg-gradient-to-br from-cyan-500 via-blue-500 to-cyan-400 text-white shadow-lg border-2 border-cyan-400/60 hover:from-blue-600 hover:to-cyan-500 transition-all duration-300 hover:shadow-cyan-400/50 w-full sm:w-auto flex items-center justify-center"
             whileHover={{ 
               scale: 1.1,
               rotate: [0, -5, 5, 0],
@@ -1206,11 +1228,14 @@ const MaskCollection = () => {
   const { trackProduct, trackAddToCart } = useAnalytics();
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, { once: false, margin: "-100px" });
+  const prefersReducedMotion = useReducedMotion();
   
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
   const [activeSection, setActiveSection] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [performanceMode, setPerformanceMode] = useState(false);
+  const isTouchDevice = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  const reduceAnimations = prefersReducedMotion || performanceMode || isTouchDevice;
   const [wishlistAnimating, setWishlistAnimating] = useState<number | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedColor, setSelectedColor] = useState<Record<number, number>>({});
@@ -1803,7 +1828,7 @@ const MaskCollection = () => {
       packaging: 'Premium Gift Box',
       singlePackageSize: '25cm x 20cm x 5cm',
       singleGrossWeight: '150g',
-      section: 'premium'
+      section: 'preorder'
     },
   ];
 
@@ -2446,10 +2471,8 @@ const MaskCollection = () => {
                <div className="flex flex-wrap justify-center gap-1.5 xs:gap-2 sm:gap-3 lg:gap-4 p-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
                  {[
                    { id: 'all', label: 'All Masks', color: 'cyan', icon: <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" /> },
-                   { id: 'standard', label: 'Standard', color: 'blue', icon: <Shield className="w-3 h-3 sm:w-4 sm:h-4" /> },
                    { id: 'premium', label: 'Premium', color: 'purple', icon: <Crown className="w-3 h-3 sm:w-4 sm:h-4" /> },
-                   { id: 'limited', label: 'Limited', color: 'yellow', icon: <Flame className="w-3 h-3 sm:w-4 sm:h-4" /> },
-                   { id: 'exclusive', label: 'Exclusive', color: 'green', icon: <Award className="w-3 h-3 sm:w-4 sm:h-4" /> }
+                   { id: 'preorder', label: 'Preorder', color: 'blue', icon: <Shield className="w-3 h-3 sm:w-4 sm:h-4" /> }
                  ].map((section, index) => (
                    <motion.div
                      key={section.id}
@@ -2577,7 +2600,7 @@ const MaskCollection = () => {
                 transition={{ duration: 0.8, delay: 0.8 }}
               >
                 <div className="flex gap-2">
-                  {['all', 'standard', 'premium', 'limited', 'exclusive'].map((sectionId, index) => (
+                  {['all', 'premium', 'preorder'].map((sectionId, index) => (
                     <motion.div
                       key={sectionId}
                       className={`w-2 h-2 rounded-full transition-all duration-300 ${
@@ -2617,14 +2640,18 @@ const MaskCollection = () => {
                 // Memoize animation values to prevent re-triggering on hover
                 const entranceAnimation = useMemo(() => {
                   if (!cardInView) return {};
-                  return {
+                  return reduceAnimations ? {
+                    opacity: 1,
+                    y: 0,
+                    scale: 1
+                  } : {
                     opacity: 1,
                     y: 0,
                     scale: 1,
                     rotateY: 0,
                     rotateX: 0
                   };
-                }, [cardInView]);
+                }, [cardInView, reduceAnimations]);
                 
                 const imageAnimation = useMemo(() => {
                   if (!cardInView) return {};
@@ -2645,20 +2672,24 @@ const MaskCollection = () => {
                       key={product.id}
                       className="group relative rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden h-auto sm:h-[500px] md:h-[550px] lg:h-[650px]"
                       style={{ transformStyle: 'preserve-3d' }}
-                      initial={{ 
-                        opacity: 0, 
-                        y: 100, 
-                        scale: 0.8,
-                        rotateY: index % 2 === 0 ? -15 : 15,
-                        rotateX: -20
+                      initial={reduceAnimations ? {
+                        opacity: 0,
+                        y: 30,
+                        scale: 0.95
+                      } : {
+                        opacity: 0,
+                        y: 60,
+                        scale: 0.9,
+                        rotateY: index % 2 === 0 ? -10 : 10,
+                        rotateX: -10
                       }}
                       animate={entranceAnimation}
                       transition={{ 
-                        duration: 0.8, 
-                        delay: index * 0.05,
+                        duration: reduceAnimations ? 0.45 : 0.8, 
+                        delay: reduceAnimations ? Math.min(index * 0.02, 0.2) : index * 0.05,
                         ease: [0.25, 0.46, 0.45, 0.94]
                       }}
-                    whileHover={{
+                    whileHover={reduceAnimations ? { scale: 1.01 } : {
                       scale: 1.02,
                       transition: { duration: 0.2, ease: "easeOut" }
                     }}
@@ -2766,26 +2797,34 @@ const MaskCollection = () => {
                           : 'bg-gradient-to-br from-slate-900/95 via-slate-800/20 to-slate-900/95 border-slate-700/30 group-hover:border-slate-600/50'
                       }`}
                       style={{ transformStyle: 'preserve-3d' }}
-                      initial={{ 
-                        opacity: 0, 
-                        y: 100, 
-                        scale: 0.8,
-                        rotateY: index % 2 === 0 ? -15 : 15,
-                        rotateX: -20
+                      initial={reduceAnimations ? {
+                        opacity: 0,
+                        y: 30,
+                        scale: 0.95
+                      } : {
+                        opacity: 0,
+                        y: 80,
+                        scale: 0.9,
+                        rotateY: index % 2 === 0 ? -10 : 10,
+                        rotateX: -10
                       }}
-                      animate={isInView ? { 
-                        opacity: 1, 
-                        y: 0, 
+                      animate={isInView ? (reduceAnimations ? {
+                        opacity: 1,
+                        y: 0,
+                        scale: 1
+                      } : {
+                        opacity: 1,
+                        y: 0,
                         scale: 1,
                         rotateY: 0,
                         rotateX: 0
-                      } : {}}
+                      }) : {}}
                       transition={{ 
-                        duration: 1.2, 
-                        delay: index * 0.1,
+                        duration: reduceAnimations ? 0.6 : 1.0, 
+                        delay: reduceAnimations ? Math.min(index * 0.03, 0.25) : index * 0.1,
                         ease: [0.25, 0.46, 0.45, 0.94]
                       }}
-                      whileHover={{ 
+                      whileHover={reduceAnimations ? { scale: 1.03 } : {
                         scale: 1.05, 
                         rotateY: 5,
                         rotateX: 2,

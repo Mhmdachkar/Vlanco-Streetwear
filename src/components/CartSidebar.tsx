@@ -701,7 +701,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed right-0 top-0 h-full w-full max-w-sm sm:max-w-md lg:max-w-lg bg-gradient-to-b from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl shadow-2xl z-[250] overflow-hidden cart-sidebar border-l border-slate-700/50"
+            className="fixed right-0 top-0 h-[100svh] w-full max-w-sm sm:max-w-md lg:max-w-lg bg-gradient-to-b from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl shadow-2xl z-[250] overflow-hidden cart-sidebar border-l border-slate-700/50"
             variants={sidebarVariants}
             initial="closed"
             animate="open"
@@ -789,7 +789,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
             </motion.div>
 
             {/* Content */}
-            <div className="flex-1 overflow-hidden relative flex flex-col" style={{ height: 'calc(100vh - 80px)' }}>
+            <div className="flex-1 overflow-hidden relative flex flex-col" style={{ height: 'calc(100svh - 80px)' }}>
               {/* Global Loading Overlay */}
               <AnimatePresence>
                 {loading && (
@@ -827,9 +827,9 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                       scrollbarColor: '#475569 #1e293b',
                       scrollBehavior: 'smooth',
                       WebkitOverflowScrolling: 'touch',
-                      height: 'calc(100vh - 320px)', // Reduced height for mobile
+                      height: 'calc(100svh - 320px)', // Reduced height for mobile
                       minHeight: '120px', // Minimum height for small screens
-                      maxHeight: 'calc(100vh - 320px)' // Maximum height constraint
+                      maxHeight: 'calc(100svh - 320px)' // Maximum height constraint
                     }}
                     onTouchStart={(e) => e.stopPropagation()}
                     onTouchMove={(e) => e.stopPropagation()}

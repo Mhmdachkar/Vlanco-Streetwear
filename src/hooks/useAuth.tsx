@@ -267,7 +267,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signIn = async (email: string, password: string, rememberMe: boolean = false) => {
+  const signIn = async (email: string, password: string, rememberMe: boolean = true) => {
     try {
       console.log('🔄 useAuth: Starting sign in process...', { email, rememberMe });
       
@@ -291,7 +291,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Reset explicit sign out flag
       setExplicitSignOut(false);
       
-      // Store remember me preference
+      // Store remember me preference (default enabled)
       if (rememberMe) {
         try {
           localStorage.setItem('vlanco_remember_me', 'true');
@@ -378,7 +378,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null);
       setExplicitSignOut(true); // Mark as explicit sign out
       
-      // Try Supabase sign out with timeout
+      // Try Supabase sign out with timeout; keep remember-me so session isn't auto-restored unless user unchecked it
       console.log('🔄 useAuth: Calling Supabase signOut...');
       
       const signOutPromise = supabase.auth.signOut({ scope: 'global' });
