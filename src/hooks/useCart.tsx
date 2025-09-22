@@ -71,6 +71,48 @@ function useProvideCart(): CartContextValue {
     return user ? `vlanco_cart_${user.id}` : 'vlanco_guest_cart';
   }, [user]);
 
+  // Save cart to localStorage with retry mechanism and validation
+  const saveCart = useCallback((cartItems: CartItem[]) => {
+    const maxRetries = 3;
+    let currentTry = 0;
+
+    const attemptSave = (): boolean => {
+      try {
+        const cartKey = getCartKey();
+        const serializedCart = JSON.stringify(cartItems);
+        
+        // Save the cart
+        localStorage.setItem(cartKey, serializedCart);
+        
+        // Verify the save was successful
+        const savedCart = localStorage.getItem(cartKey);
+        if (savedCart === serializedCart) {
+          return true; // Save successful
+        }
+        return false; // Save verification failed
+      } catch (error) {
+        console.error(`Save attempt ${currentTry + 1} failed:`, error);
+        return false;
+      }
+    };
+
+    // Retry logic
+    while (currentTry < maxRetries) {
+      if (attemptSave()) {
+        return; // Success
+      }
+      currentTry++;
+      
+      if (currentTry < maxRetries) {
+        // Wait a bit before retrying
+        setTimeout(() => {}, 100);
+      }
+    }
+    
+    // All retries failed
+    console.error('Failed to save cart after all retries');
+  }, [getCartKey]);
+
   // Load cart from localStorage with validation and migration
   const loadCart = useCallback(() => {
     try {
@@ -157,49 +199,6 @@ function useProvideCart(): CartContextValue {
     }
   }, [getCartKey, user, saveCart]);
 
-  // Save cart to localStorage with retry mechanism and validation
-  const saveCart = useCallback((cartItems: CartItem[]) => {
-    const maxRetries = 3;
-    let currentTry = 0;
-
-    const attemptSave = (): boolean => {
-      try {
-        const cartKey = getCartKey();
-        const serializedCart = JSON.stringify(cartItems);
-        
-        // Save the cart
-        localStorage.setItem(cartKey, serializedCart);
-        
-        // Verify the save was successful
-        const savedCart = localStorage.getItem(cartKey);
-        if (savedCart === serializedCart) {
-          return true; // Save successful
-        }
-        return false; // Save verification failed
-      } catch (error) {
-        console.error('Failed to save cart:', error);
-        return false;
-      }
-    };
-
-    // Retry logic with exponential backoff
-    const retryWithBackoff = () => {
-      if (currentTry < maxRetries) {
-        setTimeout(() => {
-          if (!attemptSave()) {
-            currentTry++;
-            retryWithBackoff();
-          }
-        }, Math.pow(2, currentTry) * 100); // Exponential backoff: 100ms, 200ms, 400ms
-      } else {
-        console.error('Failed to save cart after maximum retries');
-      }
-    };
-
-    if (!attemptSave()) {
-      retryWithBackoff();
-    }
-  }, [getCartKey]);
 
   // Load cart when user changes
   useEffect(() => {
