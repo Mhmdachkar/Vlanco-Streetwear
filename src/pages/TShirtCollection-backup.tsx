@@ -58,6 +58,7 @@ import droplist1Image from '@/assets/droplist/1.png';
 import droplist2Image from '@/assets/droplist/2.png';
 import droplist3Image from '@/assets/droplist/3.png';
 import droplist4Image from '@/assets/droplist/4.png';
+import tshirtIntroImage from '@/assets/ChatGPT Image Sep 22, 2025, 03_59_04 PM.png';
 
 
 
@@ -236,69 +237,7 @@ const FloatingElements = () => {
   );
 };
 
-// Enhanced Product Stats Component
-const ProductStats = ({ stats }: { stats: Array<{ icon: React.ReactNode, value: number, label: string, tooltip: string, decimals: number, suffix: string, glow: string, border: string }> }) => {
-  return (
-    <motion.div
-      className="flex flex-wrap justify-center gap-8 mb-8 relative"
-      initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: {},
-        visible: {
-          transition: { staggerChildren: 0.15 }
-        }
-      }}
-    >
-      {/* Parallax background elements */}
-      <motion.div
-        className="absolute inset-0 rounded-3xl pointer-events-none z-0"
-        style={{
-          background: 'linear-gradient(120deg, rgba(34,211,238,0.08) 0%, rgba(168,85,247,0.10) 100%)',
-          filter: 'blur(24px)',
-        }}
-        animate={{
-          backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "linear"
-        }}
-      />
-      
-      {stats.map((stat, index) => (
-        <motion.div
-          key={index}
-          className={`relative p-6 bg-black/40 backdrop-blur-xl rounded-2xl border ${stat.border} shadow-lg`}
-          style={{ boxShadow: stat.glow }}
-          variants={{
-            hidden: { opacity: 0, y: 20, scale: 0.9 },
-            visible: { opacity: 1, y: 0, scale: 1 }
-          }}
-          whileHover={{ y: -5, scale: 1.05 }}
-          transition={{ type: "spring", stiffness: 300 }}
-        >
-          <div className="text-center">
-            <div className="mb-3">{stat.icon}</div>
-            <div className="text-3xl font-black text-white mb-1">
-              {stat.value.toFixed(stat.decimals)}{stat.suffix}
-            </div>
-            <div className="text-sm text-gray-300 font-medium">{stat.label}</div>
-          </div>
-          
-          {/* Hover glow effect */}
-          <motion.div
-            className="absolute inset-0 rounded-2xl opacity-0"
-            style={{ boxShadow: stat.glow }}
-            whileHover={{ opacity: 1 }}
-            transition={{ duration: 0.3 }}
-          />
-        </motion.div>
-      ))}
-    </motion.div>
-  );
-};
+// ProductStats component removed per request (four blocks).
 
 const TShirtCollection = () => {
   const navigate = useNavigate();
@@ -327,6 +266,12 @@ const TShirtCollection = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [wishlistAnimating, setWishlistAnimating] = useState<number | null>(null);
+  const [showIntro, setShowIntro] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowIntro(false), 3200);
+    return () => clearTimeout(t);
+  }, []);
   
   // Authentic VLanco products organized by categories
   const tshirtsAndIshirts = [
@@ -840,6 +785,36 @@ const TShirtCollection = () => {
 
   return (
     <>
+      {/* Intro overlay: professional auto slide (slower) */}
+      {showIntro && (
+        <motion.div
+          className="fixed inset-0 z-[90] overflow-hidden"
+          initial={{ y: '0%' }}
+          animate={{ y: ['0%', '-100%'] }}
+          transition={{ duration: 2.2, ease: [0.22, 1, 0.36, 1], delay: 0.6 }}
+          onAnimationComplete={() => setShowIntro(false)}
+        >
+          <motion.div
+            className="absolute inset-0"
+            style={{ backgroundImage: `url(${tshirtIntroImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+            initial={{ scale: 1.08, y: 0, opacity: 1 }}
+            animate={{ scale: 1.0, y: -80, opacity: 1 }}
+            transition={{ duration: 2.4, ease: 'easeOut' }}
+          />
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.1, ease: 'easeOut' }}
+          />
+          <motion.div
+            className="absolute -left-1/3 top-0 w-2/3 h-full bg-white/5 blur-3xl"
+            initial={{ x: '-50%' }}
+            animate={{ x: ['-50%', '150%'] }}
+            transition={{ duration: 2.0, ease: 'easeInOut' }}
+          />
+        </motion.div>
+      )}
       {/* Brand Watermark Logo */}
       <WatermarkLogo className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0" />
       
@@ -954,7 +929,7 @@ const TShirtCollection = () => {
 
               {/* Enhanced Stats Bar */}
               <motion.div
-                className="flex flex-wrap justify-center gap-8 mb-8 relative"
+                className="flex flex-row flex-wrap sm:flex-wrap justify-center gap-4 sm:gap-8 mb-8 relative overflow-x-auto no-scrollbar"
                 initial="hidden"
                 animate={isInView ? "visible" : "hidden"}
                 variants={{
@@ -1099,7 +1074,7 @@ const TShirtCollection = () => {
                   return (
                     <Tooltip key={stat.label} content={stat.tooltip}>
                       <motion.div
-                        className={`relative flex flex-col items-center justify-center rounded-3xl px-12 py-10 min-w-[140px] z-10 overflow-hidden backdrop-blur-xl bg-gradient-to-br ${stat.bgGradient} border ${stat.border} shadow-2xl`}
+                        className={`relative flex flex-col items-center justify-center rounded-3xl px-6 sm:px-12 py-6 sm:py-10 min-w-[160px] sm:min-w-[140px] z-10 overflow-hidden backdrop-blur-xl bg-gradient-to-br ${stat.bgGradient} border ${stat.border} shadow-2xl`}
                         style={{ 
                           boxShadow: `${stat.glow}, inset 0 1px 0 rgba(255,255,255,0.1)`,
                         }}
