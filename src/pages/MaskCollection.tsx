@@ -1737,7 +1737,7 @@ const MaskCollection = () => {
       ]
     },
     {
-      id: 2,
+      id: 102,
       name: 'TRUST Ski Mask',
       price: 590.00,
       originalPrice: 850.00,
@@ -1784,7 +1784,7 @@ const MaskCollection = () => {
       section: 'premium'
     },
     {
-      id: 3,
+      id: 103,
       name: 'TATTO Mask',
       price: 590.00,
       originalPrice: 850.00,
@@ -1832,7 +1832,15 @@ const MaskCollection = () => {
     },
   ];
 
-  const filteredProducts = mockMasks.filter(product => 
+  // Ensure sections strictly follow visual style:
+  // - Purple (isPremium) => 'premium'
+  // - All others => 'preorder'
+  const normalizedMasks = mockMasks.map((p) => ({
+    ...p,
+    section: p.isPremium ? 'premium' : 'preorder'
+  }));
+
+  const filteredProducts = normalizedMasks.filter(product => 
     activeSection === 'all' || product.section === activeSection
   );
 
@@ -2633,42 +2641,21 @@ const MaskCollection = () => {
                 const canAdd = colorOptions.length > 0 ? colorIdx !== undefined : true;
                 const canAddSize = sizeOptions.length > 0 ? !!size : true;
                 
-                // Individual card ref and inView detection
-                const cardRef = useRef(null);
-                const cardInView = useInView(cardRef, { once: true, margin: "-50px" });
-                
-                // Memoize animation values to prevent re-triggering on hover
-                const entranceAnimation = useMemo(() => {
-                  if (!cardInView) return {};
-                  return reduceAnimations ? {
-                    opacity: 1,
-                    y: 0,
-                    scale: 1
-                  } : {
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                    rotateY: 0,
-                    rotateX: 0
-                  };
-                }, [cardInView, reduceAnimations]);
-                
-                const imageAnimation = useMemo(() => {
-                  if (!cardInView) return {};
-                  return {
-                    scale: 1,
-                    rotate: 0,
-                    x: 0,
-                    y: 0,
-                    opacity: 1,
-                    filter: 'brightness(1.1) contrast(1.1) saturate(1.05)'
-                  };
-                }, [cardInView]);
-                
+                // Precomputed animation values (no hooks inside loops)
+                const entranceAnimation = reduceAnimations ? {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1
+                } : {
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                  rotateY: 0,
+                  rotateX: 0
+                };
                 
                 return (
                     <motion.div
-                      ref={cardRef}
                       key={product.id}
                       className="group relative rounded-xl sm:rounded-2xl lg:rounded-3xl overflow-hidden h-auto sm:h-[500px] md:h-[550px] lg:h-[650px]"
                       style={{ transformStyle: 'preserve-3d' }}
@@ -2683,7 +2670,8 @@ const MaskCollection = () => {
                         rotateY: index % 2 === 0 ? -10 : 10,
                         rotateX: -10
                       }}
-                      animate={entranceAnimation}
+                      whileInView={entranceAnimation}
+                      viewport={{ once: true, margin: "-50px" }}
                       transition={{ 
                         duration: reduceAnimations ? 0.45 : 0.8, 
                         delay: reduceAnimations ? Math.min(index * 0.02, 0.2) : index * 0.05,
@@ -2946,7 +2934,14 @@ const MaskCollection = () => {
                             opacity: 0,
                             filter: 'blur(10px) brightness(0.5)'
                           }}
-                          animate={imageAnimation}
+                          animate={{
+                            scale: 1,
+                            rotate: 0,
+                            x: 0,
+                            y: 0,
+                            opacity: 1,
+                            filter: 'brightness(1.1) contrast(1.1) saturate(1.05)'
+                          }}
                           transition={{
                             duration: 1.2,
                             delay: index * 0.15,

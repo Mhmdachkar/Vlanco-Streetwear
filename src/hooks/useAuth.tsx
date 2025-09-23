@@ -101,9 +101,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.log('👤 useAuth: No user session');
         setProfile(null);
-        // Clear stored session data
-        localStorage.removeItem('vlanco_auth_session');
-        sessionStorage.removeItem('vlanco_auth_session');
+
+        // Attempt restoration if remember-me is enabled and we have saved tokens
+        try {
+          const hasRememberMePref = localStorage.getItem('vlanco_remember_me') === 'true';
+          const stored = localStorage.getItem('vlanco_auth_session');
+          if (hasRememberMePref && stored) {
+            const saved = JSON.parse(stored);
+            if (saved?.refresh_token) {
+              console.log('🔁 useAuth: Attempting to restore session from saved refresh token');
+              const { data, error } = await supabase.auth.setSession({
+                access_token: saved.access_token,
+                refresh_token: saved.refresh_token
+              });
+              if (!error && data?.session) {
+                // setSession will be handled on the next auth state change
+                console.log('✅ useAuth: Session restored from saved tokens');
+                return;
+              }
+              console.warn('⚠️ useAuth: Session restore attempt failed', error);
+            }
+          }
+        } catch (e) {
+          console.warn('⚠️ useAuth: Failed during session restore attempt:', e);
+        }
+
+        // Do not clear persisted storage unless the user explicitly signed out
+        if (explicitSignOut) {
+          localStorage.removeItem('vlanco_auth_session');
+          sessionStorage.removeItem('vlanco_auth_session');
+        }
       }
       setLoading(false);
     };
@@ -119,6 +146,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // If session data is less than 24 hours old, try to restore it
           if (timeSinceLastUpdate < 24 * 60 * 60 * 1000) {
             console.log('🔄 useAuth: Found stored session data, attempting restoration');
+            if (sessionData?.refresh_token) {
+              try {
+                await supabase.auth.setSession({
+                  access_token: sessionData.access_token,
+                  refresh_token: sessionData.refresh_token
+                });
+              } catch (e) {
+                console.warn('⚠️ useAuth: setSession restoration failed:', e);
+              }
+            }
           }
         }
       } catch (error) {

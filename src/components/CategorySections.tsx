@@ -196,12 +196,12 @@ const CategorySections = () => {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.5, delay: 0.4 }} // Faster
         >
-          <div className="inline-flex bg-muted/30 backdrop-blur-sm rounded-2xl p-2 border border-border/50 shadow-xl whitespace-nowrap">
+          <div className="inline-flex bg-muted/30 backdrop-blur-sm rounded-2xl p-1 sm:p-2 border border-border/50 shadow-xl whitespace-nowrap gap-1 sm:gap-2">
             {filters.slice(0,1).map((filter) => (
               <motion.button
                 key={filter.id}
                 onClick={() => setActiveFilter(filter.id)}
-                className="relative px-8 py-3 rounded-xl font-bold text-sm shrink-0 text-primary-foreground"
+                className="relative px-4 py-2 sm:px-8 sm:py-3 rounded-xl font-bold text-xs sm:text-sm shrink-0 text-primary-foreground min-h-[40px] sm:min-h-[48px]"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -229,7 +229,7 @@ const CategorySections = () => {
         </motion.div>
 
         {/* Redesigned Category Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-10 lg:gap-12 mb-12 sm:mb-16">
+        <div className="grid grid-cols-1 xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-10 mb-12 sm:mb-16 px-1 sm:px-0">
           {categories.map((category, index) => {
             const categoryProducts = getProductsByCategory(category.id);
             const isHovered = hoveredCategory === category.id;
@@ -249,7 +249,7 @@ const CategorySections = () => {
               >
                 {/* Enhanced Main Category Card */}
                 <motion.div
-                  className={`relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 ${category.borderColor} bg-gradient-to-br ${category.bgGradient} backdrop-blur-sm cursor-pointer group-hover:shadow-xl transition-all duration-300 h-[420px] sm:h-[560px] lg:h-[600px]`}
+                  className={`relative overflow-hidden rounded-2xl sm:rounded-3xl border-2 ${category.borderColor} bg-gradient-to-br ${category.bgGradient} backdrop-blur-sm cursor-pointer group-hover:shadow-xl transition-all duration-300 h-[360px] xs:h-[420px] sm:h-[520px] lg:h-[600px]`}
                   whileHover={{ 
                     y: -10, // Reduced movement
                     scale: 1.01, // Reduced scale
@@ -260,7 +260,7 @@ const CategorySections = () => {
                   onClick={() => handleCategoryClick(category.route, category.isComingSoon)}
                 >
                   {/* Enhanced Background Image Section (60% of card) */}
-                  <div className="relative h-[240px] sm:h-[320px] lg:h-[360px] overflow-hidden">
+                  <div className="relative h-[200px] xs:h-[240px] sm:h-[300px] lg:h-[360px] overflow-hidden">
                     <motion.div 
                       className="absolute inset-0 bg-cover bg-center"
                       style={{
@@ -381,7 +381,7 @@ const CategorySections = () => {
                     
                     {/* Enhanced Stats Badge */}
                     <motion.div
-                      className={`absolute top-6 left-6 flex items-center gap-2 px-4 py-2 backdrop-blur-sm rounded-full border shadow-lg ${
+                      className={`absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 backdrop-blur-sm rounded-full border shadow-lg ${
                         category.isComingSoon 
                           ? 'bg-orange-500/90 border-orange-400/50' 
                           : 'bg-background/90 border-border/50'
@@ -393,12 +393,12 @@ const CategorySections = () => {
                       {category.isComingSoon ? (
                         <>
                           <Gift className="w-3 h-3 text-white" />
-                          <span className="text-sm font-bold text-white">Coming Soon</span>
+                          <span className="text-xs sm:text-sm font-bold text-white">Coming Soon</span>
                         </>
                       ) : (
                         <>
                           <div className={`w-2 h-2 ${category.color.replace('from-', 'bg-').split(' ')[0]} rounded-full`} />
-                          <span className="text-sm font-bold">{category.count} Items</span>
+                          <span className="text-xs sm:text-sm font-bold">{category.count} Items</span>
                         </>
                       )}
                     </motion.div>
@@ -459,7 +459,7 @@ const CategorySections = () => {
                           </motion.div>
                         </div>
                         
-                        <h3 className="text-xl sm:text-2xl md:text-3xl font-black mb-2 sm:mb-3 group-hover:text-primary transition-colors">
+                        <h3 className="text-lg sm:text-2xl md:text-3xl font-black mb-2 sm:mb-3 group-hover:text-primary transition-colors">
                           {category.title}
                         </h3>
                         
@@ -479,7 +479,7 @@ const CategorySections = () => {
                           {category.featured.map((item, i) => (
                             <motion.span
                               key={item}
-                              className="px-2.5 py-1 bg-muted/60 rounded-full text-[10px] sm:text-xs font-bold border border-border/30"
+                              className="px-2 py-1 bg-muted/60 rounded-full text-[10px] sm:text-xs font-bold border border-border/30"
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: i * 0.05 + 0.2 }} // Reduced delay
@@ -493,27 +493,27 @@ const CategorySections = () => {
 
                     {/* Enhanced Stats Grid */}
                     <motion.div 
-                      className="grid grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6"
+                      className="grid grid-cols-3 gap-2 sm:gap-4 mb-3 sm:mb-6"
                       animate={isHovered ? { y: -1 } : { y: 0 }} // Reduced movement
                       transition={{ duration: 0.2 }} // Faster
                     >
                       <div className="text-center">
-                        <div className="text-lg sm:text-xl font-black">{category.stats.items}</div>
+                        <div className="text-base sm:text-xl font-black">{category.stats.items}</div>
                         <div className="text-[10px] sm:text-xs text-muted-foreground font-medium">Items</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg sm:text-xl font-black text-green-500">{category.stats.newDrops}</div>
+                        <div className="text-base sm:text-xl font-black text-green-500">{category.stats.newDrops}</div>
                         <div className="text-[10px] sm:text-xs text-muted-foreground font-medium">New</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg sm:text-xl font-black text-orange-500">{category.stats.trending}</div>
+                        <div className="text-base sm:text-xl font-black text-orange-500">{category.stats.trending}</div>
                         <div className="text-[10px] sm:text-xs text-muted-foreground font-medium">Trending</div>
                       </div>
                     </motion.div>
 
                     {/* Enhanced CTA Button */}
                     <motion.button
-                      className={`w-full flex items-center justify-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r ${category.color} text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm group-hover:shadow-lg transition-all duration-200 border-2 border-transparent group-hover:border-white/20`}
+                      className={`w-full flex items-center justify-center gap-2 sm:gap-3 px-3 sm:px-6 py-3 sm:py-4 bg-gradient-to-r ${category.color} text-white rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm group-hover:shadow-lg transition-all duration-200 border-2 border-transparent group-hover:border-white/20 min-h-[44px]`}
                       whileHover={{ scale: 1.01, y: -1 }} // Reduced scale and movement
                       whileTap={{ scale: 0.98 }}
                       onClick={(e) => {
@@ -521,7 +521,7 @@ const CategorySections = () => {
                         handleCategoryClick(category.route);
                       }}
                     >
-                      <span>Explore Collection</span>
+                      <span className="text-sm">Explore Collection</span>
                       <motion.div
                         animate={isHovered ? { x: 2 } : { x: 0 }}
                         transition={{ duration: 0.2 }} // Faster
