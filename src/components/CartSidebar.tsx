@@ -789,7 +789,7 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
             </motion.div>
 
             {/* Content */}
-            <div className="flex-1 overflow-hidden relative flex flex-col" style={{ height: 'calc(100svh - 80px)' }}>
+            <div className="flex-1 overflow-hidden relative flex flex-col min-h-0" style={{ height: 'calc(100svh - 80px)' }}>
               {/* Global Loading Overlay */}
               <AnimatePresence>
                 {loading && (
@@ -817,19 +817,16 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
               ) : items.length === 0 ? (
                 <EmptyCart onClose={onClose} />
               ) : (
-                <div className="h-full flex flex-col">
+                <div className="h-full flex flex-col min-h-0">
                   {/* Cart Items - Dynamic Height Scrollable Area */}
                   <div 
                     ref={cartItemsRef}
-                    className="overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 scrollbar-thin scrollable-area overscroll-contain pr-1 sm:pr-2 cart-items-container"
+                    className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-3 sm:space-y-4 scrollbar-thin scrollable-area overscroll-contain pr-1 sm:pr-2 cart-items-container min-h-0"
                     style={{
                       scrollbarWidth: 'thin',
                       scrollbarColor: '#475569 #1e293b',
                       scrollBehavior: 'smooth',
-                      WebkitOverflowScrolling: 'touch',
-                      height: 'calc(100svh - 320px)', // Reduced height for mobile
-                      minHeight: '120px', // Minimum height for small screens
-                      maxHeight: 'calc(100svh - 320px)' // Maximum height constraint
+                      WebkitOverflowScrolling: 'touch'
                     }}
                     onTouchStart={(e) => e.stopPropagation()}
                     onTouchMove={(e) => e.stopPropagation()}

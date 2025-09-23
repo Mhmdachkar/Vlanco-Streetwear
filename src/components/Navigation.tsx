@@ -85,6 +85,210 @@ const Navigation = () => {
     { name: 'About Us', href: '/about', scrollTo: null },
   ];
 
+  // Animated car + smoke intro for brand
+  const CarSmokeLogo: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+    const [play, setPlay] = useState(true);
+
+    useEffect(() => {
+      const t = setTimeout(() => setPlay(false), 5200);
+      return () => clearTimeout(t);
+    }, []);
+
+    return (
+      <div className="relative flex items-center gap-3 sm:gap-4 select-none cursor-pointer" onClick={onClick}>
+        {/* Road */}
+        <motion.div
+          className="relative h-12 sm:h-14 w-40 sm:w-56 rounded-2xl bg-gradient-to-b from-black/50 to-black/30 border border-white/10 overflow-hidden"
+          initial={false}
+          animate={play ? { boxShadow: ["0 0 0 rgba(0,0,0,0)", "0 10px 30px rgba(59,130,246,0.25)", "0 0 0 rgba(0,0,0,0)"] } : {}}
+          transition={{ duration: 1.2, delay: 0.6 }}
+        >
+          {/* Lane marks */}
+          <div className="absolute inset-x-2 bottom-3 h-1">
+            {[...Array(4)].map((_, i) => (
+              <motion.div key={`lane-${i}`} className="inline-block w-4 sm:w-6 h-0.5 bg-white/50 mx-2 rounded"
+                initial={{ opacity: 0, x: 0 }}
+                animate={play ? { opacity: [0, 1, 0], x: [-10, 0, 10] } : { opacity: 0 }}
+                transition={{ duration: 1.2, delay: i * 0.08, repeat: 1 }}
+              />
+            ))}
+          </div>
+
+          {/* Supercar (more detailed path) */}
+          <motion.svg
+            viewBox="0 0 320 120"
+            className="absolute -translate-y-1/2"
+            style={{ top: '42%' }}
+            width="140" height="50"
+            initial={{ x: -200, rotate: 0, y: 0 }}
+            animate={play ? [
+              { x: -200, rotate: 0, y: 0, transition: { duration: 0 } },
+              { x: 8, rotate: 0, y: 0, transition: { duration: 0.95, ease: 'easeOut' } },
+              // Initiate drift with countersteer and body roll
+              { x: 14, rotate: -14, y: -1.5, transition: { duration: 0.18, ease: 'easeOut' } },
+              { x: 11, rotate: -9, y: -1, transition: { duration: 0.42, ease: 'easeOut' } },
+            ] : { x: 10 }}
+          >
+            <defs>
+              <linearGradient id="carPaint" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#60a5fa" />
+                <stop offset="50%" stopColor="#3b82f6" />
+                <stop offset="100%" stopColor="#8b5cf6" />
+              </linearGradient>
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            {/* 720S side profile silhouette based on provided reference */}
+            <path d="M24 80
+              C34 73, 50 66, 72 60
+              C96 54, 126 50, 156 49
+              C186 48, 214 51, 238 55
+              C260 59, 284 67, 302 74
+              L312 78 L318 80 L312 76
+              C296 64, 270 56, 242 52
+              C214 48, 182 46, 150 47
+              C118 48, 88 52, 62 58
+              C44 62, 32 68, 24 74 Z"
+              fill="url(#carPaint)" filter="url(#glow)" />
+
+            {/* Front splitter */}
+            <path d="M28 78 C42 72, 64 68, 86 66 L88 70 C66 72, 46 75, 30 80 Z" fill="#0f172a" opacity="0.7" />
+
+            {/* Rear diffuser hint */}
+            <path d="M300 74 L316 76 L306 82 L292 80 Z" fill="#0f172a" opacity="0.7" />
+
+            {/* Canopy / greenhouse - long teardrop */}
+            <path d="M142 40 C160 32, 196 32, 212 36 L204 58 L150 58 Z" fill="#38bdf8" opacity="0.9" />
+
+            {/* Deep side blade / intake curve characteristic of 720S */}
+            <path d="M96 70 C132 64, 168 60, 214 60 C192 66, 156 70, 120 74 Z" fill="#0ea5e9" opacity="0.45" />
+
+            {/* Side intake highlight */}
+            <path d="M188 58 C200 56, 214 56, 226 58 C218 60, 206 60, 194 60 Z" fill="#0ea5e9" opacity="0.5" />
+            {/* Headlights */}
+            <g>
+              <circle cx="292" cy="74" r="3" fill="#fff" />
+              <motion.rect x="296" y="70" width="22" height="8" rx="4" fill="#ffffff" opacity="0.8"
+                initial={{ opacity: 0 }}
+                animate={play ? { opacity: [0, 0.8, 0.2, 0.8] } : { opacity: 0.6 }}
+                transition={{ duration: 1.2, repeat: 2 }}
+              />
+            </g>
+            {/* Exhaust flames (drift) */}
+            <motion.path d="M30 76 C16 75, 14 82, 30 85" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round"
+              initial={{ opacity: 0, pathLength: 0 }}
+              animate={play ? { opacity: [0, 1, 0.2, 1], pathLength: [0, 1, 1, 1] } : { opacity: 0.8 }}
+              transition={{ duration: 0.9, repeat: 2 }}
+            />
+            {/* Wheels + brake calipers */}
+            <g>
+              <motion.circle cx="118" cy="78" r="9" fill="#0f172a"
+                animate={play ? { rotate: 360, filter: ["blur(0px)", "blur(0.6px)", "blur(0px)"] } : { rotate: 0 }}
+                transition={{ duration: 1.2, ease: 'linear' }}
+                style={{ transformOrigin: '118px 78px' }}
+              />
+              <motion.rect x="116" y="73" width="3" height="6" rx="1" fill="#ef4444"
+                initial={{ rotate: 0 }}
+                animate={play ? { rotate: [0, -40, -40] } : { rotate: -40 }}
+                transition={{ duration: 1.2, ease: 'easeOut' }}
+                style={{ transformOrigin: '118px 78px' }}
+              />
+            </g>
+            <g>
+              <motion.circle cx="244" cy="78" r="9" fill="#0f172a"
+                animate={play ? { rotate: 360, filter: ["blur(0px)", "blur(0.6px)", "blur(0px)"] } : { rotate: 0 }}
+                transition={{ duration: 1.2, ease: 'linear' }}
+                style={{ transformOrigin: '244px 78px' }}
+              />
+              <motion.rect x="242" y="73" width="3" height="6" rx="1" fill="#ef4444"
+                initial={{ rotate: 0 }}
+                animate={play ? { rotate: [0, -40, -40] } : { rotate: -40 }}
+                transition={{ duration: 1.2, ease: 'easeOut' }}
+                style={{ transformOrigin: '244px 78px' }}
+              />
+            </g>
+          </motion.svg>
+
+          {/* Two-stage smoke with wind shear */}
+          {[...Array(10)].map((_, i) => (
+            <motion.div
+              key={`smoke-stage1-${i}`}
+              className="absolute bottom-2 left-6 w-2.5 h-2.5 rounded-full bg-white/45"
+              initial={{ opacity: 0, scale: 0.2, x: 0, y: 0 }}
+              animate={play ? {
+                opacity: [0, 0.9, 0.4],
+                scale: [0.2, 1.1, 1.3],
+                x: [-6 - i * 5, -10 - i * 8],
+                y: [-2 - i * 0.8, -5 - i * 1.6]
+              } : { opacity: 0 }}
+              transition={{ duration: 1.2, delay: 0.5 + i * 0.05, ease: 'easeOut' }}
+              style={{ filter: 'blur(1.8px)' }}
+            />
+          ))}
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={`smoke-stage2-${i}`}
+              className="absolute bottom-2 left-10 w-3 h-3 rounded-full bg-white/35"
+              initial={{ opacity: 0, scale: 0.4, x: 0, y: 0 }}
+              animate={play ? {
+                opacity: [0, 0.7, 0],
+                scale: [0.4, 1.6 + i * 0.06, 2.0 + i * 0.08],
+                x: [-10 - i * 7, -20 - i * 12],
+                y: [-4 - i * 1.6, -10 - i * 3]
+              } : { opacity: 0 }}
+              transition={{ duration: 1.6, delay: 0.8 + i * 0.06, ease: 'easeOut' }}
+              style={{ filter: 'blur(2.2px)' }}
+            />
+          ))}
+
+          {/* Sparks near rear wheel during drift */}
+          {[...Array(5)].map((_, i) => (
+            <motion.div
+              key={`spark-${i}`}
+              className="absolute bottom-3 left-14 w-1 h-1 bg-yellow-300 rounded-full"
+              initial={{ opacity: 0, scale: 0.5, x: 0, y: 0 }}
+              animate={play ? { opacity: [0, 1, 0], x: [0, -4 - i * 2], y: [0, -2 - i], scale: [0.5, 1.2, 0.6] } : { opacity: 0 }}
+              transition={{ duration: 0.6, delay: 0.9 + i * 0.05, ease: 'easeOut' }}
+              style={{ boxShadow: '0 0 6px rgba(250, 204, 21, 0.8)' }}
+            />
+          ))}
+
+          {/* Subtle skid arc */}
+          <motion.div
+            className="absolute bottom-3 left-8 w-16 h-8 rounded-full border-2 border-black/40 opacity-30"
+            initial={{ opacity: 0 }}
+            animate={play ? { opacity: [0, 0.3, 0.15] } : { opacity: 0.15 }}
+            transition={{ duration: 0.9, delay: 1.0 }}
+            style={{ transform: 'rotate(-25deg)' }}
+          />
+        </motion.div>
+
+        {/* VLANCO reveal after smoke */}
+        <motion.div
+          className="text-2xl sm:text-3xl font-black"
+          initial={{ opacity: 0, filter: 'blur(8px)', x: -10 }}
+          animate={{ opacity: 1, filter: 'blur(0px)', x: 0 }}
+          transition={{ delay: 1.4, duration: 0.6, ease: 'easeOut' }}
+        >
+          <motion.span
+            className="text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text"
+            animate={{ backgroundPosition: ['0%', '100%', '0%'] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ backgroundSize: '200% 200%' }}
+          >
+            VLANCO
+          </motion.span>
+        </motion.div>
+      </div>
+    );
+  };
+
   return (
     <>
       <motion.nav 
@@ -101,28 +305,7 @@ const Navigation = () => {
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-18">
             {/* Brand Logo & Text */}
             <div className="flex items-center gap-3">
-              <HeaderLogo onClick={() => smoothScrollTo('hero')} />
-              <motion.div 
-                className="text-xl sm:text-2xl font-black cursor-pointer hidden sm:block"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => smoothScrollTo('hero')}
-              >
-                <motion.span
-                  className="text-transparent bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text"
-                  animate={{
-                    backgroundPosition: ['0%', '100%', '0%']
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  style={{ backgroundSize: '200% 200%' }}
-                >
-                  VLANCO
-                </motion.span>
-              </motion.div>
+              <CarSmokeLogo onClick={() => smoothScrollTo('hero')} />
             </div>
 
             {/* Enhanced Desktop Navigation */}
