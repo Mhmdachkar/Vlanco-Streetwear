@@ -9,7 +9,10 @@ export const handler = async (request: Request): Promise<Response> => {
   if (!user) return errorResponse('Unauthorized', 401);
 
   let body: any = {};
-  try { body = await request.json(); } catch {}
+  try { body = await request.json(); } catch (e) {
+    console.warn('Failed to parse request body:', e);
+    return errorResponse('Invalid request body');
+  }
   const items = Array.isArray(body?.cartItems) ? body.cartItems : [];
   const discountCode = (body?.discountCode || '').trim();
   if (!items.length) return errorResponse('Cart is empty');
@@ -59,7 +62,10 @@ export const handler = async (request: Request): Promise<Response> => {
           // Stripe coupon creation is out of scope here; keep metadata of code
         }
       }
-    } catch {}
+    } catch (e) {
+      console.warn('Failed to process item:', item, e);
+      return errorResponse(`Failed to process item: ${item.product_id}`);
+    }
   }
 
   const siteUrl = getEnv('SITE_URL')!;

@@ -421,7 +421,7 @@ const Navigation = () => {
             </div>
 
             {/* Enhanced Right Side Icons */}
-            <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
               {/* Enhanced Wishlist */}
               <HoverCard openDelay={150} closeDelay={100}>
                 <HoverCardTrigger asChild>
@@ -435,7 +435,7 @@ const Navigation = () => {
                         setShowAuthModal(true);
                       }
                     }}
-                    className="relative p-1.5 sm:p-2 hover:bg-red-400/10 rounded-full transition-all duration-300 group"
+                    className="relative p-1 sm:p-1.5 hover:bg-red-400/10 rounded-full transition-all duration-300 group"
                     title={user ? "Wishlist" : "Sign In to View Wishlist"}
                     whileHover={{ scale: 1.1, rotate: -5 }}
                     whileTap={{ scale: 0.95 }}
@@ -444,7 +444,7 @@ const Navigation = () => {
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      <Heart className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-red-500 transition-colors" />
+                      <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-red-500 transition-colors" />
                     </motion.div>
                     
                     {/* Wishlist Count Badge */}
@@ -488,7 +488,7 @@ const Navigation = () => {
                       // Allow guests to access the cart sidebar too. Checkout can still enforce auth later.
                       setShowCartSidebar(true);
                     }}
-                    className="relative p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
+                    className="relative p-1 sm:p-1.5 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     whileTap={{ scale: 0.95 }}
                     title={user ? "Shopping Cart" : "Sign In to View Cart"}
@@ -497,7 +497,7 @@ const Navigation = () => {
                       animate={{ y: [0, -2, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
                     >
-                      <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-cyan-400 transition-colors" />
+                      <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-cyan-400 transition-colors" />
                     </motion.div>
                     {itemCount > 0 && (
                       <motion.span 
@@ -544,7 +544,7 @@ const Navigation = () => {
                       setShowAuthModal(true);
                     }
                   }}
-                  className="relative p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
+                  className="relative p-1 sm:p-1.5 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                   whileHover={{ scale: 1.1, rotate: -5 }}
                   whileTap={{ scale: 0.95 }}
                   title={user ? "User Menu" : "Sign In"}
@@ -565,7 +565,7 @@ const Navigation = () => {
                       repeat: Infinity 
                     }}
                   >
-                    <User className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-cyan-400 transition-colors" />
+                    <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-cyan-400 transition-colors" />
                   </motion.div>
                   {/* User Glow */}
                   <motion.div
@@ -664,7 +664,7 @@ const Navigation = () => {
               {/* Enhanced Mobile Menu Button */}
               <motion.button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
+                className="md:hidden p-1 sm:p-1.5 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -673,9 +673,9 @@ const Navigation = () => {
                   transition={{ duration: 0.3 }}
                 >
                   {isMobileMenuOpen ? (
-                    <X className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-cyan-400 transition-colors" />
+                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-cyan-400 transition-colors" />
                   ) : (
-                    <Menu className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-cyan-400 transition-colors" />
+                    <Menu className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:text-cyan-400 transition-colors" />
                   )}
                 </motion.div>
               </motion.button>

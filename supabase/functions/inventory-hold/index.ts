@@ -7,7 +7,10 @@ export const handler = async (request: Request): Promise<Response> => {
   if (!user) return errorResponse('Unauthorized', 401);
 
   let body: any = {};
-  try { body = await request.json(); } catch {}
+  try { body = await request.json(); } catch (e) {
+    console.warn('Failed to parse request body:', e);
+    return errorResponse('Invalid request body');
+  }
   const items = Array.isArray(body?.items) ? body.items : [];
   const orderId = body?.orderId || null;
   if (!items.length || !orderId) return errorResponse('Missing items or orderId');

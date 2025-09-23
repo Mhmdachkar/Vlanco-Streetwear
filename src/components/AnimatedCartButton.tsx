@@ -37,7 +37,7 @@ const AnimatedCartButton: React.FC<AnimatedCartButtonProps> = ({
 
     // Create floating cart icon animation
     const cartIcon = document.createElement('div');
-    cartIcon.innerHTML = '🛒';
+    cartIcon.textContent = '🛒';
     cartIcon.style.cssText = `
       position: fixed;
       left: ${rect.left + rect.width / 2}px;

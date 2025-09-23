@@ -43,7 +43,7 @@ import {
   Quote
 } from 'lucide-react';
 
-// Load VLANCO gallery images and provide a shared 3s tick
+// Static images for community section (no rotation)
 const useVlancoGallery = () => {
   const images = useMemo(() => {
     try {
@@ -57,13 +57,7 @@ const useVlancoGallery = () => {
     }
   }, []);
 
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setTick((t) => t + 1), 3000);
-    return () => clearInterval(id);
-  }, []);
-
-  return { images, tick } as const;
+  return { images } as const;
 };
 
 // Floating Community Particles Component
@@ -442,7 +436,7 @@ const VlancoCommunity = ({ className = "" }) => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const shouldReduceMotion = useReducedMotion();
-  const { images: vlancoImages, tick } = useVlancoGallery();
+  const { images: vlancoImages } = useVlancoGallery();
   
   const [activeTab, setActiveTab] = useState('spotlights');
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -821,7 +815,7 @@ const VlancoCommunity = ({ className = "" }) => {
                     customer={customer}
                     index={index}
                     isInView={isInView}
-                    rotatingImage={vlancoImages.length ? vlancoImages[(tick + index) % vlancoImages.length] : undefined}
+                    rotatingImage={vlancoImages.length ? vlancoImages[index % vlancoImages.length] : undefined}
                   />
                 ))}
               </div>
@@ -843,7 +837,7 @@ const VlancoCommunity = ({ className = "" }) => {
                     content={content}
                     index={index}
                     isInView={isInView}
-                    rotatingImage={vlancoImages.length ? vlancoImages[(tick + index) % vlancoImages.length] : undefined}
+                    rotatingImage={vlancoImages.length ? vlancoImages[index % vlancoImages.length] : undefined}
                   />
                 ))}
               </div>
