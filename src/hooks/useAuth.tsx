@@ -27,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [explicitSignOut, setExplicitSignOut] = useState(false);
   const [lastSessionUpdate, setLastSessionUpdate] = useState<number>(0);
+  const refreshTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Check if Supabase is configured before setting up auth
@@ -35,6 +36,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       return;
     }
+
+    const scheduleRefresh = (s: Session | null) => {
+      try {
+        if (refreshTimerRef.current) {
+          window.clearTimeout(refreshTimerRef.current);
+          refreshTimerRef.current = null;
+        }
+        if (!s?.expires_at) return;
+        const nowSec = Math.floor(Date.now() / 1000);
+        const secondsUntilExpiry = s.expires_at - nowSec;
+        // refresh 60s before expiry, min 30s
+        const refreshInMs = Math.max((secondsUntilExpiry - 60) * 1000, 30_000);
+        refreshTimerRef.current = window.setTimeout(async () => {
+          try {
+            const { data, error } = await supabase.auth.refreshSession();
+            if (error) {
+              console.warn('⚠️ useAuth: refreshSession failed:', error);
+            } else if (data?.session) {
+              // re-schedule with new session
+              scheduleRefresh(data.session);
+            }
+          } catch (e) {
+            console.warn('⚠️ useAuth: refresh timer error:', e);
+          }
+        }, refreshInMs) as unknown as number;
+      } catch (e) {
+        console.warn('⚠️ useAuth: scheduleRefresh error:', e);
+      }
+    };
 
     const handleSession = async (session: Session | null, event?: string) => {
       const now = Date.now();
@@ -77,6 +107,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setSession(session);
       setUser(session?.user ?? null);
+      // schedule token refresh
+      scheduleRefresh(session);
       
       if (session?.user) {
         console.log('👤 useAuth: User session found, fetching profile');
@@ -187,7 +219,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await handleSession(session, event);
     });
 
-    return () => subscription.unsubscribe();
+    // Visibility change: try to restore session when app returns to foreground (mobile safety)
+    const onVisibility = async () => {
+      if (document.visibilityState === 'visible') {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+            const stored = localStorage.getItem('vlanco_auth_session');
+            if (stored) {
+              const saved = JSON.parse(stored);
+              if (saved?.refresh_token) {
+                await supabase.auth.setSession({
+                  access_token: saved.access_token,
+                  refresh_token: saved.refresh_token
+                });
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('⚠️ useAuth: visibility restore failed:', e);
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (refreshTimerRef.current) {
+        window.clearTimeout(refreshTimerRef.current);
+      }
+    };
   }, [explicitSignOut]);
 
   const fetchProfile = async (userId: string) => {

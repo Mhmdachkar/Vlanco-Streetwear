@@ -254,12 +254,9 @@ const Navigation = () => {
                   <motion.button 
                     id="cart-icon"
                     data-cart-icon="true"
-                    onClick={() => {
-                      if (!user) {
-                        setShowAuthModal(true);
-                      } else {
-                        setShowCartSidebar(true);
-                      }
+                  onClick={() => {
+                      // Allow guests to access the cart sidebar too. Checkout can still enforce auth later.
+                      setShowCartSidebar(true);
                     }}
                     className="relative p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
                     whileHover={{ scale: 1.1, rotate: 5 }}
