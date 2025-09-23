@@ -136,7 +136,7 @@ const Navigation = () => {
                     if (link.scrollTo) {
                       smoothScrollTo(link.scrollTo);
                     } else {
-                      window.location.href = link.href;
+                      navigate(link.href);
                     }
                   }}
                   className="relative text-foreground hover:text-cyan-400 transition-colors duration-300 font-medium group"

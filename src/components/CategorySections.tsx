@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef, useState, useCallback, useMemo } from "react";
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, Eye, ShoppingCart, Heart, Zap, Star, Timer, TrendingUp, Users, Package, Lock, Bell, Clock, Gift, X } from 'lucide-react';
 import MagneticButton from '@/components/ui/MagneticButton';
 import ParallaxHeading from '@/components/ui/ParallaxHeading';
@@ -39,6 +40,7 @@ const CategorySections = () => {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [showComingSoonNotification, setShowComingSoonNotification] = useState(false);
   const performanceMode = usePerformanceMode();
+  const navigate = useNavigate();
 
   // Memoize categories to prevent unnecessary re-renders
   const categories = useMemo(() => [
@@ -121,8 +123,8 @@ const CategorySections = () => {
       setTimeout(() => setShowComingSoonNotification(false), 4000);
       return;
     }
-    window.location.href = route;
-  }, []);
+    navigate(route);
+  }, [navigate]);
 
   // Optimized hover handlers with debouncing
   const handleHoverStart = useCallback((categoryId: string) => {
