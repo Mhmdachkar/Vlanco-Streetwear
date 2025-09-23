@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { Camera, Star, Eye, Heart, ArrowRight, Sparkles, Zap, Crown } from 'lucide-react';
 
@@ -14,6 +14,23 @@ const FeaturesSection = () => {
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const [hoveredPhoto, setHoveredPhoto] = useState<number | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
+
+  // Load VLANCO gallery images and rotate every 3s
+  const galleryImages = useMemo(() => {
+    try {
+      const modules = import.meta.glob('/src/assets/vlanco-gallery/*.{png,jpg,jpeg,webp,avif}', { eager: true, import: 'default' }) as Record<string, string>;
+      return Object.entries(modules)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([, src]) => src);
+    } catch {
+      return [] as string[];
+    }
+  }, []);
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 3000);
+    return () => clearInterval(id);
+  }, []);
 
   // Professional VLANCO photo gallery data
   const photoGallery = [
@@ -266,6 +283,7 @@ const FeaturesSection = () => {
         {/* Photo Gallery Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16">
           {photoGallery.map((photo, index) => {
+            const rotatingImage = galleryImages.length ? galleryImages[(tick + index) % galleryImages.length] : photo.image;
             const isHovered = hoveredPhoto === index;
             
             return (
@@ -298,13 +316,20 @@ const FeaturesSection = () => {
                 >
                   {/* Photo Container */}
                   <div className={`relative overflow-hidden ${photo.featured ? 'h-[380px] sm:h-[500px]' : 'h-[220px] sm:h-[300px]'}`}>
-                    <motion.img
-                      src={photo.image}
-                      alt={photo.title}
-                      className="w-full h-full object-cover transition-transform duration-700"
-                      animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
-                      transition={{ duration: 0.6, ease: "easeOut" }}
-                    />
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={`${tick}-${index}`}
+                        src={rotatingImage}
+                        alt={photo.title}
+                        className="w-full h-full object-cover"
+                        initial={{ opacity: 0, scale: 1.03, filter: 'blur(3px)' }}
+                        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                        exit={{ opacity: 0, scale: 0.98, filter: 'blur(3px)' }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                      />
+                    </AnimatePresence>
+                    {/* Subtle zoom on hover layered over fade */}
+                    <motion.div className="absolute inset-0" animate={isHovered ? { scale: 1.06 } : { scale: 1 }} transition={{ duration: 0.6, ease: 'easeOut' }} />
                     
                     {/* Enhanced Gradient Overlay */}
                     <motion.div
@@ -482,7 +507,7 @@ const FeaturesSection = () => {
                 onClick={(e) => e.stopPropagation()}
               >
                 <img
-                  src={photoGallery.find(p => p.id === selectedPhoto)?.image}
+                  src={(selectedPhoto ? (galleryImages.length ? galleryImages[(tick + (photoGallery.findIndex(p => p.id === selectedPhoto))) % galleryImages.length] : photoGallery.find(p => p.id === selectedPhoto)?.image) : undefined) as string}
                   alt="Full size photo"
                   className="w-full h-full object-contain"
                 />

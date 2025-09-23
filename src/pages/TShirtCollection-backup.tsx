@@ -237,7 +237,7 @@ const FloatingElements = () => {
   );
 };
 
-// ProductStats component removed per request (four blocks).
+// ProductStats component removed per request (four blocks).the h
 
 const TShirtCollection = () => {
   const navigate = useNavigate();
@@ -785,7 +785,7 @@ const TShirtCollection = () => {
 
   return (
     <>
-      {/* Intro overlay: professional auto slide (slower) */}
+      {/* Intro overlay: professional auto slide (slower) - mobile responsive */}
       {showIntro && (
         <motion.div
           className="fixed inset-0 z-[90] overflow-hidden"
@@ -795,11 +795,19 @@ const TShirtCollection = () => {
           onAnimationComplete={() => setShowIntro(false)}
         >
           <motion.div
-            className="absolute inset-0"
+            className="absolute inset-0 hidden sm:block"
             style={{ backgroundImage: `url(${tshirtIntroImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
             initial={{ scale: 1.08, y: 0, opacity: 1 }}
             animate={{ scale: 1.0, y: -80, opacity: 1 }}
             transition={{ duration: 2.4, ease: 'easeOut' }}
+          />
+          {/* Mobile-friendly version ensures image fully visible on small screens */}
+          <motion.div
+            className="absolute inset-0 block sm:hidden"
+            style={{ backgroundImage: `url(${tshirtIntroImage})`, backgroundRepeat: 'no-repeat', backgroundSize: 'contain', backgroundPosition: 'center' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
           />
           <motion.div
             className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"

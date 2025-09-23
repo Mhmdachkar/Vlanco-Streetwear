@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, ShoppingCart, User, Menu, X, Heart, Sparkles, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -86,19 +86,30 @@ const Navigation = () => {
   ];
 
   // Animated car + smoke intro for brand
-  const CarSmokeLogo: React.FC<{ onClick: () => void }> = ({ onClick }) => {
+  const CarSmokeLogoComponent: React.FC<{ onClick: () => void }> = ({ onClick }) => {
     const [play, setPlay] = useState(true);
+    const [photoReady, setPhotoReady] = useState(false);
+    const [hasPlayed, setHasPlayed] = useState(() => sessionStorage.getItem('vlanco_nav_anim_played') === '1');
 
     useEffect(() => {
       const t = setTimeout(() => setPlay(false), 5200);
       return () => clearTimeout(t);
     }, []);
 
+    // Try to load user-provided silhouette placed in public folder as /supercar-720s.png
+    const photoUrl = useMemo(() => new URL('/supercar-720s.png', window.location.origin).toString(), []);
+    useEffect(() => {
+      const img = new Image();
+      img.src = photoUrl;
+      img.onload = () => setPhotoReady(true);
+      img.onerror = () => setPhotoReady(false);
+    }, [photoUrl]);
+
     return (
       <div className="relative flex items-center gap-3 sm:gap-4 select-none cursor-pointer" onClick={onClick}>
         {/* Road */}
         <motion.div
-          className="relative h-12 sm:h-14 w-40 sm:w-56 rounded-2xl bg-gradient-to-b from-black/50 to-black/30 border border-white/10 overflow-hidden"
+          className="relative h-12 sm:h-14 w-40 sm:w-56 rounded-2xl bg-[#000000] border border-transparent overflow-hidden"
           initial={false}
           animate={play ? { boxShadow: ["0 0 0 rgba(0,0,0,0)", "0 10px 30px rgba(59,130,246,0.25)", "0 0 0 rgba(0,0,0,0)"] } : {}}
           transition={{ duration: 1.2, delay: 0.6 }}
@@ -114,20 +125,75 @@ const Navigation = () => {
             ))}
           </div>
 
-          {/* Supercar (more detailed path) */}
+          {/* If a custom 720S silhouette image is provided in /public, use it. Otherwise, fallback to SVG. */}
+          {photoReady ? (
+            (hasPlayed ? (
+              <div className="absolute inset-0">
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage: `url(${photoUrl})`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'contain',
+                    backgroundPosition: 'center 45%'
+                  }}
+                />
+              </div>
+            ) : (
+            <motion.div
+              className="absolute inset-0"
+              initial={{ x: '110%' }}
+              animate={{ x: 0 }}
+              transition={{ duration: 1.0, ease: 'easeOut' }}
+              onAnimationComplete={() => { sessionStorage.setItem('vlanco_nav_anim_played', '1'); setHasPlayed(true); }}
+            >
+              {/* Car image as background so it scales perfectly */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `url(${photoUrl})`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundSize: 'contain',
+                  backgroundPosition: 'center 45%'
+                }}
+              />
+
+              {/* Arrival smoke synced with car wrapper translation */}
+              {[...Array(10)].map((_, i) => (
+                <motion.div
+                  key={`imgsmoke-${i}`}
+                  className="absolute rounded-full"
+                  style={{
+                    width: 6,
+                    height: 6,
+                    right: '18%', // behind rear wheel while moving left
+                    bottom: '18%',
+                    background: 'rgba(255,255,255,0.45)',
+                    filter: 'blur(1.8px)'
+                  }}
+                  initial={{ opacity: 0, scale: 0.2, x: 0, y: 0 }}
+                  animate={{
+                    opacity: [0, 0.9, 0],
+                    scale: [0.2, 1.2, 1.6],
+                    x: [6 + i * 4, 14 + i * 7],
+                    y: [-2 - i * 1.2, -8 - i * 2]
+                  }}
+                  transition={{ duration: 1.5, delay: 0.2 + i * 0.06, ease: 'easeOut' }}
+                />
+              ))}
+            </motion.div>
+            ))
+          ) : (
           <motion.svg
             viewBox="0 0 320 120"
-            className="absolute -translate-y-1/2"
-            style={{ top: '42%' }}
-            width="140" height="50"
-            initial={{ x: -200, rotate: 0, y: 0 }}
-            animate={play ? [
-              { x: -200, rotate: 0, y: 0, transition: { duration: 0 } },
-              { x: 8, rotate: 0, y: 0, transition: { duration: 0.95, ease: 'easeOut' } },
-              // Initiate drift with countersteer and body roll
-              { x: 14, rotate: -14, y: -1.5, transition: { duration: 0.18, ease: 'easeOut' } },
-              { x: 11, rotate: -9, y: -1, transition: { duration: 0.42, ease: 'easeOut' } },
-            ] : { x: 10 }}
+            className="absolute -translate-x-1/2 -translate-y-1/2"
+            style={{ top: '45%', left: '50%' }}
+            width="128" height="46"
+            initial={hasPlayed ? false : { x: 200, rotate: 0, y: 0 }}
+            animate={hasPlayed 
+              ? { x: 10, rotate: 9, y: -1 }
+              : { x: 11, rotate: 9, y: -1, transition: { duration: 1.55, ease: 'easeOut' } }
+            }
           >
             <defs>
               <linearGradient id="carPaint" x1="0" y1="0" x2="1" y2="1">
@@ -213,7 +279,15 @@ const Navigation = () => {
                 style={{ transformOrigin: '244px 78px' }}
               />
             </g>
+
+            {/* Wheel arches for realism */}
+            <path d="M92 78 C100 66, 130 66, 144 78" stroke="#0f172a" strokeWidth="2" opacity="0.6" />
+            <path d="M218 78 C226 66, 256 66, 270 78" stroke="#0f172a" strokeWidth="2" opacity="0.6" />
+
+            {/* Headlight outline */}
+            <path d="M294 72 C300 70, 306 70, 310 74 C304 76, 298 76, 294 74 Z" fill="#ffffff" opacity="0.9" />
           </motion.svg>
+          )}
 
           {/* Two-stage smoke with wind shear */}
           {[...Array(10)].map((_, i) => (
@@ -289,6 +363,8 @@ const Navigation = () => {
     );
   };
 
+  const CarSmokeLogo = React.memo(CarSmokeLogoComponent);
+
   return (
     <>
       <motion.nav 
@@ -305,11 +381,11 @@ const Navigation = () => {
           <div className="flex items-center justify-between h-14 sm:h-16 md:h-18">
             {/* Brand Logo & Text */}
             <div className="flex items-center gap-3">
-              <CarSmokeLogo onClick={() => smoothScrollTo('hero')} />
+              <CarSmokeLogo onClick={useCallback(() => smoothScrollTo('hero'), [])} />
             </div>
 
             {/* Enhanced Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-6 lg:space-x-8">
               {navLinks.map((link, index) => (
                 <motion.a
                   key={link.name}
@@ -346,35 +422,6 @@ const Navigation = () => {
 
             {/* Enhanced Right Side Icons */}
             <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3">
-              {/* Enhanced Search */}
-              <motion.button 
-                onClick={() => {
-                  // Simple search functionality - scroll to collections section on homepage
-                  if (window.location.pathname === '/') {
-                    smoothScrollTo('collections');
-                  } else {
-                    // Navigate to homepage and scroll to collections
-                    window.location.href = '/#collections';
-                  }
-                }}
-                className="relative p-1.5 sm:p-2 hover:bg-cyan-400/10 rounded-full transition-all duration-300 group"
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.95 }}
-                title="Search Products"
-              >
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                >
-                  <Search className="w-4 h-4 sm:w-5 sm:h-5 group-hover:text-cyan-400 transition-colors" />
-                </motion.div>
-                {/* Hover Glow */}
-                <motion.div
-                  className="absolute inset-0 bg-cyan-400/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                />
-              </motion.button>
-
-
               {/* Enhanced Wishlist */}
               <HoverCard openDelay={150} closeDelay={100}>
                 <HoverCardTrigger asChild>

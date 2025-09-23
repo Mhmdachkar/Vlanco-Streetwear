@@ -43,6 +43,29 @@ import {
   Quote
 } from 'lucide-react';
 
+// Load VLANCO gallery images and provide a shared 3s tick
+const useVlancoGallery = () => {
+  const images = useMemo(() => {
+    try {
+      const modules = import.meta.glob('@/assets/vlanco-gallery/*.{png,jpg,jpeg,webp,avif}', { eager: true, import: 'default' }) as Record<string, string>;
+      // Stable ordering
+      return Object.entries(modules)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([, src]) => src);
+    } catch {
+      return [] as string[];
+    }
+  }, []);
+
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 3000);
+    return () => clearInterval(id);
+  }, []);
+
+  return { images, tick } as const;
+};
+
 // Floating Community Particles Component
 const CommunityParticles = ({ isInView }) => {
   const particles = useMemo(() => 
@@ -90,7 +113,7 @@ const CommunityParticles = ({ isInView }) => {
 };
 
 // Customer Spotlight Card Component
-const CustomerSpotlight = ({ customer, index, isInView }) => {
+const CustomerSpotlight = ({ customer, index, isInView, rotatingImage }: { customer: any; index: number; isInView: boolean; rotatingImage?: string }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
@@ -111,11 +134,11 @@ const CustomerSpotlight = ({ customer, index, isInView }) => {
       whileHover={{ y: -10, scale: 1.02 }}
     >
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-sm border border-white/10 shadow-2xl">
-        {/* Customer Image */}
+		{/* Customer Image */}
         <div className="relative h-64 overflow-hidden">
           <motion.div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${customer.image})` }}
+				style={{ backgroundImage: `url(${rotatingImage || customer.image})` }}
             animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
             transition={{ duration: 0.4 }}
           />
@@ -232,7 +255,7 @@ const CustomerSpotlight = ({ customer, index, isInView }) => {
 };
 
 // User Generated Content Gallery Component
-const UGCGallery = ({ content, index, isInView }) => {
+const UGCGallery = ({ content, index, isInView, rotatingImage }: { content: any; index: number; isInView: boolean; rotatingImage?: string }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
 
@@ -253,11 +276,11 @@ const UGCGallery = ({ content, index, isInView }) => {
       whileHover={{ scale: 1.05, rotateY: 5 }}
     >
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-900/50 to-gray-800/50 backdrop-blur-sm border border-white/10">
-        {/* Content Image/Video */}
+		{/* Content Image/Video */}
         <div className="relative aspect-square overflow-hidden">
           <motion.div
             className="absolute inset-0 bg-cover bg-center"
-            style={{ backgroundImage: `url(${content.media})` }}
+				style={{ backgroundImage: `url(${rotatingImage || content.media})` }}
             animate={isHovered ? { scale: 1.1 } : { scale: 1 }}
             transition={{ duration: 0.4 }}
           />
@@ -419,6 +442,7 @@ const VlancoCommunity = ({ className = "" }) => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const shouldReduceMotion = useReducedMotion();
+  const { images: vlancoImages, tick } = useVlancoGallery();
   
   const [activeTab, setActiveTab] = useState('spotlights');
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -797,6 +821,7 @@ const VlancoCommunity = ({ className = "" }) => {
                     customer={customer}
                     index={index}
                     isInView={isInView}
+                    rotatingImage={vlancoImages.length ? vlancoImages[(tick + index) % vlancoImages.length] : undefined}
                   />
                 ))}
               </div>
@@ -818,6 +843,7 @@ const VlancoCommunity = ({ className = "" }) => {
                     content={content}
                     index={index}
                     isInView={isInView}
+                    rotatingImage={vlancoImages.length ? vlancoImages[(tick + index) % vlancoImages.length] : undefined}
                   />
                 ))}
               </div>
