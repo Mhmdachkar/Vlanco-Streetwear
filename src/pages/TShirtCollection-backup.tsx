@@ -269,7 +269,7 @@ const TShirtCollection = () => {
   const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
-    const t = setTimeout(() => setShowIntro(false), 3200);
+    const t = setTimeout(() => setShowIntro(false), 1200);
     return () => clearTimeout(t);
   }, []);
   

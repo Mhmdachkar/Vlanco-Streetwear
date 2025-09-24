@@ -521,11 +521,11 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
             }
           );
           
-        toast({
-            title: "✅ Item Restored",
-            description: `${item.product?.name} has been restored to your cart`,
-            duration: 3000
-          });
+          toast({
+              title: "✅ Item Restored",
+              description: `${item.product?.name} has been restored to your cart`,
+              duration: 3000
+            });
           
           pulseCart();
         } catch (error) {
@@ -1233,16 +1233,13 @@ const CartSidebar: React.FC<CartSidebarProps> = ({ isOpen, onClose }) => {
                           </span>
                         </div>
                         
-                        <div className="flex items-center justify-between">
-                          <span className="text-slate-300 text-sm sm:text-base">Tax (8%)</span>
-                          <span className="text-white font-medium text-sm sm:text-base">${(subtotal * 0.08).toFixed(2)}</span>
-                        </div>
+                        {/* Tax removed per request */}
                         
                         <div className="border-t border-slate-700 pt-2 sm:pt-3">
                           <div className="flex items-center justify-between">
                             <span className="text-base sm:text-lg font-semibold text-white">Total</span>
                             <span className="text-xl sm:text-2xl font-bold text-white">
-                              ${(subtotal + (subtotal >= 100 ? 0 : 9.99) + (subtotal * 0.08)).toFixed(2)}
+                              ${(subtotal + (subtotal >= 100 ? 0 : 9.99)).toFixed(2)}
                             </span>
                           </div>
                         </div>

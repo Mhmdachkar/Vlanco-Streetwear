@@ -135,7 +135,7 @@ serve(async (req) => {
     // Convert cart items to Stripe line items with enhanced product information
     const stripeLineItems = cartItems.map((item: any) => {
       // Ensure price is valid (convert to cents and round)
-      const unitAmount = Math.max(Math.round(item.price * 100), 1); // Minimum 1 cent
+      const unitAmount = Math.max(Math.round(Number(item.price) * 100), 1); // Minimum 1 cent
       
       // Create a comprehensive product name
       const productName = `${item.product_name} - ${item.variant_color} (${item.variant_size})`;
@@ -196,14 +196,19 @@ serve(async (req) => {
 
     console.log('📋 Converted to Stripe line items:', stripeLineItems.length, 'items');
 
-    // Calculate totals from local cart data
-    const subtotal = cartItems.reduce((sum: number, item: any) => {
-      return sum + (item.price * item.quantity)
-    }, 0)
+    // Calculate totals from local cart data using integer cents to avoid float errors
+    const subtotalCents = cartItems.reduce((sum: number, item: any) => {
+      const unitCents = Math.max(Math.round(Number(item.price) * 100), 1);
+      return sum + unitCents * Number(item.quantity);
+    }, 0);
+    const shippingCents = subtotalCents >= 10000 ? 0 : 999; // Free over $100, else $9.99
+    const taxCents = 0; // No manual tax; handled by Stripe/none
+    const totalCents = subtotalCents + shippingCents + taxCents;
 
-    const shippingCost = subtotal >= 100 ? 0 : 9.99
-    const taxAmount = subtotal * 0.08 // 8% tax
-    const total = subtotal + shippingCost + taxAmount
+    const subtotal = subtotalCents / 100;
+    const shippingCost = shippingCents / 100;
+    const taxAmount = taxCents / 100;
+    const total = totalCents / 100;
 
     console.log('💰 Calculated totals:', {
       subtotal: subtotal.toFixed(2),
@@ -300,7 +305,7 @@ serve(async (req) => {
           shipping_rate_data: {
             type: 'fixed_amount',
             fixed_amount: {
-              amount: subtotal >= 100 ? 0 : 999, // Free shipping over $100, otherwise $9.99
+              amount: shippingCents,
               currency: 'usd',
             },
             display_name: subtotal >= 100 ? 'Free Shipping' : 'Standard Shipping',

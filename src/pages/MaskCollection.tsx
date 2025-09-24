@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, Suspense, useMemo, useCallback } from 'react';
-import { motion, useInView, AnimatePresence, useScroll, useTransform, useReducedMotion } from 'framer-motion';
+import { motion, useInView, AnimatePresence, useScroll, useTransform, useReducedMotion, LazyMotion, domAnimation } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { WatermarkLogo, InlineLogo } from '@/components/VlancoLogo';
 import { Canvas, useFrame, useLoader } from '@react-three/fiber';
@@ -1242,14 +1242,26 @@ const MaskCollection = () => {
   const [selectedSize, setSelectedSize] = useState<Record<number, string>>({});
   const imageRefs = useRef<Record<number, HTMLImageElement | null>>({});
   
-  // Memoized hover handlers to prevent re-renders
+  // Throttled hover handlers (no style change) to reduce re-renders
+  const hoveredRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const setHoverThrottled = useCallback((productId: number | null) => {
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      if (hoveredRef.current !== productId) {
+        hoveredRef.current = productId;
+        setHoveredProduct(productId);
+      }
+    });
+  }, []);
   const handleHoverStart = useCallback((productId: number) => {
-    setHoveredProduct(productId);
-  }, []);
-  
+    if (isTouchDevice) return; // skip hover handling on touch devices
+    setHoverThrottled(productId);
+  }, [isTouchDevice, setHoverThrottled]);
   const handleHoverEnd = useCallback(() => {
-    setHoveredProduct(null);
-  }, []);
+    if (isTouchDevice) return;
+    setHoverThrottled(null);
+  }, [isTouchDevice, setHoverThrottled]);
   
   // Memoized image component to prevent reloading
   const MemoizedImage = React.memo(React.forwardRef<HTMLImageElement, any>(({ src, alt, className, style, animate, transition, initial }, ref) => (
@@ -1331,7 +1343,7 @@ const MaskCollection = () => {
     // Simulate loading time for 3D animations
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 800);
     
     // Check device performance and adjust quality
     const checkPerformance = () => {
@@ -2627,11 +2639,21 @@ const MaskCollection = () => {
             </motion.div>
 
             {/* Product Grid - Enhanced Mobile Responsiveness */}
-            <motion.div
-              className={`grid gap-4 sm:gap-6 lg:gap-8 xl:gap-10 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 p-2 sm:px-4 md:px-6 lg:px-8`}
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+            <LazyMotion features={domAnimation}>
+            <motion.div 
+              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10`}
+              initial="hidden"
+              animate="show"
+              variants={{
+                hidden: { opacity: 1 },
+                show: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: reduceAnimations ? 0.02 : 0.06,
+                    delayChildren: reduceAnimations ? 0.02 : 0.06
+                  }
+                }
+              }}
             >
               {filteredProducts.map((product, index) => {
                 const colorOptions = product.colors || [];
@@ -2677,12 +2699,9 @@ const MaskCollection = () => {
                         delay: reduceAnimations ? Math.min(index * 0.02, 0.2) : index * 0.05,
                         ease: [0.25, 0.46, 0.45, 0.94]
                       }}
-                    whileHover={reduceAnimations ? { scale: 1.01 } : {
-                      scale: 1.02,
-                      transition: { duration: 0.2, ease: "easeOut" }
-                    }}
-                    onHoverStart={() => handleHoverStart(product.id)}
-                    onHoverEnd={handleHoverEnd}
+                    whileHover={{ scale: 1.02 }}
+                    onMouseEnter={() => handleHoverStart(product.id)}
+                    onMouseLeave={handleHoverEnd}
                     onClick={async () => {
                       const colorIdx = selectedColor[product.id];
                       const size = selectedSize[product.id] || '';
@@ -2779,7 +2798,9 @@ const MaskCollection = () => {
                     {/* Elegant Card Container with Modern Layout */}
                     <motion.div 
                       data-product-id={product.id}
-                      className={`relative rounded-2xl overflow-hidden shadow-xl border transition-all duration-500 group-hover:shadow-2xl h-full flex flex-col ${
+                      role="button"
+                      tabIndex={0}
+                      className={`relative rounded-2xl overflow-hidden shadow-xl border transition-all duration-300 group-hover:shadow-2xl h-full flex flex-col cursor-pointer ${
                         product.isPremium 
                           ? 'bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 border-purple-500/30 group-hover:border-purple-400/60' 
                           : 'bg-gradient-to-br from-slate-900/95 via-slate-800/20 to-slate-900/95 border-slate-700/30 group-hover:border-slate-600/50'
@@ -2808,19 +2829,13 @@ const MaskCollection = () => {
                         rotateX: 0
                       }) : {}}
                       transition={{ 
-                        duration: reduceAnimations ? 0.6 : 1.0, 
+                        duration: reduceAnimations ? 0.4 : 0.7, 
                         delay: reduceAnimations ? Math.min(index * 0.03, 0.25) : index * 0.1,
                         ease: [0.25, 0.46, 0.45, 0.94]
                       }}
-                      whileHover={reduceAnimations ? { scale: 1.03 } : {
-                        scale: 1.05, 
-                        rotateY: 5,
-                        rotateX: 2,
-                        y: -20,
-                        z: 50
-                      }}
-                      onMouseEnter={() => setHoveredProduct(product.id)}
-                      onMouseLeave={() => setHoveredProduct(null)}
+                      whileHover={{ scale: 1.02 }}
+                      onMouseEnter={() => handleHoverStart(product.id)}
+                      onMouseLeave={handleHoverEnd}
                     >
                       {/* Subtle Border Effect */}
                       <motion.div
@@ -2837,7 +2852,7 @@ const MaskCollection = () => {
                         } : {
                           opacity: 0.4
                         }}
-                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        transition={{ duration: 0.15, ease: "easeOut" }}
                       />
 
                       {/* Subtle Spotlight Glow */}
@@ -2869,7 +2884,7 @@ const MaskCollection = () => {
                           opacity: 0.3
                         }}
                         transition={{ 
-                          duration: 0.2, 
+                          duration: 0.15, 
                           ease: "easeOut"
                         }}
                       />
@@ -2943,8 +2958,8 @@ const MaskCollection = () => {
                             filter: 'brightness(1.1) contrast(1.1) saturate(1.05)'
                           }}
                           transition={{
-                            duration: 1.2,
-                            delay: index * 0.15,
+                            duration: 0.7,
+                            delay: index * 0.08,
                             ease: [0.25, 0.46, 0.45, 0.94]
                           }}
                           loading="lazy"
@@ -2992,11 +3007,11 @@ const MaskCollection = () => {
                             z: -50
                           }}
                           transition={{
-                            duration: 0.8,
+                            duration: 0.6,
                             ease: [0.25, 0.46, 0.45, 0.94],
-                            opacity: { duration: 0.5, ease: "easeInOut" },
-                            scale: { duration: 0.8, ease: "easeOut" },
-                            rotateY: { duration: 0.8, ease: "easeOut" }
+                            opacity: { duration: 0.4, ease: "easeInOut" },
+                            scale: { duration: 0.6, ease: "easeOut" },
+                            rotateY: { duration: 0.6, ease: "easeOut" }
                           }}
                         />
                         
@@ -3088,10 +3103,8 @@ const MaskCollection = () => {
                           {product.isPremium && (
                             <motion.span 
                               className="px-2.5 py-1 bg-gradient-to-r from-purple-600/90 via-pink-500/90 to-purple-400/90 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm border border-purple-300/30"
-                              initial={{ scale: 0, rotate: -180 }}
+                              initial={{ scale: 1, rotate: 0 }}
                               animate={{ scale: 1, rotate: 0 }}
-                              transition={{ delay: 0.1 + index * 0.1, type: "spring", stiffness: 200 }}
-                              whileHover={{ scale: 1.05, rotate: 2 }}
                             >
                               <Crown className="w-3 h-3 inline mr-1" />
                               PREMIUM
@@ -3100,10 +3113,8 @@ const MaskCollection = () => {
                           {product.discount && (
                             <motion.span 
                               className="px-2.5 py-1 bg-gradient-to-r from-red-500/90 via-orange-500/90 to-yellow-500/90 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm border border-red-300/30"
-                              initial={{ scale: 0, rotate: 180 }}
+                              initial={{ scale: 1, rotate: 0 }}
                               animate={{ scale: 1, rotate: 0 }}
-                              transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
-                              whileHover={{ scale: 1.05, rotate: -2 }}
                             >
                               {product.discount}% OFF
                             </motion.span>
@@ -3111,10 +3122,8 @@ const MaskCollection = () => {
                           {product.isNew && !product.isPremium && (
                             <motion.span 
                               className="px-2.5 py-1 bg-gradient-to-r from-cyan-500/90 via-blue-500/90 to-cyan-400/90 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm"
-                              initial={{ scale: 0, rotate: -180 }}
+                              initial={{ scale: 1, rotate: 0 }}
                               animate={{ scale: 1, rotate: 0 }}
-                              transition={{ delay: 0.2 + index * 0.1, type: "spring", stiffness: 200 }}
-                              whileHover={{ scale: 1.05, rotate: 2 }}
                             >
                               NEW
                             </motion.span>
@@ -3122,10 +3131,8 @@ const MaskCollection = () => {
                           {product.isBestseller && !product.isPremium && (
                             <motion.span 
                               className="px-2.5 py-1 bg-gradient-to-r from-yellow-500/90 via-orange-500/90 to-red-500/90 text-white text-xs font-semibold rounded-lg shadow-lg backdrop-blur-sm"
-                              initial={{ scale: 0, rotate: 180 }}
+                              initial={{ scale: 1, rotate: 0 }}
                               animate={{ scale: 1, rotate: 0 }}
-                              transition={{ delay: 0.3 + index * 0.1, type: "spring", stiffness: 200 }}
-                              whileHover={{ scale: 1.05, rotate: -2 }}
                             >
                               BESTSELLER
                             </motion.span>
@@ -3135,14 +3142,12 @@ const MaskCollection = () => {
                         {/* Elegant Rating Badge */}
                         <motion.div
                           className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1.5 bg-black/70 backdrop-blur-sm rounded-lg border border-white/10 z-20"
-                          initial={{ opacity: 0, x: 20, scale: 0.8 }}
-                          animate={isInView ? { opacity: 1, x: 0, scale: 1 } : {}}
-                          transition={{ delay: index * 0.2 + 0.5, type: "spring", stiffness: 200 }}
-                          whileHover={{ scale: 1.05 }}
-                        >
-                          <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                          <span className="text-xs font-semibold text-white">{product.rating}</span>
-                        </motion.div>
+                          initial={{ opacity: 1, x: 0, scale: 1 }}
+                          animate={{ opacity: 1, x: 0, scale: 1 }}
+                         >
+                           <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                           <span className="text-xs font-semibold text-white">{product.rating}</span>
+                         </motion.div>
                       </div>
                       
                       {/* Elegant Info Section - 3D Enhanced */}
@@ -3405,6 +3410,7 @@ const MaskCollection = () => {
                 );
               })}
             </motion.div>
+            </LazyMotion>
 
             {/* No Results */}
             {filteredProducts.length === 0 && (
