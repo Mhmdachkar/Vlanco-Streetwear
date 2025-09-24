@@ -639,45 +639,50 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
     onHover(null);
   };
 
+  const prefetchProductAssets = () => {
+    try {
+      // Prefetch gallery images in the background
+      const media: any[] = Array.isArray(product.gallery) ? product.gallery : [];
+      media.slice(0, 6).forEach((m) => {
+        const src = m?.src || m;
+        if (typeof src === 'string') {
+          const link = document.createElement('link');
+          link.rel = 'prefetch';
+          link.as = 'image';
+          link.href = src;
+          document.head.appendChild(link);
+        }
+      });
+      // Warm up detail route chunk (if code-split)
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      import('@/pages/ProductDetail');
+    } catch {}
+  };
+
   const handleCardClick = () => {
-    // Navigate to detail page with product data
+    // Store minimal, correct product payload for instant retrieval on detail page
+    try {
+      const minimal = {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: typeof product.image === 'string' ? product.image : product.image?.src,
+        images: (Array.isArray(product.gallery) ? product.gallery : [])
+          .map((g: any) => (typeof g === 'string' ? g : g?.src))
+          .filter(Boolean),
+        rating: product.rating,
+        reviews: product.reviews,
+        colors: product.colors,
+        sizes: product.sizes,
+        communityIntel: (product as any).communityIntel || undefined,
+      };
+      sessionStorage.setItem(`product_${product.id}`, JSON.stringify(minimal));
+    } catch {}
+
+    // Navigate with ultra-light state to speed up transition
     navigate(`/mask/${product.id}`, {
       state: {
-        product: {
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice,
-          image: product.image,
-          gallery: product.gallery,
-          rating: product.rating,
-          reviews: product.reviews,
-          isNew: product.isNew,
-          isBestseller: product.isBestseller,
-          colors: product.colors,
-          sizes: product.sizes,
-          category: product.category,
-          section: product.section,
-          features: product.features,
-          description: product.description,
-          material: product.material,
-          protection: product.protection,
-          washable: product.washable,
-          availability: product.availability,
-          shipping: product.shipping,
-          brand: product.brand,
-          collection: product.collection,
-          modelNumber: product.modelNumber,
-          placeOfOrigin: product.placeOfOrigin,
-          applicableScenes: product.applicableScenes,
-          gender: product.gender,
-          ageGroup: product.ageGroup,
-          moq: product.moq,
-          sampleTime: product.sampleTime,
-          packaging: product.packaging,
-          singlePackageSize: product.singlePackageSize,
-          singleGrossWeight: product.singleGrossWeight
-        }
+        product: { id: product.id }
       }
     });
   };
@@ -724,7 +729,7 @@ const PowerMaskCard = ({ product, index, isHovered, onHover, onQuickAdd, onToggl
         scale: 1.02,
         transition: { duration: 0.2, ease: "easeOut" }
       }}
-      onHoverStart={handleHoverStart}
+      onHoverStart={() => { handleHoverStart(); prefetchProductAssets(); }}
       onHoverEnd={handleHoverEnd}
       onClick={handleCardClick}
     >

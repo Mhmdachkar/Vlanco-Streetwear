@@ -569,6 +569,9 @@ const EnhancedPhotoGallery = ({ images, currentIndex, onImageChange, onZoom }) =
                 transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
                 cursor: isZoomed ? 'zoom-out' : 'zoom-in'
               }}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               whileHover={!isZoomed ? { scale: 1.05 } : {}}
               transition={{ duration: 0.3, ease: "easeOut" }}
               onClick={isZoomed ? handleZoomOut : handleZoom}
@@ -702,6 +705,8 @@ const EnhancedPhotoGallery = ({ images, currentIndex, onImageChange, onZoom }) =
                   src={image?.src || image}
                   alt={image?.alt || `Thumbnail ${index + 1}`}
                   className="w-full h-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               )}
               
@@ -992,24 +997,48 @@ const VlancoProductPage = () => {
     const locationProduct = location.state?.product;
     
     if (locationProduct) {
-      // Transform mask product data to match ProductDetail format
+      // Try to read minimal session payload for instant paint
+      let minimal: any = undefined;
+      try {
+        if (locationProduct.id !== undefined) {
+          const raw = sessionStorage.getItem(`product_${locationProduct.id}`);
+          if (raw) minimal = JSON.parse(raw);
+        }
+      } catch {}
+
+      const merged: any = minimal ? {
+        id: minimal.id ?? locationProduct.id,
+        name: minimal.name ?? locationProduct.name,
+        price: minimal.price ?? locationProduct.price,
+        image: minimal.image ?? locationProduct.image,
+        images: minimal.images ?? (locationProduct.gallery || [locationProduct.image, locationProduct.hoverImage].filter(Boolean)),
+        rating: minimal.rating ?? locationProduct.rating,
+        reviews: minimal.reviews ?? locationProduct.reviews,
+        colors: minimal.colors ?? locationProduct.colors,
+        sizes: minimal.sizes ?? locationProduct.sizes,
+        communityIntel: minimal.communityIntel ?? (locationProduct as any).communityIntel,
+        // spread rest of original for compatibility
+        ...locationProduct,
+      } : locationProduct;
+
+      // Transform product data to match ProductDetail format
       return {
-        id: locationProduct.id,
-        name: locationProduct.name,
-        subtitle: locationProduct.collection || "STREETWEAR COLLECTION",
-        base_price: locationProduct.price,
-        compare_price: locationProduct.originalPrice,
-        discount: locationProduct.originalPrice ? Math.round(((locationProduct.originalPrice - locationProduct.price) / locationProduct.originalPrice) * 100) : 0,
-        category: locationProduct.category || "STREETWEAR",
-        description: locationProduct.description,
-        gallery: locationProduct.gallery || [locationProduct.image, locationProduct.hoverImage].filter(Boolean),
+        id: merged.id,
+        name: merged.name,
+        subtitle: merged.collection || "STREETWEAR COLLECTION",
+        base_price: merged.price,
+        compare_price: merged.originalPrice,
+        discount: merged.originalPrice ? Math.round(((merged.originalPrice - merged.price) / merged.originalPrice) * 100) : 0,
+        category: merged.category || "STREETWEAR",
+        description: merged.description,
+        gallery: merged.images || merged.gallery || [merged.image, merged.hoverImage].filter(Boolean),
         stock_quantity: 10, // Default stock
-        size_options: locationProduct.sizes || ['Adult Size'],
-        color_options: locationProduct.colors?.map(color => ({ name: color.name, hex: color.value })) || [
+        size_options: merged.sizes || ['Adult Size'],
+        color_options: merged.colors?.map((color: any) => ({ name: color.name, hex: color.value })) || [
           { name: 'BLACK', hex: '#000000' },
           { name: 'BROWN', hex: '#8B4513' }
         ],
-        features: locationProduct.features?.map(feature => ({ icon: '✨', text: feature, level: 85 })) || [
+        features: merged.features?.map((feature: any) => ({ icon: '✨', text: feature, level: 85 })) || [
           { icon: '🔥', text: 'Premium Quality', level: 95 },
           { icon: '⚡', text: 'Hand Crafted', level: 98 },
           { icon: '🛡️', text: 'Full Protection', level: 87 },
@@ -1019,58 +1048,56 @@ const VlancoProductPage = () => {
           hypeLevel: 85,
           streetCred: 90,
           exclusivity: 75,
-          community: locationProduct.reviews || 98
+          community: merged.reviews || 98
         },
         reviews: {
-          average: locationProduct.rating || 4.1,
-          total: locationProduct.reviews || 98,
-          verified: Math.floor((locationProduct.reviews || 98) * 0.8)
+          average: merged.rating || 4.1,
+          total: merged.reviews || 98,
+          verified: Math.floor((merged.reviews || 98) * 0.8)
         },
-        sku: locationProduct.modelNumber || `MASK-${locationProduct.id}`,
-        price: locationProduct.price,
-        images: locationProduct.gallery || [locationProduct.image, locationProduct.hoverImage].filter(Boolean),
-        // Additional mask-specific properties
-        material: locationProduct.material,
-        protection: locationProduct.protection,
-        washable: locationProduct.washable,
-        availability: locationProduct.availability,
-        shipping: locationProduct.shipping,
-        brand: locationProduct.brand,
-        collection: locationProduct.collection,
-        modelNumber: locationProduct.modelNumber,
-        placeOfOrigin: locationProduct.placeOfOrigin,
-        applicableScenes: locationProduct.applicableScenes,
-        gender: locationProduct.gender,
-        ageGroup: locationProduct.ageGroup,
-        moq: locationProduct.moq,
-        sampleTime: locationProduct.sampleTime,
-        packaging: locationProduct.packaging,
-        singlePackageSize: locationProduct.singlePackageSize,
-        singleGrossWeight: locationProduct.singleGrossWeight,
-        // Additional properties for second mask
-        headCircumference: locationProduct.headCircumference,
-        printingMethods: locationProduct.printingMethods,
-        technics: locationProduct.technics,
-        needleDetection: locationProduct.needleDetection,
-        keywords: locationProduct.keywords,
-        logo: locationProduct.logo,
-        color: locationProduct.color,
-        usage: locationProduct.usage,
-        item: locationProduct.item,
-        label: locationProduct.label,
-        oem: locationProduct.oem,
-        use: locationProduct.use,
-        sellingUnits: locationProduct.sellingUnits,
-        detailedReviews: locationProduct.detailedReviews,
-        // Additional properties for third mask
-        design: locationProduct.design,
-        packing: locationProduct.packing,
-        service: locationProduct.service,
-        quality: locationProduct.quality,
-        // Additional properties for fourth mask
-        season: locationProduct.season,
-        functionality: locationProduct.function,
-        feature: locationProduct.feature
+        sku: merged.modelNumber || `MASK-${merged.id}`,
+        price: merged.price,
+        images: merged.images || merged.gallery || [merged.image, merged.hoverImage].filter(Boolean),
+        // Pass-through specific fields if present
+        material: merged.material,
+        protection: merged.protection,
+        washable: merged.washable,
+        availability: merged.availability,
+        shipping: merged.shipping,
+        brand: merged.brand,
+        collection: merged.collection,
+        modelNumber: merged.modelNumber,
+        placeOfOrigin: merged.placeOfOrigin,
+        applicableScenes: merged.applicableScenes,
+        gender: merged.gender,
+        ageGroup: merged.ageGroup,
+        moq: merged.moq,
+        sampleTime: merged.sampleTime,
+        packaging: merged.packaging,
+        singlePackageSize: merged.singlePackageSize,
+        singleGrossWeight: merged.singleGrossWeight,
+        headCircumference: merged.headCircumference,
+        printingMethods: merged.printingMethods,
+        technics: merged.technics,
+        needleDetection: merged.needleDetection,
+        keywords: merged.keywords,
+        logo: merged.logo,
+        color: merged.color,
+        usage: merged.usage,
+        item: merged.item,
+        label: merged.label,
+        oem: merged.oem,
+        use: merged.use,
+        sellingUnits: merged.sellingUnits,
+        detailedReviews: merged.detailedReviews,
+        design: merged.design,
+        packing: merged.packing,
+        service: merged.service,
+        quality: merged.quality,
+        season: merged.season,
+        functionality: merged.function,
+        feature: merged.feature,
+        communityIntel: merged.communityIntel,
       };
     }
     
