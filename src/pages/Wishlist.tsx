@@ -291,11 +291,14 @@ const Wishlist = () => {
         className="min-h-screen bg-gradient-to-br from-background via-muted/5 to-background pt-20 pb-16 relative overflow-hidden"
       >
         {/* Enhanced Background Effects */}
-        <FloatingParticles count={12} />
+        <div className="hidden sm:block">
+          <FloatingParticles count={12} />
+        </div>
         
         {/* Subtle gradient orbs */}
         <motion.div
           className="absolute top-1/4 left-1/6 w-40 h-40 bg-gradient-to-br from-red-500/8 to-pink-500/4 rounded-full blur-3xl"
+          style={{ display: 'none' }}
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.5, 0.3],
@@ -311,6 +314,7 @@ const Wishlist = () => {
         
         <motion.div
           className="absolute bottom-1/3 right-1/4 w-32 h-32 bg-gradient-to-br from-purple-500/8 to-indigo-500/4 rounded-full blur-2xl"
+          style={{ display: 'none' }}
           animate={{
             scale: [1.1, 1, 1.1],
             opacity: [0.4, 0.6, 0.4],
@@ -325,7 +329,7 @@ const Wishlist = () => {
           }}
         />
 
-        <div className="max-w-7xl mx-auto px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           {/* Enhanced Header */}
         <motion.div
           className="mb-12"
@@ -388,7 +392,7 @@ const Wishlist = () => {
             {/* Stats Bar */}
             {wishlistItems.length > 0 && (
               <motion.div
-                className="flex justify-center items-center gap-8 mb-8"
+                className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 mb-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.6 }}
@@ -424,10 +428,10 @@ const Wishlist = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.8 }}
             >
-              <div className="bg-background/80 backdrop-blur-sm rounded-3xl border border-border/50 p-6 shadow-lg">
-                <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+              <div className="bg-background/80 backdrop-blur-sm rounded-3xl border border-border/50 p-4 sm:p-6 shadow-lg">
+                <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 items-center justify-between">
                   {/* Filters */}
-                  <div className="flex flex-wrap gap-4">
+                  <div className="flex flex-wrap gap-3 sm:gap-4 w-full lg:w-auto justify-center">
                     {[
                       { id: 'all', label: 'All Items', icon: Package },
                       { id: 'new', label: 'New', icon: Sparkles },
@@ -437,7 +441,7 @@ const Wishlist = () => {
                       <motion.button
                         key={filter.id}
                         onClick={() => setFilterBy(filter.id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all ${
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl font-medium text-sm transition-all ${
                           filterBy === filter.id
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-muted/30 hover:bg-muted/50'
@@ -452,12 +456,12 @@ const Wishlist = () => {
                   </div>
 
                   {/* Controls */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 w-full lg:w-auto justify-center flex-wrap">
                     {/* Sort */}
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="px-4 py-2 bg-muted/30 border border-border/50 rounded-xl focus:outline-none focus:border-primary/50"
+                      className="w-full sm:w-auto px-4 py-2 bg-muted/30 border border-border/50 rounded-xl focus:outline-none focus:border-primary/50"
                     >
                       <option value="newest">Newest First</option>
                       <option value="oldest">Oldest First</option>
@@ -511,7 +515,7 @@ const Wishlist = () => {
             <EmptyWishlist />
           ) : (
           <motion.div
-              className={`grid gap-8 ${
+              className={`grid gap-4 sm:gap-8 ${
                 viewMode === 'grid' 
                   ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' 
                   : 'grid-cols-1'
@@ -523,7 +527,7 @@ const Wishlist = () => {
               {filteredItems.map((item, index) => (
               <motion.div
                 key={item.id}
-                  className={`group relative ${viewMode === 'list' ? 'flex gap-6' : ''}`}
+                  className={`group relative ${viewMode === 'list' ? 'flex gap-4 sm:gap-6' : ''}`}
                   initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -531,10 +535,10 @@ const Wishlist = () => {
                   onHoverEnd={() => setHoveredItem(null)}
               >
                   <div className={`bg-gradient-to-br from-background/80 to-muted/20 backdrop-blur-sm rounded-3xl border border-border/50 overflow-hidden group-hover:shadow-2xl transition-all duration-500 ${
-                    viewMode === 'list' ? 'flex-shrink-0 w-64' : ''
+                    viewMode === 'list' ? 'flex-shrink-0 w-36 sm:w-64' : ''
                   }`}>
                 {/* Product Image */}
-                    <div className={`relative overflow-hidden ${viewMode === 'list' ? 'h-48' : 'aspect-square'}`}>
+                    <div className={`relative overflow-hidden ${viewMode === 'list' ? 'h-40 sm:h-48' : 'aspect-square'}`}>
                       <motion.img
                     src={item.image}
                     alt={item.name}
@@ -661,7 +665,7 @@ const Wishlist = () => {
                 </div>
 
                 {/* Product Info */}
-                    <div className={`p-6 ${viewMode === 'list' ? 'flex-1' : ''}`}>
+                    <div className={`p-4 sm:p-6 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -743,7 +747,7 @@ const Wishlist = () => {
                         )}
                       </div>
                   
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className="flex items-center gap-2">
                           <span className="text-xl font-bold">${item.price}</span>
                           {item.compare_price && (
@@ -760,10 +764,10 @@ const Wishlist = () => {
                   </div>
 
                       {/* Quick Actions */}
-                      <div className="flex gap-2">
+                      <div className="flex flex-col sm:flex-row gap-2">
                     <motion.button
                           onClick={() => handleAddToCart(item)}
-                          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-sm"
+                          className="w-full sm:flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-medium text-sm"
                           whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -799,7 +803,7 @@ const Wishlist = () => {
               onClick={() => setShowProductDetail(false)}
             >
               <motion.div
-                className="bg-background rounded-3xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+                className="bg-background rounded-3xl p-4 sm:p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
@@ -815,9 +819,9 @@ const Wishlist = () => {
               </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 {/* 3D Viewer */}
-                   <div className="h-96 bg-muted/30 rounded-2xl overflow-hidden">
+                   <div className="h-64 sm:h-96 bg-muted/30 rounded-2xl overflow-hidden">
                   <ProductViewer3D
                        productImages={selectedProduct.images || [selectedProduct.image]}
                     productName={selectedProduct.name}
