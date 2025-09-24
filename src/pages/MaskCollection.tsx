@@ -2702,94 +2702,24 @@ const MaskCollection = () => {
                     whileHover={{ scale: 1.02 }}
                     onMouseEnter={() => handleHoverStart(product.id)}
                     onMouseLeave={handleHoverEnd}
-                    onClick={async () => {
-                      const colorIdx = selectedColor[product.id];
-                      const size = selectedSize[product.id] || '';
-                      const params = new URLSearchParams();
-                      
-                      // Enhanced navigation with comprehensive product data
-                      if (size) params.set('size', size);
-                      if (colorIdx !== undefined) {
-                        params.set('colorIdx', String(colorIdx));
-                        const colorEntry = (product.colors || [])[colorIdx];
-                        const colorName = typeof colorEntry === 'string' ? colorEntry : colorEntry?.name;
-                        if (colorName) params.set('color', colorName);
-                      }
-                      
-                      // Add additional context for better product detail experience
-                      params.set('category', product.category);
-                      params.set('price', product.price.toString());
-                      if (product.originalPrice) params.set('originalPrice', product.originalPrice.toString());
-                      params.set('rating', product.rating.toString());
-                      params.set('reviews', product.reviews.toString());
-                      
-                      // Track product view analytics
-                      try {
-                        // Note: Need to add analytics import and hook usage at component level
-                      } catch (analyticsError) {
-                      }
-                      
-                      // Store selected options in session storage for seamless experience
+                    onClick={() => {
+                      const size = selectedSize[product.id] || product.sizes?.[0] || 'One Size';
+                      const colorIdx = selectedColor[product.id] !== undefined ? selectedColor[product.id] : 0;
+                      // Store only minimal session data for instant navigation
                       sessionStorage.setItem(`product_${product.id}_options`, JSON.stringify({
                         selectedColor: colorIdx,
-                        selectedSize: size,
-                        productData: {
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          originalPrice: product.originalPrice,
-                          category: product.category,
-                          rating: product.rating,
-                          reviews: product.reviews,
-                          isNew: product.isNew,
-                          isBestseller: product.isBestseller
-                        }
+                        selectedSize: size
                       }));
-                      
-                      // Navigate with comprehensive product data in state
-                      navigate(`/product/${product.id}${params.toString() ? `?${params.toString()}` : ''}`, {
+                      navigate(`/product/${product.id}`, {
                         state: {
                           product: {
                             id: product.id,
                             name: product.name,
                             price: product.price,
-                            originalPrice: product.originalPrice,
                             image: product.image,
-                            gallery: product.gallery || [product.image],
-                            images: product.gallery || [product.image],
+                            images: (product.gallery || [product.image]).map(g => (typeof g === 'string' ? g : g.src)),
                             rating: product.rating,
-                            reviews: product.reviews,
-                            isNew: product.isNew,
-                            isBestseller: product.isBestseller,
-                            colors: product.colors,
-                            sizes: product.sizes,
-                            category: product.category,
-                            section: product.section,
-                            features: product.features || [
-                              'Premium Quality Materials',
-                              'Advanced Protection',
-                              'Comfortable Fit',
-                              'Durable Construction'
-                            ],
-                            description: product.description || `${product.name} - Premium mask collection`,
-                            material: product.material || 'Premium Materials',
-                            protection: product.protection,
-                            washable: product.washable,
-                            availability: product.availability,
-                            shipping: product.shipping,
-                            brand: product.brand || 'VLANCO',
-                            collection: product.collection || 'Mask Collection',
-                            modelNumber: product.modelNumber || `MASK-${product.id}`,
-                            placeOfOrigin: product.placeOfOrigin,
-                            applicableScenes: product.applicableScenes,
-                            gender: product.gender,
-                            ageGroup: product.ageGroup,
-                            moq: product.moq,
-                            sampleTime: product.sampleTime,
-                            packaging: product.packaging,
-                            singlePackageSize: product.singlePackageSize,
-                            singleGrossWeight: product.singleGrossWeight,
-                            from: 'mask_collection'
+                            reviews: product.reviews
                           }
                         }
                       });
@@ -2930,7 +2860,7 @@ const MaskCollection = () => {
 
                       
                       {/* Elegant Photo Section - Responsive Height */}
-                      <div className="relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden"> 
+                      <div className="relative h-48 sm:h-64 md:h-80 lg:h-96 overflow-hidden" onClick={() => navigate(`/product/${product.id}`)}> 
                         {/* Base Image with Enhanced Styling */}
                         <motion.img
                           ref={el => (imageRefs.current[product.id] = el)}
