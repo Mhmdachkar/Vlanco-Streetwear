@@ -6,7 +6,110 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Rate limiting store (in-memory for Deno Edge Functions)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute per IP
+const RATE_LIMIT_MAX_CHECKOUTS = 3; // 3 checkout attempts per minute per IP
+
+// Circuit breaker configuration
+const CIRCUIT_BREAKER_THRESHOLD = 5; // 5 failures
+const CIRCUIT_BREAKER_TIMEOUT = 30 * 1000; // 30 seconds
+const circuitBreakerState = {
+  failures: 0,
+  lastFailureTime: 0,
+  isOpen: false
+};
+
+// Performance monitoring
+const performanceMetrics = {
+  requestCount: 0,
+  errorCount: 0,
+  averageResponseTime: 0,
+  lastResetTime: Date.now()
+};
+
+// Rate limiting function
+function checkRateLimit(ip: string, isCheckout: boolean = false): boolean {
+  const now = Date.now();
+  const key = `${ip}_${isCheckout ? 'checkout' : 'general'}`;
+  const limit = isCheckout ? RATE_LIMIT_MAX_CHECKOUTS : RATE_LIMIT_MAX_REQUESTS;
+  
+  const current = rateLimitStore.get(key);
+  
+  if (!current || now > current.resetTime) {
+    rateLimitStore.set(key, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return true;
+  }
+  
+  if (current.count >= limit) {
+    return false;
+  }
+  
+  current.count++;
+  return true;
+}
+
+// Circuit breaker function
+function checkCircuitBreaker(): boolean {
+  const now = Date.now();
+  
+  if (circuitBreakerState.isOpen) {
+    if (now - circuitBreakerState.lastFailureTime > CIRCUIT_BREAKER_TIMEOUT) {
+      // Half-open state - allow one request to test
+      circuitBreakerState.isOpen = false;
+      circuitBreakerState.failures = 0;
+      return true;
+    }
+    return false;
+  }
+  
+  return true;
+}
+
+// Update circuit breaker on failure
+function recordFailure() {
+  circuitBreakerState.failures++;
+  circuitBreakerState.lastFailureTime = Date.now();
+  
+  if (circuitBreakerState.failures >= CIRCUIT_BREAKER_THRESHOLD) {
+    circuitBreakerState.isOpen = true;
+    console.warn('🚨 Circuit breaker opened due to failures');
+  }
+}
+
+// Update circuit breaker on success
+function recordSuccess() {
+  circuitBreakerState.failures = 0;
+}
+
+// Performance monitoring
+function updateMetrics(responseTime: number, isError: boolean = false) {
+  performanceMetrics.requestCount++;
+  if (isError) performanceMetrics.errorCount++;
+  
+  // Update average response time
+  performanceMetrics.averageResponseTime = 
+    (performanceMetrics.averageResponseTime * (performanceMetrics.requestCount - 1) + responseTime) / 
+    performanceMetrics.requestCount;
+  
+  // Log metrics every 100 requests
+  if (performanceMetrics.requestCount % 100 === 0) {
+    console.log('📊 Performance Metrics:', {
+      requests: performanceMetrics.requestCount,
+      errors: performanceMetrics.errorCount,
+      errorRate: (performanceMetrics.errorCount / performanceMetrics.requestCount * 100).toFixed(2) + '%',
+      avgResponseTime: performanceMetrics.averageResponseTime.toFixed(2) + 'ms'
+    });
+  }
+}
+
 serve(async (req) => {
+  const startTime = Date.now();
+  const clientIP = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -14,6 +117,8 @@ serve(async (req) => {
 
   // Security: Only allow POST requests
   if (req.method !== 'POST') {
+    const responseTime = Date.now() - startTime;
+    updateMetrics(responseTime, true);
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       {
@@ -23,9 +128,47 @@ serve(async (req) => {
     );
   }
 
+  // Rate limiting check
+  if (!checkRateLimit(clientIP, true)) {
+    const responseTime = Date.now() - startTime;
+    updateMetrics(responseTime, true);
+    console.warn(`🚫 Rate limit exceeded for IP: ${clientIP}`);
+    return new Response(
+      JSON.stringify({ 
+        error: 'Rate limit exceeded', 
+        message: 'Too many checkout attempts. Please try again later.',
+        retryAfter: 60 
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 429,
+      }
+    );
+  }
+
+  // Circuit breaker check
+  if (!checkCircuitBreaker()) {
+    const responseTime = Date.now() - startTime;
+    updateMetrics(responseTime, true);
+    console.warn('🚨 Circuit breaker is open - rejecting request');
+    return new Response(
+      JSON.stringify({ 
+        error: 'Service temporarily unavailable', 
+        message: 'Please try again in a few moments.',
+        retryAfter: 30 
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 503,
+      }
+    );
+  }
+
   // Security: Check request size (limit to 1MB)
   const contentLength = req.headers.get('content-length');
   if (contentLength && parseInt(contentLength) > 1024 * 1024) {
+    const responseTime = Date.now() - startTime;
+    updateMetrics(responseTime, true);
     return new Response(
       JSON.stringify({ error: 'Request too large' }),
       {
@@ -348,6 +491,13 @@ serve(async (req) => {
       // Don't fail the checkout for tracking errors
     }
 
+    // Record successful operation
+    const responseTime = Date.now() - startTime;
+    updateMetrics(responseTime, false);
+    recordSuccess();
+    
+    console.log(`✅ Checkout session created successfully in ${responseTime}ms for IP: ${clientIP}`);
+
     return new Response(
       JSON.stringify({
         url: session.url,
@@ -364,21 +514,44 @@ serve(async (req) => {
     )
 
   } catch (error) {
+    // Record failed operation
+    const responseTime = Date.now() - startTime;
+    updateMetrics(responseTime, true);
+    recordFailure();
+    
     console.error('❌ Error creating local checkout session:', error);
     console.error('❌ Error details:', {
       message: error.message,
       stack: error.stack,
-      name: error.name
+      name: error.name,
+      clientIP,
+      responseTime: responseTime + 'ms'
     });
+    
+    // Determine appropriate error response based on error type
+    let statusCode = 500;
+    let errorMessage = 'Failed to create checkout session';
+    
+    if (error.message?.includes('rate limit') || error.message?.includes('too many requests')) {
+      statusCode = 429;
+      errorMessage = 'Too many requests. Please try again later.';
+    } else if (error.message?.includes('timeout') || error.message?.includes('connection')) {
+      statusCode = 504;
+      errorMessage = 'Service timeout. Please try again.';
+    } else if (error.message?.includes('invalid') || error.message?.includes('validation')) {
+      statusCode = 400;
+      errorMessage = 'Invalid request data. Please check your input.';
+    }
     
     return new Response(
       JSON.stringify({
-        error: error.message || 'Failed to create checkout session',
-        details: error.stack || 'No additional details available'
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error.stack : 'Contact support if this persists',
+        retryAfter: statusCode === 429 ? 60 : statusCode === 504 ? 30 : undefined
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: statusCode,
       },
     )
   }

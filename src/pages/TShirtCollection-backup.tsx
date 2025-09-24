@@ -1470,6 +1470,9 @@ const TShirtCollection = () => {
                           alt={product.name}
                           className="absolute inset-0 w-full h-full object-cover"
                           style={{ imageRendering: 'auto' }}
+                          loading="eager"
+                          decoding="async"
+                          fetchPriority="high"
                           animate={hoveredProduct === product.id ? { 
                             scale: 1.05,
                             filter: 'blur(0px)'
@@ -1490,6 +1493,8 @@ const TShirtCollection = () => {
                           alt={product.name}
                           className="absolute inset-0 w-full h-full object-cover"
                           style={{ imageRendering: 'auto' }}
+                          loading="lazy"
+                          decoding="async"
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={hoveredProduct === product.id ? { 
                             opacity: 1,
@@ -1805,7 +1810,24 @@ const TShirtCollection = () => {
                       scale: 1.03,
                       transition: { duration: 0.4, ease: "easeOut" }
                     }}
-                    onHoverStart={() => setHoveredProduct(product.id)}
+                    onHoverStart={() => {
+                      setHoveredProduct(product.id);
+                      // Prefetch product assets for faster navigation
+                      try {
+                        const media = [product.image, product.hoverImage].filter(Boolean);
+                        media.forEach((src) => {
+                          if (typeof src === 'string') {
+                            const link = document.createElement('link');
+                            link.rel = 'prefetch';
+                            link.as = 'image';
+                            link.href = src;
+                            document.head.appendChild(link);
+                          }
+                        });
+                        // Warm up detail route chunk
+                        import('@/pages/ProductDetail');
+                      } catch {}
+                    }}
                     onHoverEnd={() => setHoveredProduct(null)}
                     onClick={async (e) => {
                       e.preventDefault();
@@ -1813,23 +1835,23 @@ const TShirtCollection = () => {
                       
                       const colorIdx = selectedColor[product.id] || 0;
                       const size = selectedSize[product.id] || product.sizes?.[0] || '';
-                      const params = new URLSearchParams();
                       
-                      // Enhanced navigation with comprehensive product data
-                      if (size) params.set('size', size);
-                      if (colorIdx !== undefined) {
-                        params.set('colorIdx', String(colorIdx));
-                        const colorEntry = (product.colors || [])[colorIdx];
-                        const colorName = typeof colorEntry === 'string' ? colorEntry : colorEntry?.name;
-                        if (colorName) params.set('color', colorName);
-                      }
-                      
-                      // Add essential context
-                      params.set('category', product.category);
-                      params.set('from', 'tshirt_collection');
-                      if (product.isNew) params.set('badge', 'new');
-                      if (product.isBestseller) params.set('badge', 'bestseller');
-                      if (user) params.set('user_context', 'authenticated');
+                      // Store minimal product payload for instant detail page load
+                      try {
+                        const minimal = {
+                          id: product.id,
+                          name: product.name,
+                          price: product.price,
+                          image: product.image,
+                          images: [product.image, product.hoverImage].filter(Boolean),
+                          rating: product.rating,
+                          reviews: product.reviews,
+                          colors: product.colors,
+                          sizes: product.sizes,
+                          communityIntel: (product as any).communityIntel || undefined,
+                        };
+                        sessionStorage.setItem(`product_${product.id}`, JSON.stringify(minimal));
+                      } catch {}
                       
                       // Track product view analytics (fire and forget)
                       trackProduct(String(product.id), {
@@ -1841,39 +1863,10 @@ const TShirtCollection = () => {
                         came_from: 'tshirt_collection'
                       }).catch(error => console.warn('Analytics tracking failed:', error));
                       
-                      // Navigate with smooth transition
-                      navigate(`/product/${product.id}${params.toString() ? `?${params.toString()}` : ''}`, {
+                      // Navigate with minimal state for faster transition
+                      navigate(`/product/${product.id}`, {
                         state: {
-                          product: {
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            originalPrice: product.originalPrice,
-                            image: product.image,
-                            hoverImage: product.hoverImage,
-                            images: [product.image, product.hoverImage].filter(Boolean),
-                            rating: product.rating,
-                            reviews: product.reviews,
-                            isNew: product.isNew,
-                            isBestseller: product.isBestseller,
-                            colors: product.colors,
-                            sizes: product.sizes,
-                            category: product.category,
-                            description: product.description,
-                            material: product.material,
-                            brand: 'VLANCO',
-                            collection: 'Pants & Shorts Collection',
-                            modelNumber: `PTS-${product.id}`,
-                            features: product.features,
-                            selectedColor: colorIdx,
-                            selectedSize: size,
-                            from: 'tshirt_collection'
-                          },
-                          transition: {
-                            type: 'product-card',
-                            direction: 'forward',
-                            sourcePosition: { x: e.clientX, y: e.clientY }
-                          }
+                          product: { id: product.id }
                         }
                       });
                     }}
@@ -1917,6 +1910,9 @@ const TShirtCollection = () => {
                           alt={product.name}
                           className="absolute inset-0 w-full h-full object-cover"
                           style={{ imageRendering: 'auto' }}
+                          loading="eager"
+                          decoding="async"
+                          fetchPriority="high"
                           animate={hoveredProduct === product.id ? { 
                             scale: 1.05,
                             filter: 'blur(0px)'
@@ -1937,6 +1933,8 @@ const TShirtCollection = () => {
                           alt={product.name}
                           className="absolute inset-0 w-full h-full object-cover"
                           style={{ imageRendering: 'auto' }}
+                          loading="lazy"
+                          decoding="async"
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={hoveredProduct === product.id ? { 
                             opacity: 1,

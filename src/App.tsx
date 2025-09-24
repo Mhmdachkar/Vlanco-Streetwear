@@ -9,6 +9,8 @@ import { CartProvider } from "@/hooks/useCart";
 import AnalyticsTracker from "@/components/AnalyticsTracker";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import AuthDebugPanel from "@/components/AuthDebugPanel";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { usePerformanceMonitoring, useConnectionMonitoring, useMemoryMonitoring, usePerformanceOptimization } from "@/hooks/usePerformance";
 import LandingPage from "./components/LandingPage";
 import SplashScreen from "./components/SplashScreen";
 import MaskCollection from './pages/MaskCollection';
@@ -27,12 +29,31 @@ const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 const CheckoutCancel = lazy(() => import("./pages/CheckoutCancel"));
 const DirectCheckout = lazy(() => import("./pages/DirectCheckout"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
+    },
+    mutations: {
+      retry: 2,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+    },
+  },
+});
 
 const AppContent = () => {
   const hasEnteredStore = sessionStorage.getItem('vlanco_entered_store') === 'true';
   const [showLanding, setShowLanding] = useState(!hasEnteredStore);
   const [showSplash, setShowSplash] = useState(false);
+
+  // Initialize performance monitoring
+  usePerformanceMonitoring();
+  useConnectionMonitoring();
+  useMemoryMonitoring();
+  usePerformanceOptimization();
 
   const handleEnter = () => {
     setShowLanding(false);
@@ -91,18 +112,22 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <CartProvider>
-        <TooltipProvider>
-          <Toaster />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </TooltipProvider>
-      </CartProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <CartProvider>
+          <TooltipProvider>
+            <Toaster />
+            <BrowserRouter>
+              <ErrorBoundary>
+                <AppContent />
+              </ErrorBoundary>
+            </BrowserRouter>
+          </TooltipProvider>
+        </CartProvider>
+      </AuthProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

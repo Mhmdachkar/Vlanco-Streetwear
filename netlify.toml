@@ -1,18 +1,12 @@
 [build]
-  base = "."
-  command = "npm run build"
   publish = "dist"
+  command = "npm run build"
 
 [build.environment]
   NODE_VERSION = "18"
-  # Add your Stripe publishable key here
-  # VITE_STRIPE_PUBLISHABLE_KEY = "pk_test_your_key_here"
+  NPM_VERSION = "9"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
+# Performance optimizations
 [build.processing]
   skip_processing = false
 
@@ -29,3 +23,132 @@
 
 [build.processing.images]
   compress = true
+
+# Headers for caching and security
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Cache static assets for 1 year
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache images for 30 days
+[[headers]]
+  for = "*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "*.jpeg"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "*.webp"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "*.avif"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+# Cache CSS and JS for 1 year
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache HTML for 1 hour
+[[headers]]
+  for = "*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+# Security headers for API routes
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+
+# Redirects for SEO and user experience
+[[redirects]]
+  from = "/home"
+  to = "/"
+  status = 301
+
+[[redirects]]
+  from = "/index"
+  to = "/"
+  status = 301
+
+# SPA fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Edge functions configuration
+[functions]
+  directory = "supabase/functions"
+
+# Performance monitoring
+[build.processing.skip_processing]
+  skip_processing = false
+
+# Compression
+[build.processing.minify]
+  css = true
+  js = true
+  html = true
+
+# Image optimization
+[build.processing.images]
+  compress = true
+  quality = 85
+
+# Bundle analysis (optional)
+[build.processing.bundle_analysis]
+  enabled = false
+
+# Environment variables for production
+[context.production.environment]
+  NODE_ENV = "production"
+  VITE_SUPABASE_URL = "https://your-project.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "your-anon-key"
+  STRIPE_PUBLISHABLE_KEY = "pk_live_your-key"
+
+# Environment variables for preview
+[context.deploy-preview.environment]
+  NODE_ENV = "development"
+  VITE_SUPABASE_URL = "https://your-project.supabase.co"
+  VITE_SUPABASE_ANON_KEY = "your-anon-key"
+  STRIPE_PUBLISHABLE_KEY = "pk_test_your-key"
+
+# Branch-specific configurations
+[context.main.environment]
+  NODE_ENV = "production"
+
+[context.develop.environment]
+  NODE_ENV = "development"
